@@ -1485,59 +1485,192 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(186, 206, 255, 0.95)", time);
 }
 
-function shelf(ctx: CanvasRenderingContext2D, x: number, y: number, life: number, seed: number) {
-  for (let index = 0; index < 5; index += 1) {
-    const h = 22 + hash(seed + index) * 16;
-    ctx.globalAlpha = 0.45 + life * 0.4;
-    ctx.fillStyle = ["#6a3028", "#3c4a34", "#5a3a28", "#2c2622", "#7a6238"][(seed + index) % 5] ?? "#5a3a28";
-    ctx.fillRect(x + index * 11, y - h, 8, h);
+function bookcase(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, life: number, seed: number) {
+  ctx.save();
+  ctx.fillStyle = mix("#2a1c14", "#4a3020", life * 0.35);
+  roundRect(ctx, x, y, w, h, 4);
+  ctx.fill();
+  const colors = ["#6a3028", "#3c4a34", "#7a4a28", "#243044", "#8a6840", "#5a3048", "#2c3a28", "#6a5430"];
+  for (let shelf = 0; shelf < 3; shelf += 1) {
+    const shelfY = y + 18 + shelf * (h / 3);
+    ctx.fillStyle = "#5c3c24";
+    ctx.fillRect(x + 3, shelfY, w - 6, 4);
+    let cursor = x + 6;
+    let index = 0;
+    while (cursor < x + w - 10) {
+      const bookW = 6 + hash(seed + shelf * 9 + index) * 5;
+      const bookH = 16 + hash(seed + index + 4) * 18;
+      const lean = hash(seed + index) > 0.86 ? (hash(seed + index + 2) - 0.5) * 0.4 : 0;
+      ctx.save();
+      ctx.translate(cursor + bookW / 2, shelfY);
+      ctx.rotate(lean);
+      ctx.fillStyle = colors[Math.floor(hash(seed + shelf + index) * colors.length) % colors.length] ?? "#6a3028";
+      ctx.globalAlpha = 0.78 + life * 0.22;
+      ctx.fillRect(-bookW / 2, -bookH, bookW, bookH);
+      ctx.fillStyle = "rgba(255, 236, 210, 0.28)";
+      ctx.fillRect(-bookW / 2, -bookH, 1.2, bookH);
+      ctx.restore();
+      cursor += bookW + 1.4;
+      index += 1;
+    }
   }
-  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function openNotebook(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  kind: number,
+  time: number,
+) {
+  const curl = Math.sin(time * 1.4) * 3;
+  ctx.save();
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+  ctx.beginPath();
+  ctx.ellipse(x + 6, y + h * 0.42, w * 0.46, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = kind === 2 ? "#f3e2c4" : "#f7f1e4";
+  roundRect(ctx, x - w / 2, y - h / 2, w * 0.48, h, 3);
+  ctx.fill();
+  ctx.fillStyle = kind === 2 ? "#f8ead0" : "#fffaf2";
+  roundRect(ctx, x - w * 0.02, y - h / 2 + curl * 0.2, w * 0.5, h, 3);
+  ctx.fill();
+  ctx.fillStyle = "#6a4030";
+  ctx.fillRect(x - 2, y - h / 2, 4, h);
+  const lines = kind === 0 ? 4 : 7;
+  ctx.strokeStyle = kind === 0 ? "rgba(90, 70, 50, 0.28)" : "rgba(70, 90, 140, 0.35)";
+  ctx.lineWidth = 1;
+  for (let index = 0; index < lines; index += 1) {
+    const ly = y - h * 0.32 + index * (h * 0.1);
+    const wobble = kind === 0 ? hash(index + 3) * 8 : 0;
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.4, ly);
+    ctx.lineTo(x - w * 0.1 - wobble, ly + (kind === 0 ? 1.4 : 0));
+    ctx.moveTo(x + w * 0.08, ly + curl * 0.15);
+    ctx.lineTo(x + w * 0.4, ly);
+    ctx.stroke();
+  }
+  if (kind === 1) {
+    ctx.strokeStyle = "#8a3030";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.34, y - h / 2);
+    ctx.lineTo(x + w * 0.34, y + h * 0.15);
+    ctx.stroke();
+  }
+  if (kind === 2) {
+    const stickers = ["#c45b6a", "#3c6a4a", "#c4a05a", "#3a4a6a"];
+    stickers.forEach((color, index) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x - w * 0.32 + (index % 2) * 16, y - h * 0.28 + Math.floor(index / 2) * 14, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.strokeStyle = "#d27a4a";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.42, y - h * 0.2);
+    ctx.quadraticCurveTo(x + w * 0.56, y, x + w * 0.4, y + h * 0.2);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 const DRIFT = ["listen", "page", "voice", "line", "safe", "word"];
 
 function drawEnglish(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
-  sky(ctx, frame, "#140e0a", "#1c120e", "#2a1a12", "#c47a3a");
+  sky(ctx, frame, "#140e0a", "#24160f", "#1a100c", "#e0a15a");
   const { width, height, life, warmth, time, sim } = frame;
-  const lamp = ctx.createRadialGradient(width * 0.5, height * 0.16, 4, width * 0.5, height * 0.2, 240 + life * 40);
-  lamp.addColorStop(0, `rgba(255, 214, 160, ${0.25 + warmth * 0.4})`);
-  lamp.addColorStop(1, "rgba(255, 214, 160, 0)");
-  ctx.fillStyle = lamp;
+  ctx.save();
+
+  const wash = ctx.createLinearGradient(0, 0, 0, height);
+  wash.addColorStop(0, `rgba(90, 42, 24, ${0.18 + warmth * 0.2})`);
+  wash.addColorStop(1, "rgba(20, 10, 8, 0.2)");
+  ctx.fillStyle = wash;
   ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = "rgba(244, 220, 180, 0.75)";
+
+  const lampX = width * 0.5;
+  const lampY = height * 0.1;
+  const flicker = 0.92 + Math.sin(time * 7) * 0.04 + Math.sin(time * 13) * 0.02;
+  const glow = ctx.createRadialGradient(lampX, lampY + 28, 4, lampX, height * 0.46, 280 + life * 70);
+  glow.addColorStop(0, `rgba(255, 214, 150, ${(0.45 + warmth * 0.4) * flicker})`);
+  glow.addColorStop(0.45, `rgba(255, 170, 90, ${(0.12 + life * 0.12) * flicker})`);
+  glow.addColorStop(1, "rgba(255, 160, 80, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = "rgba(212, 170, 110, 0.8)";
+  ctx.lineWidth = 1.4;
   ctx.beginPath();
-  ctx.moveTo(width * 0.5, height * 0.08);
-  ctx.lineTo(width * 0.5, height * 0.16);
+  ctx.moveTo(lampX, 0);
+  ctx.lineTo(lampX, lampY);
   ctx.stroke();
+  ctx.fillStyle = "#6a4428";
   ctx.beginPath();
-  ctx.arc(width * 0.5, height * 0.16, 6, 0, Math.PI * 2);
+  ctx.moveTo(lampX - 18, lampY + 16);
+  ctx.lineTo(lampX + 18, lampY + 16);
+  ctx.lineTo(lampX + 8, lampY);
+  ctx.lineTo(lampX - 8, lampY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = `rgba(255, 228, 180, ${0.85 * flicker})`;
+  ctx.beginPath();
+  ctx.ellipse(lampX, lampY + 16, 8, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const caseW = Math.min(78, width * 0.09);
+  const caseH = height * 0.5;
+  bookcase(ctx, 10, height * 0.2, caseW, caseH, life, 2);
+  bookcase(ctx, width - caseW - 10, height * 0.2, caseW, caseH, life, 9);
+
+  const desk = ctx.createLinearGradient(0, height * 0.8, 0, height);
+  desk.addColorStop(0, mix("#3a2418", "#6a4030", life * 0.4));
+  desk.addColorStop(1, "#1a100c");
+  ctx.fillStyle = desk;
+  ctx.fillRect(0, height * 0.8, width, height * 0.2);
+  ctx.strokeStyle = "rgba(236, 210, 170, 0.25)";
+  ctx.beginPath();
+  ctx.moveTo(0, height * 0.8);
+  ctx.lineTo(width, height * 0.8);
   ctx.stroke();
 
-  shelf(ctx, 18, height * 0.36, life, 2);
-  shelf(ctx, 18, height * 0.62, life, 4);
-  shelf(ctx, width - 74, height * 0.36, life, 6);
-  shelf(ctx, width - 74, height * 0.62, life, 8);
+  const bookW = Math.min(width * 0.34, 320);
+  const bookH = Math.min(height * 0.16, 120);
+  openNotebook(ctx, width * 0.5, height * 0.7, bookW, bookH, sim.sentence, time);
 
-  ctx.fillStyle = "rgba(244, 228, 206, 0.55)";
+  for (let index = 0; index < 18 + Math.round(life * 14); index += 1) {
+    const drift = (time * (8 + hash(index) * 10) + hash(index + 2) * height) % (height * 0.7);
+    const x = width * 0.3 + hash(index + 4) * width * 0.4 + Math.sin(time + index) * 10;
+    const y = height * 0.12 + drift;
+    ctx.globalAlpha = 0.15 + life * 0.35;
+    ctx.fillStyle = "#fff1d4";
+    ctx.beginPath();
+    ctx.arc(x, y, hash(index) > 0.7 ? 1.6 : 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "rgba(244, 228, 206, 0.62)";
   ctx.font = "15px Georgia";
+  ctx.textAlign = "center";
   DRIFT.forEach((word, index) => {
-    const x = width * (0.34 + (index % 3) * 0.12) + Math.sin(time * 0.3 + index) * 8;
-    const y = height * (0.24 + Math.floor(index / 3) * 0.08) + Math.cos(time * 0.25 + index) * 6;
-    ctx.globalAlpha = 0.28 + life * 0.25;
+    const x = width * (0.36 + (index % 3) * 0.14) + Math.sin(time * 0.35 + index) * 10;
+    const y = height * (0.22 + Math.floor(index / 3) * 0.07) + Math.cos(time * 0.28 + index) * 7;
+    ctx.globalAlpha = 0.32 + life * 0.28 + Math.sin(time * 0.8 + index) * 0.06;
     ctx.fillText(word, x, y);
   });
   ctx.globalAlpha = 1;
 
-  ctx.fillStyle = "rgba(244, 232, 214, 0.88)";
+  ctx.fillStyle = "rgba(244, 232, 214, 0.92)";
   ctx.font = "18px Georgia";
-  ctx.textAlign = "center";
   ctx.fillText("The notebook looks", width * 0.5, height * 0.52);
   englishWords(width, height).forEach((word, index) => {
-    ctx.fillStyle = sim.sentence === index ? "rgba(244, 220, 180, 0.95)" : "rgba(244, 220, 180, 0.35)";
+    ctx.fillStyle = sim.sentence === index ? "rgba(255, 228, 180, 0.98)" : "rgba(244, 220, 180, 0.4)";
     ctx.fillText(word.label, word.x, word.y);
   });
-  ctx.textAlign = "left";
+  ctx.restore();
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(232, 196, 150, 0.95)", time);
 }
 
