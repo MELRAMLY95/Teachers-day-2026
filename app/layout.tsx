@@ -33,7 +33,7 @@ const hand = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Welcome",
+  title: "The worlds you left with us",
   description: "Something your students made for you.",
 };
 

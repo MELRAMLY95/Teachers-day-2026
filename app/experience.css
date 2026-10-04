@@ -1695,3 +1695,140 @@ body {
     transition: none;
   }
 }
+
+.sequence {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.sequence article {
+  width: min(36rem, 100%);
+  padding: 1.6rem 1.4rem 1.2rem;
+}
+
+.sequence h2,
+.sequence p {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-hand), cursive;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.35;
+}
+
+.sequence h2 {
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 500;
+}
+
+.sequence button {
+  margin-top: 0.4rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: none;
+  color: inherit;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sequence-page {
+  background: rgba(12, 9, 6, 0.45);
+  color: #241c14;
+}
+
+.sequence-page article {
+  background: #f4ead4;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  transform: rotate(-0.4deg);
+}
+
+.sequence-glass {
+  background: rgba(8, 12, 16, 0.35);
+  color: #f6efe2;
+}
+
+.sequence-glass article {
+  background: linear-gradient(180deg, rgba(255, 220, 170, 0.28), rgba(20, 28, 36, 0.72));
+  border: 1px solid rgba(255, 226, 186, 0.45);
+}
+
+.sequence-dark,
+.sequence-stone {
+  background: rgba(6, 5, 4, 0.82);
+  color: #f4ead8;
+}
+
+.sequence-sun {
+  background: rgba(42, 24, 10, 0.28);
+  color: #fff6e4;
+}
+
+.sequence-sun article {
+  text-align: center;
+}
+
+.sequence-screen {
+  background: rgba(4, 6, 5, 0.72);
+  color: #d7f5d4;
+}
+
+.sequence-screen article {
+  width: min(22rem, 100%);
+  background: #07140e;
+  border: 10px solid #1a140f;
+  text-align: center;
+}
+
+.screen-live {
+  color: #9d7;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.screen-time {
+  display: block;
+  margin: 0.4rem auto 0.8rem;
+  border: 0;
+  background: none;
+  color: #f4f7f2;
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: 3rem;
+  cursor: pointer;
+}
+
+.desk-clock {
+  position: absolute;
+  z-index: 4;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.7rem;
+  align-items: baseline;
+  color: #d7f5d4;
+}
+
+.desk-clock button {
+  border: 0;
+  background: #07140e;
+  color: #f4f7f2;
+  padding: 0.35rem 0.6rem;
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.desk-clock span {
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}

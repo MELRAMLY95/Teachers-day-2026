@@ -1,379 +1,399 @@
-import type { Subject, Teacher } from "@/lib/types";
-import { biologyEnding } from "@/teachers/biologyTeacher";
-import { chemistryDiscoveries, chemistryEnding } from "@/teachers/chemistryTeacher";
-import { englishEnding } from "@/teachers/englishTeacher";
-import { innerEnding } from "@/teachers/islamiatPsychologyTeacher";
-import { mathematicsEnding } from "@/teachers/mathematicsTeacher";
-import { physicsEnding } from "@/teachers/physicsTeacher";
+import { digestPassword, normalisePassword } from "@/lib/engine/auth";
+import type { Teacher } from "@/lib/types";
 
 /**
- * Replace these sample teachers before you share the site.
- *
- * A teacher types their name and password on the first screen.
- * The password only keeps the surprise between colleagues. The site is a
- * public static page, so anyone can read the messages in the source.
- * Do not put phone numbers, addresses, or anything private here.
+ * A public static site cannot keep a password secret from someone who reads
+ * the built files. These are hashes, and each world is loaded only after the
+ * hash matches, so one teacher does not walk into another's room.
+ * Do not put phone numbers, addresses, or anything private in the lines.
  */
 export const teachers: Teacher[] = [
   {
-    id: "amira",
-    name: "Amira Hassan",
-    honorific: "Dr.",
-    password: "glassware",
+    id: "irum",
+    name: "Irum Shahid",
+    honorific: "Miss",
+    passwordHash: "921a95e8b614f668981d9eee4d24a3ffdb6821162246bb8036f73f4fd7d20564",
     subject: "chemistry",
-    discoveries: chemistryDiscoveries,
-    ending: chemistryEnding,
-    messages: [
+    worldTitle: "The laboratory",
+    roomLabel: "The light stayed on.",
+    discoveriesNeeded: 3,
+    memories: [
       {
-        studentId: "amina",
-        line: "You let me run the test a third time without making it a story about failure.",
+        id: "notebook",
+        title: "The help",
+        weight: "sentimental",
+        lines: [
+          "You never waited for us to ask.",
+          "Sometimes you offered help before we even knew we needed it.",
+          "Even when it was late.",
+          "Even when you were busy.",
+          "You were there.",
+        ],
       },
       {
-        studentId: "leo",
-        line: "I still check the units twice. That was you, standing at the end of the bench.",
+        id: "monitor",
+        title: "The screen",
+        weight: "ordinary",
+        lines: ["How are you always online?"],
       },
       {
-        studentId: "hana",
-        line: "You called my wrong colour data, not a mistake.",
+        id: "window",
+        title: "The other classroom",
+        weight: "major",
+        lines: [
+          "Some teachers wait for students to ask for help.",
+          "You sometimes offered another lesson before we even asked.",
+          "That says more about you than any lesson ever could.",
+        ],
       },
       {
-        studentId: "mateo",
-        line: "Remember when we spent fifteen minutes arguing about this reaction? I was sure the precipitate would be green.",
+        id: "drawer",
+        title: "A silly one",
+        weight: "ordinary",
+        lines: [
+          "You tell the sweetest, silliest jokes in the middle of a serious practical.",
+          "I remember the joke more clearly than the equation.",
+        ],
       },
       {
-        studentId: "noor",
-        line: "The lab used to feel like a place I could break something. You made it a place I could find something.",
+        id: "margin",
+        title: "In the margin",
+        weight: "sentimental",
+        lines: ["You do not teach past us. You meet us there."],
       },
-      {
-        studentId: "jonah",
-        line: "I forgot my goggles. You handed me yours and took the spare from the drawer like it was nothing.",
-      },
-      {
-        studentId: "safa",
-        line: "You wrote the equation, then waited. The waiting was the lesson.",
-      },
-      {
-        studentId: "elias",
-        line: "I can still hear the pipette against the glass when the room went quiet.",
-      },
-      {
-        studentId: "miriam",
-        line: "You said a colour change is a sentence. I started reading them.",
-      },
-      {
-        studentId: "yusuf",
-        line: "Thank you for not laughing when I called a flask a beaker for a whole term.",
-      },
-      {
-        studentId: "chloe",
-        line: "The practical I dreaded became the one I asked to repeat.",
-      },
-      {
-        studentId: "ibrahim",
-        line: "You showed us that a reaction can be slow and still be certain.",
-      },
+    ],
+    notes: [
+      { id: "hour", label: "After midnight", line: "You answered when the building was already dark." },
+      { id: "joke", label: "The joke", line: "It was silly, and then you made sure I had actually understood." },
+      { id: "class", label: "The extra class", line: "I still have the moment you offered another lesson." },
+      { id: "warm", label: "Sunlight", line: "That is the only word that fits the way school felt around you." },
+    ],
+    finale: [
+      "Some teachers teach chemistry.",
+      "You made your classroom feel like somewhere we could always come back to.",
+      "You are the sunlight in our school life.",
+      "Thank you, Miss Irum.",
+    ],
+    ending: [
+      "It is Teachers' Day.",
+      "The light in this room was already yours.",
+      "Miss Irum Shahid, thank you for being there.",
     ],
   },
   {
-    id: "julian",
-    name: "Julian Okonkwo",
-    honorific: "Mr.",
-    password: "starlight",
+    id: "hadia",
+    name: "Hadia Johar",
+    honorific: "Miss",
+    passwordHash: "32500d7500ce0755c1a0f96ef86b10c3100f70f9ca6d8f4d3673d2925afc2151",
     subject: "physics",
-    ending: physicsEnding,
-    messages: [
+    worldTitle: "The observatory",
+    roomLabel: "You are still in motion.",
+    discoveriesNeeded: 4,
+    memories: [
       {
-        studentId: "amina",
-        line: "Something you taught me that I'll carry: a force can be real before anyone sees it.",
+        id: "praise",
+        title: "Capable",
+        weight: "sentimental",
+        lines: ["Physics is not my favourite subject.", "You praised the work until it felt possible."],
       },
-      {
-        studentId: "leo",
-        line: "The tennis ball on a string. I understood orbits in the corridor, not the textbook.",
-      },
-      {
-        studentId: "hana",
-        line: "You drew the wave so many times the chalk dust looked like a tide.",
-      },
-      {
-        studentId: "mateo",
-        line: "I was afraid of the formula. You asked me what it was trying to notice.",
-      },
-      {
-        studentId: "noor",
-        line: "Light, you said, does not hurry for anyone. I think about that when I rush.",
-      },
-      {
-        studentId: "jonah",
-        line: "You let us get the measurement wrong, then asked what the wrong number was protecting.",
-      },
-      {
-        studentId: "safa",
-        line: "Magnetism felt like a trick until you made us predict it.",
-      },
-      {
-        studentId: "elias",
-        line: "I still look up. That started in your room.",
-      },
-      {
-        studentId: "miriam",
-        line: "You said energy is not lost, only moved. I needed that for more than physics.",
-      },
-      {
-        studentId: "yusuf",
-        line: "The day the circuit worked, you let us be loud.",
-      },
-      {
-        studentId: "chloe",
-        line: "You never rushed the silence after a hard question.",
-      },
-      {
-        studentId: "ibrahim",
-        line: "You pushed us forward the way a field does. We did not always see your hand.",
-      },
+    ],
+    notes: [
+      { id: "amina", label: "The work", line: "You give everything you have to what you are doing." },
+      { id: "leo", label: "The praise", line: "You made me feel capable in a subject I did not love." },
+      { id: "hana", label: "The joke", line: "You are sweet, and you let the joke land." },
+      { id: "mateo", label: "The push", line: "I worked harder because you were working harder." },
+      { id: "noor", label: "The field", line: "A force can move you before you agree to be moved." },
+      { id: "jonah", label: "The late night", line: "The effort was visible. So was the care." },
+      { id: "safa", label: "Momentum", line: "Once you praised the attempt, the next one was easier." },
+      { id: "elias", label: "Looking up", line: "I still look up. That started with you taking the subject seriously." },
+    ],
+    finale: [
+      "Physics was not my favourite subject.",
+      "You praised us until the work felt possible.",
+      "You give everything you have.",
+      "You are the force that kept me moving.",
+      "Thank you, Miss Hadia.",
+    ],
+    ending: [
+      "It is Teachers' Day.",
+      "The orbit changed because you pushed.",
+      "Miss Hadia Johar, thank you for the force.",
     ],
   },
   {
-    id: "elena",
-    name: "Elena Varga",
-    honorific: "Ms.",
-    password: "goldenratio",
+    id: "noshen",
+    name: "Noshen",
+    honorific: "Miss",
+    passwordHash: "ebb3de8a3d9a40366132eb5deb5af44e4c96c11696f8fc34ea2c1d8bd8399171",
     subject: "mathematics",
-    ending: mathematicsEnding,
-    messages: [
+    worldTitle: "The impossible room",
+    roomLabel: "The proof was the future.",
+    discoveriesNeeded: 4,
+    memories: [
       {
-        studentId: "amina",
-        line: "You asked to see the wrong working first. I stopped hiding it.",
+        id: "bridge",
+        title: "Why I love it",
+        weight: "sentimental",
+        lines: ["You are one of the reasons I love mathematics.", "The working had to be seen, especially when it was wrong."],
       },
       {
-        studentId: "leo",
-        line: "The proof looked like a locked door. You handed me the hinge.",
+        id: "sequence",
+        title: "The stare",
+        weight: "ordinary",
+        lines: ["I will kill you.", "That was the joke. The stare did the rest. Then you helped me find the next number."],
       },
       {
-        studentId: "hana",
-        line: "I still draw the diagram before I touch the numbers.",
+        id: "turn",
+        title: "The future",
+        weight: "major",
+        lines: [
+          "Mathematics.",
+          "You made me love it, and you made me work.",
+          "You are one of the reasons I want to become an OB/GYN.",
+        ],
       },
       {
-        studentId: "mateo",
-        line: "You said a wrong turn is a coordinate, not a verdict.",
+        id: "online",
+        title: "Still online",
+        weight: "ordinary",
+        lines: ["How are you always online?"],
       },
-      {
-        studentId: "noor",
-        line: "Fractions used to make me small. You made them into pictures.",
-      },
-      {
-        studentId: "jonah",
-        line: "You waited while I counted on my fingers and did not look away.",
-      },
-      {
-        studentId: "safa",
-        line: "Elegance, you said, is an idea that found its shortest path.",
-      },
-      {
-        studentId: "elias",
-        line: "You celebrated the question I was embarrassed to ask.",
-      },
-      {
-        studentId: "miriam",
-        line: "Graph paper still feels like a kind of kindness.",
-      },
-      {
-        studentId: "yusuf",
-        line: "You told me the answer was the least interesting part. I believe you now.",
-      },
-      {
-        studentId: "chloe",
-        line: "I failed the quiz and you said, good — now we know where to stand.",
-      },
-      {
-        studentId: "ibrahim",
-        line: "You made infinity feel careful, not frightening.",
-      },
+    ],
+    notes: [
+      { id: "working", label: "The working", line: "You wanted the wrong steps first. I stopped hiding them." },
+      { id: "stare", label: "The stare", line: "I will kill you. I can still see your face when you said it." },
+      { id: "love", label: "The subject", line: "I love mathematics because you were the one teaching it." },
+      { id: "future", label: "The future", line: "The ambition came with the practice. You were in both." },
+    ],
+    finale: [
+      "Miss Noshen.",
+      "Mathematics.",
+      "The work.",
+      "The future I want.",
+      "You are one of the reasons I want to become an OB/GYN.",
+      "Thank you.",
+    ],
+    ending: [
+      "It is Teachers' Day.",
+      "The door was a proof, and the proof was you.",
+      "Miss Noshen, thank you for the future.",
     ],
   },
   {
-    id: "priya",
-    name: "Priya Nair",
-    honorific: "Dr.",
-    password: "mitosis",
+    id: "kalsoom",
+    name: "Kalsoom Ashraf",
+    honorific: "Miss",
+    passwordHash: "3cb968a982080be1d7a5df98dc49673a8c052d2642ef7730b7753cee5b87c3dd",
     subject: "biology",
-    ending: biologyEnding,
-    messages: [
+    worldTitle: "The living world",
+    roomLabel: "Quiet, the way that day was quiet.",
+    discoveriesNeeded: 4,
+    memories: [
       {
-        studentId: "amina",
-        line: "The onion cells were a blur until you turned the focus. A city showed up.",
+        id: "smile",
+        title: "The smile",
+        weight: "sentimental",
+        lines: ["Whenever I do something, I look to see whether you are smiling.", "Your smile warms my heart."],
       },
       {
-        studentId: "leo",
-        line: "You made me draw what I actually saw, not what the poster showed.",
+        id: "ease",
+        title: "At ease",
+        weight: "ordinary",
+        lines: ["I am comfortable around you in a way I cannot quite explain.", "You are kind, and you are extremely intelligent."],
       },
       {
-        studentId: "hana",
-        line: "I still think of the heart as a patient worker. That was your phrase.",
+        id: "mind",
+        title: "How you think",
+        weight: "ordinary",
+        lines: ["You notice the living thing in front of you.", "You ask us to see what is actually there."],
       },
       {
-        studentId: "mateo",
-        line: "You let the class go quiet when the seedling leaned toward the window.",
+        id: "heart",
+        title: "The heart",
+        weight: "major",
+        lines: [
+          "I was crying.",
+          "You were my class teacher.",
+          "I don't remember everything about that day.",
+          "I remember the hug.",
+          "I still remember it like yesterday.",
+          "You hold a very big part of my heart.",
+        ],
       },
-      {
-        studentId: "noor",
-        line: "DNA looked like code. You called it a letter that keeps being written.",
-      },
-      {
-        studentId: "jonah",
-        line: "I was squeamish. You stood with me until I could look.",
-      },
-      {
-        studentId: "safa",
-        line: "You said growth is mostly invisible, then suddenly not.",
-      },
-      {
-        studentId: "elias",
-        line: "A pin fell off the ecosystem diagram. You left the gap and asked what was missing.",
-      },
-      {
-        studentId: "miriam",
-        line: "I started noticing birds on the way home. I blame you, happily.",
-      },
-      {
-        studentId: "yusuf",
-        line: "You corrected me gently when I called a cell simple.",
-      },
-      {
-        studentId: "chloe",
-        line: "Thank you for letting us stay after the bell to watch the slide.",
-      },
-      {
-        studentId: "ibrahim",
-        line: "You taught us that living things keep each other.",
-      },
+    ],
+    notes: [
+      { id: "look", label: "After I speak", line: "I look for your smile before I look for anything else." },
+      { id: "grade", label: "Grade 6", line: "There was a day I was crying. You were the class teacher." },
+      { id: "stay", label: "Years later", line: "I remember the hug as if it were yesterday." },
+      { id: "heart", label: "The heart", line: "You hold a very big part of it." },
+    ],
+    finale: [
+      "I was crying.",
+      "You were my class teacher.",
+      "I don't remember everything about that day.",
+      "I remember the hug.",
+      "I still remember it like yesterday.",
+      "You hold a very big part of my heart.",
+      "Thank you, Miss Kalsoom.",
+    ],
+    ending: [
+      "It is Teachers' Day.",
+      "I do not have a better word than heart.",
+      "Miss Kalsoom Ashraf, thank you for that day, and for the days after it.",
     ],
   },
   {
-    id: "samuel",
-    name: "Samuel Adeyemi",
-    honorific: "Mr.",
-    password: "prologue",
+    id: "naila",
+    name: "Naila Naeem",
+    honorific: "Miss",
+    passwordHash: "32713804516cb755aacfdb806dcfad2e606469c22783e7c584973a753b0d5499",
     subject: "english",
-    ending: englishEnding,
-    messages: [
+    worldTitle: "The library",
+    roomLabel: "You can say it here.",
+    discoveriesNeeded: 3,
+    memories: [
       {
-        studentId: "amina",
-        line: "You said, write the sentence you are afraid of first.",
+        id: "notebook",
+        title: "The other notebook",
+        weight: "ordinary",
+        lines: ["I showed you how good the other notebooks looked.", "You got jealous.", "Why doesn't the English one look like that?"],
       },
       {
-        studentId: "leo",
-        line: "I keep a line of yours in the back of my notebook: be specific. Specific is a kind of care.",
+        id: "safe",
+        title: "The quiet room",
+        weight: "major",
+        lines: [
+          "I can talk to you about almost anything.",
+          "You listen. You relate. I do not feel judged.",
+          "English was not my favourite subject.",
+          "You helped me see why it mattered, and I started to enjoy it.",
+          "You are a safe place.",
+        ],
+      },
+    ],
+    books: [
+      {
+        id: "notebooks",
+        title: "The other notebook",
+        pages: [
+          "I show you how good my other subject notebooks look.",
+          "You get jealous, and you ask why the English notebook does not look like that.",
+        ],
       },
       {
-        studentId: "hana",
-        line: "You read my paragraph aloud and I heard it become a real thing.",
+        id: "talk",
+        title: "Talking",
+        pages: [
+          "Talking to you feels like talking to a friend.",
+          "I can bring you the thing I would not say in a classroom.",
+        ],
       },
       {
-        studentId: "mateo",
-        line: "The funniest essay I wrote started because you said the serious topic could survive a joke.",
+        id: "subject",
+        title: "English",
+        pages: [
+          "It was not my favourite subject.",
+          "You helped me see its value, and then I began to enjoy it.",
+        ],
       },
       {
-        studentId: "noor",
-        line: "I never told you the book you lent me was the first I finished.",
+        id: "heard",
+        title: "Being heard",
+        pages: ["You listen.", "You relate.", "Nothing about the conversation feels like a test."],
       },
       {
-        studentId: "jonah",
-        line: "You marked my work in pencil, like you expected it to keep changing.",
+        id: "letters",
+        title: "A letter",
+        pages: ["There are things I tell you that I do not tell the room.", "They are safe with you."],
       },
-      {
-        studentId: "safa",
-        line: "You taught me that a story can tell the truth without raising its voice.",
-      },
-      {
-        studentId: "elias",
-        line: "I still hear you ask, who is this sentence for?",
-      },
-      {
-        studentId: "miriam",
-        line: "There is a letter I was too shy to send. It lives in this library now.",
-      },
-      {
-        studentId: "yusuf",
-        line: "You made poetry feel like something said across a table.",
-      },
-      {
-        studentId: "chloe",
-        line: "I learned to cut a paragraph I loved. You called that courage.",
-      },
-      {
-        studentId: "ibrahim",
-        line: "You said our lives were already full of plots. We just had to notice the turning.",
-      },
+    ],
+    notes: [
+      { id: "judge", label: "Without judgement", line: "I can talk to you about almost anything." },
+      { id: "friend", label: "A friend", line: "It feels like that, even while you are teaching." },
+      { id: "notebook", label: "The notebook", line: "You still want the English one to look as loved as the others." },
+      { id: "safe", label: "Safe", line: "That is the word. Not the subject. You." },
+    ],
+    finale: [
+      "You are much more than a teacher to me.",
+      "You listen, and I do not feel judged.",
+      "You are a safe place.",
+      "Thank you, Miss Naila.",
+    ],
+    ending: [
+      "It is Teachers' Day.",
+      "This library was a way of saying I am heard.",
+      "Miss Naila Naeem, thank you for the quiet room.",
     ],
   },
   {
-    id: "fatima",
-    name: "Fatima Rahman",
-    honorific: "Mrs.",
-    password: "sabr",
+    id: "maryam",
+    name: "Maryam Ghazanfar",
+    honorific: "Miss",
+    passwordHash: "cde56892bbebbf6c5fe56cf3317f558aec67aeb0ba19504ca3c9e6801cb45b28",
     subject: "inner",
-    ending: innerEnding,
-    messages: [
+    worldTitle: "The journey",
+    roomLabel: "The journey kept your work in it.",
+    discoveriesNeeded: 3,
+    memories: [
       {
-        studentId: "amina",
-        line: "You never asked me to perform being good. You asked me what I meant.",
+        id: "intention",
+        title: "Intention",
+        weight: "sentimental",
+        lines: [
+          "A hadith recorded by al-Bukhari and Muslim begins: actions are only by intentions, and every person will have only what they intended.",
+          "You make the lesson enjoyable, and you still take the meaning seriously.",
+        ],
       },
       {
-        studentId: "leo",
-        line: "You gave me a word for wanting to do right and not knowing how: intention.",
+        id: "patience",
+        title: "Sabr",
+        weight: "ordinary",
+        lines: [
+          "You have an enormous amount of work.",
+          "You still make time for us.",
+          "Patience, the way you teach it, is something a person does.",
+        ],
       },
       {
-        studentId: "hana",
-        line: "When I was unkind, you asked what I was protecting. That was the first useful question.",
+        id: "mercy",
+        title: "Rahma",
+        weight: "sentimental",
+        lines: [
+          "Mercy here is attention.",
+          "You are hardworking and knowledgeable, and you do not make us smaller while you teach.",
+        ],
       },
       {
-        studentId: "mateo",
-        line: "You let faith and doubt sit in the same conversation without rushing either.",
+        id: "trip",
+        title: "The journey",
+        weight: "major",
+        lines: [
+          "You planned the journey.",
+          "You put so much effort into making it happen.",
+          "You could not come with us. The work was too much.",
+          "But you were part of the reason we could go.",
+        ],
       },
-      {
-        studentId: "noor",
-        line: "I remember the afternoon you taught us that patience can be active.",
-      },
-      {
-        studentId: "jonah",
-        line: "You noticed when I went quiet. You did not fill the quiet for me.",
-      },
-      {
-        studentId: "safa",
-        line: "You said character is the direction of a life, not one afternoon.",
-      },
-      {
-        studentId: "elias",
-        line: "I still choose more slowly. You made slowness feel like responsibility.",
-      },
-      {
-        studentId: "miriam",
-        line: "You taught compassion as attention, not as a speech.",
-      },
-      {
-        studentId: "yusuf",
-        line: "Thank you for correcting us without making us smaller.",
-      },
-      {
-        studentId: "chloe",
-        line: "The quiet in your room was the first quiet that did not feel like a test.",
-      },
-      {
-        studentId: "ibrahim",
-        line: "You changed how I see people. That includes how I see myself.",
-      },
+    ],
+    notes: [
+      { id: "plan", label: "The plan", line: "You planned the trip as carefully as you plan a lesson." },
+      { id: "work", label: "The work", line: "You could not come. The work had already taken the day." },
+      { id: "reason", label: "Why we went", line: "You were still part of the reason the journey happened." },
+      { id: "time", label: "Time", line: "You have many responsibilities. You still make time." },
+    ],
+    finale: [
+      "You planned the journey.",
+      "You couldn't come with us.",
+      "But you were part of the reason we could go.",
+      "Thank you, Miss Maryam.",
+    ],
+    ending: [
+      "It is Teachers' Day.",
+      "The journey kept your effort in it.",
+      "Miss Maryam Ghazanfar, thank you for planning the way, and for the lessons that made the way matter.",
     ],
   },
 ];
-
-export const worldTitles: Record<Subject, string> = {
-  chemistry: "The Reaction",
-  physics: "The Universe",
-  mathematics: "The Impossible Room",
-  biology: "The Living World",
-  english: "The Library of Stories",
-  inner: "The Inner World",
-};
 
 function normaliseName(value: string) {
   return value
@@ -384,27 +404,18 @@ function normaliseName(value: string) {
     .trim();
 }
 
-function normalisePassword(value: string) {
-  return value.toLowerCase().replace(/\s+/g, "").trim();
-}
-
-export function authenticate(name: string, password: string) {
+export async function authenticate(name: string, password: string) {
   const enteredName = normaliseName(name);
   const enteredPassword = normalisePassword(password);
   if (!enteredName || !enteredPassword) return null;
-  return (
-    teachers.find(
-      (teacher) =>
-        normaliseName(teacher.name) === enteredName &&
-        normalisePassword(teacher.password) === enteredPassword,
-    ) ?? null
-  );
+  const hash = await digestPassword(enteredPassword);
+  return teachers.find((teacher) => normaliseName(teacher.name) === enteredName && teacher.passwordHash === hash) ?? null;
 }
 
 export function getTeacher(id: string) {
   return teachers.find((teacher) => teacher.id === id) ?? null;
 }
 
-export function lineFor(teacher: Teacher, studentId: string) {
-  return teacher.messages.find((message) => message.studentId === studentId)?.line ?? "";
+export function memoryById(teacher: Teacher, id: string) {
+  return teacher.memories.find((memory) => memory.id === id) ?? null;
 }

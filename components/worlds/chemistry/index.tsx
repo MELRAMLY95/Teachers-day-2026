@@ -2,9 +2,9 @@
 
 import type { Teacher } from "@/lib/types";
 import { useCallback, useState } from "react";
+import { Classroom } from "../shared/classroom";
 import { Entrance } from "./entrance";
 import { Lab } from "./lab";
-import { MemoryRoom } from "./memory-room";
 
 export function ChemistryWorld({
   teacher,
@@ -44,7 +44,14 @@ export function ChemistryWorld({
           onLeave={onLeave}
         />
       ) : null}
-      {inMemory ? <MemoryRoom teacher={teacher} onReturn={onReturnToLab} onLeave={onLeave} /> : null}
+      {inMemory ? (
+        <Classroom
+          teacher={teacher}
+          onReturn={onReturnToLab}
+          onLeave={onLeave}
+          returnLabel="Back to the laboratory"
+        />
+      ) : null}
     </>
   );
 }

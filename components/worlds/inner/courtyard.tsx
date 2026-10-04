@@ -3,23 +3,9 @@
 import type { Teacher } from "@/lib/types";
 import { useCallback, useRef, useState } from "react";
 import { readFonts, useStage } from "../shared/stage";
+import { Sequence } from "../shared/sequence";
 
 type Choice = "intention" | "patience" | "mercy";
-
-const REFLECTIONS: Record<Choice, { title: string; body: string }> = {
-  intention: {
-    title: "Intention",
-    body: "A hadith recorded by al-Bukhari and Muslim begins: actions are only by intentions, and every person will have only what they intended. Leo still carries the word you gave him for wanting to do right and not knowing how.",
-  },
-  patience: {
-    title: "Sabr",
-    body: "Patience, as you taught it, is not waiting to be rescued. Noor remembers the afternoon you taught that patience can be active. The room does not hurry you.",
-  },
-  mercy: {
-    title: "Rahma",
-    body: "Mercy here is attention, not a speech. Miriam still has that. When the light widens, it is because someone else has been let into the view.",
-  },
-};
 
 const LIGHT: Record<Choice, string> = {
   intention: "rgba(255, 214, 150, 0.28)",
@@ -46,6 +32,7 @@ export function Courtyard({
   const reducedRef = useRef(reducedMotion);
   const [choice, setChoice] = useState<Choice | null>(null);
   const [visited, setVisited] = useState<Choice[]>([]);
+  const [journey, setJourney] = useState(false);
   const fontsReady = useRef(false);
 
   const choose = useCallback((next: Choice) => {
@@ -112,7 +99,7 @@ export function Courtyard({
   });
 
   const ready = visited.length >= 3;
-  const reflection = choice ? REFLECTIONS[choice] : null;
+  const reflection = choice ? teacher.memories.find((memory) => memory.id === choice) : null;
 
   return (
     <div className={`lab-shell courtyard${covered ? " is-covered" : ""}`}>
@@ -132,15 +119,24 @@ export function Courtyard({
       {reflection ? (
         <article className="stone-panel">
           <h2>{reflection.title}</h2>
-          <p>{reflection.body}</p>
+          {reflection.lines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
         </article>
       ) : (
         <p className="courtyard-invite">Three arches. Nothing here is scored. Walk through them.</p>
       )}
       {ready ? (
-        <button type="button" className="courtyard-door" onClick={onEnterMemory}>
-          The classroom
+        <button type="button" className="courtyard-door" onClick={() => setJourney(true)}>
+          The journey
         </button>
+      ) : null}
+      {journey ? (
+        <Sequence
+          kind="stone"
+          lines={teacher.memories.find((memory) => memory.id === "trip")?.lines ?? teacher.finale}
+          onDone={onEnterMemory}
+        />
       ) : null}
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave

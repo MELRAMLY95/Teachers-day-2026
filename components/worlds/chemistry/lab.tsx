@@ -1,8 +1,10 @@
 "use client";
 
-import { chemistryDiscoveries } from "@/teachers/chemistryTeacher";
-import type { Discovery, Teacher } from "@/lib/types";
+import { discover, markExperiment, createWorldState } from "@/lib/engine/state";
+import { memoryById } from "@/lib/teachers";
+import type { Teacher } from "@/lib/types";
 import { useSound } from "@/components/sound";
+import { AlwaysOnline, Sequence } from "@/components/worlds/shared/sequence";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import {
   createRuntime,
@@ -34,16 +36,18 @@ export function Lab({
   const sound = useSound();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rtRef = useRef<Runtime | null>(null);
-  const [reading, setReading] = useState<Discovery | null>(null);
+  const [reading, setReading] = useState<string | null>(null);
+  const [finale, setFinale] = useState(false);
   const [announce, setAnnounce] = useState("");
   const announced = useRef("");
+  const worldRef = useRef(createWorldState());
   const reducedRef = useRef(reducedMotion);
-  const discoveries = teacher.discoveries?.length ? teacher.discoveries : chemistryDiscoveries;
 
   const runtime = useCallback(() => {
     rtRef.current ??= createRuntime();
+    rtRef.current.plaque = `${teacher.honorific} ${teacher.name}`.trim();
     return rtRef.current;
-  }, []);
+  }, [teacher.honorific, teacher.name]);
 
   useEffect(() => {
     reducedRef.current = reducedMotion;
@@ -115,7 +119,7 @@ export function Lab({
   }
 
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
-    if (reading) return;
+    if (reading || finale) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     const p = point(event);
     pointerDown(runtime(), withLayout(event.currentTarget), p.x, p.y);
@@ -135,20 +139,32 @@ export function Lab({
     const action = pointerUp(rt, withLayout(event.currentTarget), p.x, p.y);
     if (action?.type === "ignite") sound.ignite();
     if (action?.type === "memory") {
-      const memory = discoveries.find((item) => item.id === action.id);
-      if (!memory) return;
-      noteFound(rt, action.id);
-      setReading(memory);
+      if (!memoryById(teacher, action.id)) return;
+      setReading(action.id);
     }
     if (action?.type === "door") {
+      const solid = rt.beaker.cuoh2 + rt.beaker.cuo > 0.001 && rt.maxTemp >= 80;
+      worldRef.current = markExperiment(worldRef.current, solid, teacher.discoveriesNeeded);
       if (action.line) {
         rt.notice = { text: action.line, life: 6 };
         announced.current = action.line;
         setAnnounce(action.line);
-      } else {
-        onEnterMemory();
+      } else if (worldRef.current.finalUnlocked) {
+        setFinale(true);
       }
     }
+  }
+
+  function finishMemory(id: string) {
+    const rt = runtime();
+    noteFound(rt, id);
+    worldRef.current = discover(worldRef.current, id, teacher.discoveriesNeeded);
+    worldRef.current = markExperiment(
+      worldRef.current,
+      rt.beaker.cuoh2 + rt.beaker.cuo > 0.001 && rt.maxTemp >= 80,
+      teacher.discoveriesNeeded,
+    );
+    setReading(null);
   }
 
   return (
@@ -156,7 +172,8 @@ export function Lab({
       <p className="sr-only">
         Drag the copper sulfate bottle and the sodium hydroxide bottle over the mouth of the beaker and
         hold to pour. Drag the burner underneath the beaker and click it to light it. Open the lab book,
-        the drawer, the report, and the note in the margin. Use the lens to see the molecules.
+        the drawer, the window, the margin, and the screen. The screen stays online at every hour. Use the
+        lens to see the molecules.
       </p>
       <canvas
         ref={canvasRef}
@@ -173,28 +190,23 @@ export function Lab({
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
-      {reading ? (
-        <div
-          className="lab-veil"
-          onClick={() => {
-            releasePointer(runtime());
-            setReading(null);
-          }}
-        >
-          <article className="lab-paper" onClick={(event) => event.stopPropagation()}>
-            <h2>{reading.title}</h2>
-            <p>{reading.body}</p>
-            <button
-              type="button"
-              onClick={() => {
-                releasePointer(runtime());
-                setReading(null);
-              }}
-            >
-              Close the page
-            </button>
-          </article>
-        </div>
+      {reading === "monitor" ? (
+        <AlwaysOnline
+          punchline={memoryById(teacher, "monitor")?.lines[0] ?? "How are you always online?"}
+          onClose={() => setReading(null)}
+          onDone={() => finishMemory("monitor")}
+        />
+      ) : null}
+      {reading && reading !== "monitor" ? (
+        <Sequence
+          kind={reading === "window" ? "glass" : "page"}
+          title={memoryById(teacher, reading)?.title}
+          lines={memoryById(teacher, reading)?.lines ?? []}
+          onDone={() => finishMemory(reading)}
+        />
+      ) : null}
+      {finale ? (
+        <Sequence kind="sun" lines={teacher.finale} onDone={onEnterMemory} />
       ) : null}
     </div>
   );

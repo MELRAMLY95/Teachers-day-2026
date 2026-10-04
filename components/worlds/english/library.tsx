@@ -1,26 +1,11 @@
 "use client";
 
-import { studentById } from "@/lib/class";
 import type { Teacher } from "@/lib/types";
 import { useCallback, useState } from "react";
 import { readFonts, useStage } from "../shared/stage";
+import { Sequence } from "../shared/sequence";
 
 type Book = { id: string; title: string; pages: string[] };
-
-function booksFor(teacher: Teacher): Book[] {
-  const lines = teacher.messages.map((message) => {
-    const name = studentById(message.studentId)?.name ?? "A student";
-    return `${name}. ${message.line}`;
-  });
-  const groups = [
-    ["Taught us", lines.slice(0, 2)],
-    ["Never said", lines.slice(2, 4)],
-    ["Remember", lines.slice(4, 6)],
-    ["Funny hour", lines.slice(6, 8)],
-    ["Letters", lines.slice(8, 10)],
-  ] as const;
-  return groups.map(([title, pages]) => ({ id: title, title, pages: [...pages] }));
-}
 
 export function Library({
   teacher,
@@ -33,12 +18,11 @@ export function Library({
   onEnterMemory: () => void;
   onLeave: () => void;
 }) {
-  const [books] = useState(() => booksFor(teacher));
-  const ending = teacher.ending ?? [];
+  const books = teacher.books ?? [];
+  const ending = teacher.finale;
   const [opened, setOpened] = useState<string[]>([]);
   const [current, setCurrent] = useState<Book | null>(null);
   const [page, setPage] = useState(0);
-  const [finalPage, setFinalPage] = useState(0);
   const [showFinal, setShowFinal] = useState(false);
 
   const canvasRef = useStage((ctx, width, height) => {
@@ -108,14 +92,10 @@ export function Library({
   const finalReady = opened.length >= 3;
 
   const turn = useCallback(() => {
-    if (showFinal) {
-      setFinalPage((value) => Math.min(ending.length, value + 1));
-      return;
-    }
     if (!current) return;
     if (page + 1 < current.pages.length) setPage((value) => value + 1);
     else setCurrent(null);
-  }, [current, ending.length, page, showFinal]);
+  }, [current, page]);
 
   return (
     <div className={`lab-shell library-hall${covered ? " is-covered" : ""}`}>
@@ -143,13 +123,12 @@ export function Library({
             if (!finalReady) return;
             setShowFinal(true);
             setCurrent(null);
-            setFinalPage(0);
           }}
         >
-          <span>{finalReady ? "Untitled" : "A blank spine"}</span>
+          <span>{finalReady ? "The quiet room" : "A closed door"}</span>
         </button>
       </div>
-      <p className="library-hint">Pull a book from the shelf. Three of them wake the untitled one.</p>
+      <p className="library-hint">Pull a book from the shelf. Three of them open the quiet room.</p>
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
@@ -164,26 +143,7 @@ export function Library({
           </article>
         </div>
       ) : null}
-      {showFinal ? (
-        <div className="lab-veil">
-          <article className="manuscript">
-            <h2>Untitled</h2>
-            {finalPage === 0 ? <p>The page is blank.</p> : null}
-            {ending.slice(0, finalPage).map((text) => (
-              <p key={text}>{text}</p>
-            ))}
-            {finalPage < ending.length ? (
-              <button type="button" onClick={turn}>
-                Keep writing
-              </button>
-            ) : (
-              <button type="button" onClick={onEnterMemory}>
-                The classroom is through the stacks
-              </button>
-            )}
-          </article>
-        </div>
-      ) : null}
+      {showFinal ? <Sequence kind="dark" title="The quiet room" lines={ending} onDone={onEnterMemory} /> : null}
     </div>
   );
 }

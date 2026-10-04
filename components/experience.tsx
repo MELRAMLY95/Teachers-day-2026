@@ -12,7 +12,7 @@ import { SoundProvider, useSound } from "@/components/sound";
 import { useReducedMotion } from "@/components/use-reduced-motion";
 import type { Bed } from "@/lib/audio";
 import { clearSession, readSession, writeSession, type SessionPhase } from "@/lib/session";
-import { getTeacher, worldTitles } from "@/lib/teachers";
+import { getTeacher } from "@/lib/teachers";
 import type { Teacher } from "@/lib/types";
 import { worldModules } from "@/teachers/registry";
 import { useCallback, useEffect, useState } from "react";
@@ -57,7 +57,7 @@ function Journey() {
       document.title = "Welcome";
       return;
     }
-    document.title = phase === "memory" ? "The classroom" : worldTitles[teacher.subject];
+    document.title = phase === "memory" ? teacher.roomLabel : teacher.worldTitle;
   }, [phase, teacher]);
 
   function signOut() {

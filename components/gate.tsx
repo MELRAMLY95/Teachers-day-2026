@@ -12,9 +12,9 @@ export function Gate({ onEnter }: { onEnter: (teacher: Teacher) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const teacher = authenticate(name, password);
+    const teacher = await authenticate(name, password);
     if (!teacher) {
       setError("Those words do not open a door.");
       return;
@@ -26,7 +26,8 @@ export function Gate({ onEnter }: { onEnter: (teacher: Teacher) => void }) {
   return (
     <main className="gate">
       <div className="gate-copy">
-        <h1>This experience was made for you.</h1>
+        <h1>The worlds you left with us.</h1>
+        <p className="lede">This experience was made for you.</p>
         <form className="gate-form" onSubmit={onSubmit}>
           <div className="field">
             <Label htmlFor="teacher-name">Enter your name.</Label>

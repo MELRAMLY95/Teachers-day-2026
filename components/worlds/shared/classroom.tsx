@@ -1,8 +1,6 @@
 "use client";
 
-import { studentById } from "@/lib/class";
 import type { Teacher } from "@/lib/types";
-import Image from "next/image";
 import { useState } from "react";
 
 export function Classroom({
@@ -21,13 +19,7 @@ export function Classroom({
   const [line, setLine] = useState(0);
   const ending = teacher.ending ?? [];
   const ready = opened.length >= 3;
-  const notes = teacher.messages
-    .map((message) => {
-      const student = studentById(message.studentId);
-      if (!student) return null;
-      return { id: student.id, name: student.name, photo: student.photo, line: message.line };
-    })
-    .filter((note) => note !== null);
+  const notes = teacher.notes;
 
   function toggle(id: string) {
     setActive((current) => (current === id ? null : id));
@@ -36,7 +28,7 @@ export function Classroom({
 
   return (
     <main className="memory-room">
-      <div className="memory-board">You know this room.</div>
+      <div className="memory-board">{teacher.roomLabel}</div>
       {notes.map((note, index) => (
         <button
           key={note.id}
@@ -44,12 +36,7 @@ export function Classroom({
           className={`desk-paper paper-${index}${active === note.id ? " is-open" : ""}`}
           onClick={() => toggle(note.id)}
         >
-          {note.photo ? (
-            <span className="paper-photo">
-              <Image src={note.photo} alt="" fill sizes="180px" />
-            </span>
-          ) : null}
-          <span className="paper-name">{note.name}</span>
+          <span className="paper-name">{note.label}</span>
           {active === note.id ? <span className="paper-line">{note.line}</span> : null}
         </button>
       ))}

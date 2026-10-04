@@ -22,6 +22,8 @@ export type LabLayout = {
   notebook: Rect;
   drawer: Rect;
   report: Rect;
+  monitor: Rect;
+  window: Rect;
   board: Rect;
   note: Rect;
   loupe: Rect;
@@ -84,6 +86,7 @@ export type Runtime = {
   flashes: Flash[];
   notice: { text: string; life: number } | null;
   doorReady: boolean;
+  plaque: string;
   fonts: Fonts;
   fontsReady: boolean;
   lastW: number;
@@ -130,6 +133,7 @@ export function createRuntime(): Runtime {
     flashes: [],
     notice: null,
     doorReady: false,
+    plaque: "",
     fonts: { display: "Georgia", mono: "monospace", sans: "sans-serif", hand: "Georgia" },
     fontsReady: false,
     lastW: 0,
@@ -166,6 +170,8 @@ export function layoutLab(w: number, h: number): LabLayout {
       notebook: { x: 70, y: benchY + 14, w: 84, h: 52 },
       drawer: { x: 70, y: Math.min(h - 50, benchY + 74), w: Math.min(150, w * 0.4), h: 42 },
       report: { x: w - 86, y: benchY + 10, w: 72, h: 88 },
+      monitor: { x: w - 92, y: benchY - 78, w: 80, h: 58 },
+      window: { x: 8, y: 8, w: 46, h: 64 },
       board: { x: 10, y: 8, w: w - 80, h: boardH },
       note: { x: 18, y: 8 + boardH - 28, w: Math.min(190, w * 0.48), h: 24 },
       loupe: { x: w - 64, y: Math.min(h - 60, benchY + 108), w: 52, h: 52 },
@@ -189,6 +195,8 @@ export function layoutLab(w: number, h: number): LabLayout {
     notebook: { x: w * 0.045, y: benchY - 86, w: 136, h: 80 },
     drawer: { x: w * 0.05, y: benchY + 34, w: 196, h: 52 },
     report: { x: w * 0.86, y: benchY - 128, w: 108, h: 126 },
+    monitor: { x: w * 0.8, y: benchY - 168, w: 168, h: 108 },
+    window: { x: w * 0.045, y: h * 0.08, w: 118, h: 156 },
     board: { x: w * 0.24, y: h * 0.045, w: Math.min(500, w * 0.4), h: 176 },
     note: { x: w * 0.255, y: h * 0.045 + 128, w: 240, h: 34 },
     loupe: { x: w * 0.78, y: benchY - 78, w: 70, h: 70 },
@@ -272,6 +280,8 @@ type HitId =
   | "notebook"
   | "drawer"
   | "report"
+  | "monitor"
+  | "window"
   | "note"
   | "loupe"
   | "door"
@@ -285,9 +295,10 @@ function topHit(rt: Runtime, layout: LabLayout, x: number, y: number): HitId | n
     { id: "door", rect: layout.door },
     { id: "cuso4", rect: rt.cuso4 },
     { id: "naoh", rect: rt.naoh },
+    { id: "monitor", rect: layout.monitor },
+    { id: "window", rect: layout.window },
     { id: "notebook", rect: layout.notebook },
     { id: "drawer", rect: layout.drawer },
-    { id: "report", rect: layout.report },
     { id: "note", rect: layout.note },
   ];
   for (const item of order) {
@@ -362,8 +373,8 @@ export function pointerUp(rt: Runtime, layout: LabLayout, x: number, y: number):
     rt.molSeeded = false;
     return null;
   }
-  if (id === "notebook" || id === "drawer" || id === "report" || id === "note") {
-    return { type: "memory", id: id === "note" ? "board" : id };
+  if (id === "notebook" || id === "drawer" || id === "monitor" || id === "window" || id === "note") {
+    return { type: "memory", id: id === "note" ? "margin" : id };
   }
   if (id === "door") {
     const stage = experimentStage({
@@ -645,11 +656,11 @@ function sedimentPaint(beaker: Beaker) {
   };
 }
 
-function drawRoom(ctx: CanvasRenderingContext2D, layout: LabLayout) {
+function drawRoom(ctx: CanvasRenderingContext2D, layout: LabLayout, light: number) {
   const sky = ctx.createLinearGradient(0, 0, 0, layout.h);
-  sky.addColorStop(0, "#07080c");
-  sky.addColorStop(0.42, "#151922");
-  sky.addColorStop(1, "#0b0c10");
+  sky.addColorStop(0, light > 0.65 ? "#3a2a18" : "#07080c");
+  sky.addColorStop(0.42, light > 0.65 ? "#6a4a2c" : "#151922");
+  sky.addColorStop(1, light > 0.65 ? "#2a1c12" : "#0b0c10");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, layout.w, layout.h);
 
@@ -670,10 +681,23 @@ function drawRoom(ctx: CanvasRenderingContext2D, layout: LabLayout) {
     layout.benchY,
     layout.w * 0.48,
   );
-  pool.addColorStop(0, "rgba(255, 176, 96, 0.16)");
+  pool.addColorStop(0, `rgba(255, 176, 96, ${0.08 + light * 0.42})`);
   pool.addColorStop(1, "rgba(255, 176, 96, 0)");
   ctx.fillStyle = pool;
   ctx.fillRect(0, 0, layout.w, layout.h);
+  if (light > 0.55) {
+    ctx.save();
+    ctx.globalAlpha = (light - 0.55) * 0.85;
+    ctx.fillStyle = "rgba(255, 214, 150, 0.35)";
+    ctx.beginPath();
+    ctx.moveTo(layout.w * 0.18, 0);
+    ctx.lineTo(layout.w * 0.34, 0);
+    ctx.lineTo(layout.w * 0.52, layout.benchY);
+    ctx.lineTo(layout.w * 0.28, layout.benchY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 
   ctx.fillStyle = "#241c16";
   ctx.fillRect(0, layout.benchY, layout.w, layout.h - layout.benchY);
@@ -781,26 +805,6 @@ function drawDrawer(ctx: CanvasRenderingContext2D, rect: Rect, found: boolean, f
   ctx.font = `13px ${fonts.mono}`;
   ctx.textAlign = "left";
   ctx.fillText("drawer", rect.x + 10, rect.y + 16);
-}
-
-function drawReport(ctx: CanvasRenderingContext2D, rect: Rect, found: boolean, fonts: Fonts) {
-  ctx.fillStyle = "#6e6256";
-  roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 3);
-  ctx.fill();
-  ctx.fillStyle = found ? "#efe6d4" : "#f7f1e4";
-  ctx.fillRect(rect.x + 8, rect.y + 10, rect.w - 16, rect.h - 20);
-  ctx.strokeStyle = "rgba(40,32,24,0.35)";
-  ctx.beginPath();
-  for (let i = 0; i < 4; i += 1) {
-    const y = rect.y + 28 + i * 16;
-    ctx.moveTo(rect.x + 16, y);
-    ctx.lineTo(rect.x + rect.w - 16, y);
-  }
-  ctx.stroke();
-  ctx.fillStyle = "#2a2118";
-  ctx.font = `14px ${fonts.hand}`;
-  ctx.textAlign = "center";
-  ctx.fillText("report", rect.x + rect.w / 2, rect.y + rect.h - 28);
 }
 
 function drawLoupe(ctx: CanvasRenderingContext2D, rect: Rect, fonts: Fonts) {
@@ -1141,20 +1145,63 @@ function drawMolecules(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabLa
   ctx.fillText("back to the bench", layout.back.x + layout.back.w / 2, layout.back.y + 26);
 }
 
+function drawWindow(ctx: CanvasRenderingContext2D, rect: Rect, light: number, found: boolean) {
+  ctx.fillStyle = "#3a2c22";
+  ctx.fillRect(rect.x - 6, rect.y - 6, rect.w + 12, rect.h + 12);
+  const glass = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h);
+  glass.addColorStop(0, `rgba(255, 214, 160, ${0.15 + light * 0.55})`);
+  glass.addColorStop(1, `rgba(120, 160, 190, ${0.25 + light * 0.2})`);
+  ctx.fillStyle = glass;
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.strokeStyle = found ? "rgba(255, 220, 170, 0.9)" : "rgba(244, 236, 220, 0.45)";
+  ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.w / 2, rect.y);
+  ctx.lineTo(rect.x + rect.w / 2, rect.y + rect.h);
+  ctx.moveTo(rect.x, rect.y + rect.h * 0.42);
+  ctx.lineTo(rect.x + rect.w, rect.y + rect.h * 0.42);
+  ctx.stroke();
+}
+
+function drawMonitor(ctx: CanvasRenderingContext2D, rect: Rect, found: boolean, fonts: Fonts) {
+  ctx.fillStyle = "#1a140f";
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.fillStyle = found ? "#102418" : "#07140e";
+  ctx.fillRect(rect.x + 8, rect.y + 8, rect.w - 16, rect.h - 22);
+  ctx.fillStyle = "#9d7";
+  ctx.beginPath();
+  ctx.arc(rect.x + 20, rect.y + 24, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(210, 240, 210, 0.85)";
+  ctx.font = `12px ${fonts.mono}`;
+  ctx.textAlign = "left";
+  ctx.fillText("online", rect.x + 30, rect.y + 28);
+  ctx.fillStyle = "#2a2118";
+  ctx.fillRect(rect.x + rect.w * 0.4, rect.y + rect.h - 12, rect.w * 0.2, 12);
+}
+
 export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabLayout) {
   if (rt.view === "molecule") {
     drawMolecules(ctx, rt, layout);
     return;
   }
-  drawRoom(ctx, layout);
-  drawBoard(ctx, layout, rt.fonts, rt.found.has("board"));
+  const light = Math.min(1, rt.found.size / 3);
+  drawRoom(ctx, layout, light);
+  drawWindow(ctx, layout.window, light, rt.found.has("window"));
+  drawMonitor(ctx, layout.monitor, rt.found.has("monitor"), rt.fonts);
+  drawBoard(ctx, layout, rt.fonts, rt.found.has("margin"));
+  if (light > 0.4 && rt.plaque) {
+    ctx.fillStyle = `rgba(255, 226, 186, ${0.45 + light * 0.5})`;
+    ctx.font = `${layout.w < 800 ? 18 : 28}px ${rt.fonts.display}`;
+    ctx.textAlign = "left";
+    ctx.fillText(rt.plaque, layout.window.x, Math.min(layout.benchY - 12, layout.window.y + layout.window.h + 28));
+  }
   drawDoor(ctx, layout, rt.doorReady, rt.time, rt.fonts);
   drawThermo(ctx, layout, rt.beaker.tempC, rt.fonts);
   drawTube(ctx, layout, rt.bunsen);
   drawBunsen(ctx, rt.bunsen);
   drawNotebook(ctx, layout.notebook, rt.found.has("notebook"), rt.fonts);
   drawDrawer(ctx, layout.drawer, rt.found.has("drawer"), rt.fonts);
-  drawReport(ctx, layout.report, rt.found.has("report"), rt.fonts);
   drawLoupe(ctx, layout.loupe, rt.fonts);
   drawBeaker(ctx, layout, rt);
   if (rt.bunsen.lit) drawFlame(ctx, rt.bunsen, rt.time, rt.heating);

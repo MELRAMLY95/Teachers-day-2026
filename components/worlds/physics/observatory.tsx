@@ -1,10 +1,10 @@
 "use client";
 
-import { studentById } from "@/lib/class";
 import { STAR_GM, circularVelocity, orbitWord, stepOrbit } from "@/lib/physics/orbit";
 import type { Teacher } from "@/lib/types";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { readFonts, useStage, type Fonts } from "../shared/stage";
+import { Sequence } from "../shared/sequence";
 
 type StarNote = { id: string; name: string; line: string; angle: number };
 
@@ -18,6 +18,7 @@ type Runtime = {
   found: Set<string>;
   held: "planet" | "vel" | "sun" | null;
   disturbed: boolean;
+  pushed: boolean;
   time: number;
   stars: StarNote[];
   fonts: Fonts;
@@ -32,10 +33,10 @@ const RADIUS = 180;
 
 function createRuntime(teacher: Teacher): Runtime {
   const speed = circularVelocity(STAR_GM, RADIUS);
-  const stars = teacher.messages.slice(0, 8).map((message, index) => ({
-    id: message.studentId,
-    name: studentById(message.studentId)?.name ?? "A student",
-    line: message.line,
+  const stars = teacher.notes.slice(0, 8).map((note, index) => ({
+    id: note.id,
+    name: note.label,
+    line: note.line,
     angle: -Math.PI * 0.85 + (index / 8) * Math.PI * 1.7,
   }));
   return {
@@ -48,6 +49,7 @@ function createRuntime(teacher: Teacher): Runtime {
     found: new Set(),
     held: null,
     disturbed: false,
+    pushed: false,
     time: 0,
     stars,
     fonts: { display: "Georgia", mono: "monospace", hand: "Georgia" },
@@ -134,6 +136,7 @@ export function Observatory({
 }) {
   const rtRef = useRef<Runtime | null>(null);
   const [reading, setReading] = useState<StarNote | null>(null);
+  const [showFinale, setShowFinale] = useState(false);
   const [announce, setAnnounce] = useState("");
   const announced = useRef("");
   const runtime = useCallback(() => {
@@ -272,7 +275,7 @@ export function Observatory({
     ctx.arc(hx, hy, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    const ready = rt.disturbed && rt.found.size >= 4;
+    const ready = rt.pushed && rt.found.size >= 4;
     ctx.fillStyle = ready ? "rgba(255, 196, 120, 0.9)" : "rgba(244,240,230,0.55)";
     ctx.font = `14px ${rt.fonts.mono}`;
     ctx.textAlign = "left";
@@ -291,7 +294,11 @@ export function Observatory({
     ctx.textAlign = "left";
     ctx.fillStyle = "rgba(244, 240, 230, 0.62)";
     ctx.font = `15px ${rt.fonts.hand}`;
-    ctx.fillText("Drag the planet, the gold point, or the star.", 24, 32);
+    ctx.fillText("Drag the gold point. Force changes the path.", 24, 32);
+    if (rt.pushed) {
+      ctx.fillStyle = "rgba(255, 214, 160, 0.85)";
+      ctx.fillText("A force has changed the path.", 24, 54);
+    }
     const door = { x: width - 150, y: height * 0.08, w: 86, h: 150 };
     ctx.fillStyle = "#100e14";
     ctx.fillRect(door.x, door.y, door.w, door.h);
@@ -306,7 +313,7 @@ export function Observatory({
     ctx.textAlign = "center";
     ctx.fillText(ready ? "open" : "shut", door.x + door.w / 2, door.y + door.h - 16);
 
-    const nextAnnounce = rt.notice || `${word} ${rt.found.size} student stars found.`;
+    const nextAnnounce = rt.notice || `${word} ${rt.found.size} notes found in the sky.`;
     if (nextAnnounce !== announced.current) {
       announced.current = nextAnnounce;
       rt.lastWord = nextAnnounce;
@@ -373,6 +380,7 @@ export function Observatory({
     } else if (rt.held === "vel") {
       rt.vx = (point.x - (cx + rt.x)) / 0.28;
       rt.vy = (point.y - (cy + rt.y)) / 0.28;
+      rt.pushed = true;
     } else if (rt.held === "sun") {
       rt.mass = Math.min(2.4, Math.max(0.35, rt.mass + (rt.grabY - point.y) * 0.008));
       rt.grabY = point.y;
@@ -398,13 +406,13 @@ export function Observatory({
     const inDoor =
       point.x >= door.x && point.x <= door.x + door.w && point.y >= door.y && point.y <= door.y + door.h;
     if (!inDoor) return;
-    if (rt.disturbed && rt.found.size >= 4) {
-      onEnterMemory();
+    if (rt.pushed && rt.found.size >= 4) {
+      setShowFinale(true);
       return;
     }
-    rt.notice = rt.disturbed
+    rt.notice = rt.pushed
       ? "The floor stays shut. There are still stars with names."
-      : "The floor stays shut. Move the planet, its speed, or the star.";
+      : "The floor stays shut. Drag the gold point. A force has to change the path.";
     announced.current = "";
   }
 
@@ -428,6 +436,7 @@ export function Observatory({
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
+      {showFinale ? <Sequence kind="dark" lines={teacher.finale} onDone={onEnterMemory} /> : null}
       {reading ? (
         <div className="lab-veil" onClick={() => setReading(null)}>
           <article className="lab-paper" onClick={(event) => event.stopPropagation()}>

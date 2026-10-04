@@ -33,9 +33,7 @@ export function Entrance({
     <main className="chem-enter" onClick={reducedMotion ? undefined : onDone}>
       <div className={`chem-flame${beat >= 1 ? " is-lit" : ""}`} aria-hidden="true" />
       <div className="chem-enter-copy">
-        <p className={beat >= 1 ? "is-in" : ""}>The reaction</p>
         <h1 className={beat >= 2 ? "is-in" : ""}>{name}</h1>
-        <p className={beat >= 3 ? "is-in" : ""}>The bench is lit.</p>
       </div>
       {reducedMotion ? (
         <button type="button" className="text-leave" onClick={onDone}>

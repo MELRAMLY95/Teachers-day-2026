@@ -1,23 +1,21 @@
-# The Worlds We Learned In
+# The worlds you left with us
 
-A Teachers' Day experience made by students. One address. One quiet entrance. The teacher who walks in is the only person the room was built for.
+A Teachers' Day experience. One address. The teacher enters a name and a password, and the room that opens is theirs alone.
 
-The password is only a surprise, not a lock. The site is a static page, so it can stay public on GitHub Pages without a paid server. Anyone who can open the address can also read the page source. Do not put phone numbers, home addresses, or anything private in the messages.
+The site is a static page, so it can stay public on GitHub Pages without a paid server. Passwords are stored as hashes. That stops one teacher from walking into another teacher's room. It does not hide the writing from someone who reads the built files. A real secret would need a server. Do not put phone numbers, home addresses, or anything private in the lines.
 
-## Try the sample worlds
-
-The first screen does not mention subjects. These names open the sample class. Replace them in `lib/teachers.ts` before you share the real gift.
+## The six rooms
 
 | Teacher | Password | World |
 | --- | --- | --- |
-| Amira Hassan | glassware | Chemistry, the laboratory |
-| Julian Okonkwo | starlight | Physics, the observatory and the sky |
-| Elena Varga | goldenratio | Mathematics, the impossible room |
-| Priya Nair | mitosis | Biology, the living world |
-| Samuel Adeyemi | prologue | English, the library |
-| Fatima Rahman | sabr | Islamiat and psychology, the inner world |
+| Miss Irum Shahid | sunlight | Chemistry. A warm laboratory. The screen stays online. |
+| Miss Hadia Johar | force | Physics. An observatory. Force changes the orbit. |
+| Miss Noshen | future | Mathematics. The room, the stare, and the future. |
+| Miss Kalsoom Ashraf | heart | Biology. The field grows, then the heart. |
+| Miss Naila Naeem | listened | English. A library, then a quiet room. |
+| Miss Maryam Ghazanfar | journey | Islamiat and psychology. Three arches, then the journey. |
 
-Honorifics are optional. `Dr. Amira Hassan` and `amira hassan` both work.
+Honorifics are optional. `Miss Irum Shahid` and `irum shahid` both work.
 
 ## Run it locally
 
@@ -28,11 +26,11 @@ npm run dev
 
 Open [http://127.0.0.1:43123](http://127.0.0.1:43123).
 
-## Put your own class in
+## Change a teacher's room
 
-1. Edit the students in `lib/class.ts`.
-2. Edit each teacher, password, and message in `lib/teachers.ts`.
-3. To add a photograph, put the file in `public/memories/` and set `photo: "/memories/amina.jpg"` on that student. Add a photo only with that person's permission. It will be public.
+Edit that teacher in `lib/teachers.ts`. The world reads memories, notes, books, and the finale from there. To change a password, replace `passwordHash` with the SHA-256 of the new word in lowercase, with spaces removed.
+
+To add a photograph, put the file in `public/memories/` and add it only with that person's permission. It will be public.
 
 The notes in `teacher's day preparation/` are a checklist for gathering the real lines.
 
@@ -50,19 +48,17 @@ A custom domain is a yearly purchase. The `github.io` address is the part that s
 
 ## What is built
 
-Each password opens a different room. The classroom at the end of every room uses that teacher's own notes.
+Miss Irum, chemistry. The laboratory starts dark. Pour copper sulfate, then sodium hydroxide, into the beaker. The pale blue solid is copper hydroxide. It becomes copper oxide only if the burner is lit underneath the glass. The lens shows the same mixture as particles, bonds, and energy. The screen stays online at 09:00, 14:00, 20:00, 01:00, and 03:47. The window, the notebook, and the drawer hold her memories. Each one adds light. The sunlight lines play only after the practical and three discoveries.
 
-Chemistry, Amira Hassan, `glassware`. Pour copper sulfate, then sodium hydroxide, into the beaker by holding a bottle over its mouth. The pale blue solid is copper hydroxide, and it only darkens to copper oxide if the burner is lit and actually underneath the glass. The lens shows the same mixture as ions and bonds. Notes are hidden in the lab book, the drawer, the report, and the margin of the board. The classroom door opens after the practical and three of those notes.
+Miss Hadia, physics. Drag the gold point to apply a force. The orbit is calculated from mass and velocity. The notes in the sky join when enough of them are found and the path has actually changed.
 
-Physics, Julian Okonkwo, `starlight`. Drag the planet, the gold speed point, or the star. The orbit follows the mass and the velocity. Student stars join into a constellation once you have moved the sky and found enough of them.
+Miss Noshen, mathematics. The lengths, the next Fibonacci number, and a quarter turn change the room. A wrong number brings the stare. The clock stays online. The door then leads through mathematics to the future.
 
-Mathematics, Elena Varga, `goldenratio`. Stretch the two lengths until the longer over the shorter is the golden ratio and the planks cross the gap. Drop the next Fibonacci number into the slot. A wrong number shears the columns. Turn the square through a quarter turn. The door opens when the room agrees.
+Miss Kalsoom, biology. Click a cell and it divides. The glowing points grow the field. The heart appears after those memories, and the lines about that day are spoken one at a time.
 
-Biology, Priya Nair, `mitosis`. The field starts with one cell. Click it to divide it. Drag the strands. The glowing points are memories, and the plants grow from what you find.
+Miss Naila, English. The books are hers. Three of them open the quiet room.
 
-English, Samuel Adeyemi, `prologue`. Take books down from the shelves. After three of them, the untitled book writes itself and leads into the classroom.
-
-Islamiat and psychology, Fatima Rahman, `sabr`. Three arches: intention, patience, mercy. Nothing is scored. The light changes with what you walk through. The hadith of intentions is quoted from al-Bukhari and Muslim.
+Miss Maryam, Islamiat and psychology. Three arches, no score. The hadith of intentions is quoted from al-Bukhari and Muslim. The journey is the trip she planned.
 
 ## How to add the next teacher
 

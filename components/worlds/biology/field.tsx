@@ -1,37 +1,17 @@
 "use client";
 
-import type { Teacher } from "@/lib/types";
+import type { Memory, Teacher } from "@/lib/types";
 import { useCallback, useRef, useState, type PointerEvent } from "react";
 import { readFonts, useStage, type Fonts } from "../shared/stage";
+import { Sequence } from "../shared/sequence";
 
 type Cell = { x: number; y: number; r: number; vx: number; vy: number };
-type Specimen = { id: string; title: string; body: string; angle: number };
+type Specimen = { id: string; angle: number };
 
 const SPECIMENS: Specimen[] = [
-  {
-    id: "slide",
-    title: "The onion",
-    body: "The cells were a blur until you turned the focus. Amina said a city showed up.",
-    angle: -2.4,
-  },
-  {
-    id: "seed",
-    title: "The seedling",
-    body: "Mateo remembers the class going quiet when the seedling leaned toward the window.",
-    angle: -0.6,
-  },
-  {
-    id: "heart",
-    title: "A patient worker",
-    body: "Hana still thinks of the heart as a patient worker. That was your phrase.",
-    angle: 0.7,
-  },
-  {
-    id: "gap",
-    title: "The missing pin",
-    body: "A pin fell off the ecosystem diagram. You left the gap and asked Elias what was missing.",
-    angle: 2.2,
-  },
+  { id: "smile", angle: -2.2 },
+  { id: "ease", angle: -0.4 },
+  { id: "mind", angle: 0.9 },
 ];
 
 type Runtime = {
@@ -101,6 +81,7 @@ function createRuntime(): Runtime {
 }
 
 export function LivingField({
+  teacher,
   covered,
   onEnterMemory,
   onLeave,
@@ -111,7 +92,8 @@ export function LivingField({
   onLeave: () => void;
 }) {
   const rtRef = useRef<Runtime | null>(null);
-  const [reading, setReading] = useState<Specimen | null>(null);
+  const [reading, setReading] = useState<Memory | null>(null);
+  const [heart, setHeart] = useState(false);
   const [announce, setAnnounce] = useState("");
   const announced = useRef("");
   const runtime = useCallback(() => {
@@ -263,13 +245,31 @@ export function LivingField({
       ctx.fillStyle = found ? "#f0ddb0" : "#d7f0dc";
       ctx.fill();
       if (found) {
+        const memory = teacher.memories.find((item) => item.id === specimen.id);
         ctx.font = `13px ${rt.fonts.hand}`;
         ctx.fillStyle = "rgba(236, 232, 214, 0.85)";
-        ctx.fillText(specimen.title, x, y - 16);
+        ctx.fillText(memory?.title ?? "", x, y - 16);
       }
     }
 
-    const ready = rt.found.size >= 3;
+    const ready = rt.found.has("heart");
+    if (rt.found.size >= 3) {
+      const hx = cx;
+      const hy = cy - 8;
+      ctx.save();
+      ctx.translate(hx, hy);
+      ctx.fillStyle = ready ? "rgba(120, 36, 42, 0.2)" : "rgba(176, 64, 72, 0.85)";
+      ctx.beginPath();
+      ctx.moveTo(0, 18);
+      ctx.bezierCurveTo(-28, -8, -18, -28, 0, -12);
+      ctx.bezierCurveTo(18, -28, 28, -8, 0, 18);
+      ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = "rgba(236, 232, 214, 0.75)";
+      ctx.font = `14px ${rt.fonts.hand}`;
+      ctx.textAlign = "center";
+      ctx.fillText(ready ? "" : "the heart", hx, hy + 36);
+    }
     ctx.fillStyle = "rgba(236, 232, 214, 0.84)";
     ctx.font = `15px ${rt.fonts.hand}`;
     ctx.textAlign = "center";
@@ -319,20 +319,13 @@ export function LivingField({
 
   function onPointerUp(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
-    const wasHelix = rt.held === "helix";
     rt.held = null;
-    if (wasHelix && rt.angle > 2 && !rt.found.has("letter")) {
-      rt.found.add("letter");
-      setReading({
-        id: "letter",
-        title: "A letter still being written",
-        body: "Noor said DNA looked like code. You called it a letter that keeps being written.",
-        angle: 0,
-      });
-      return;
-    }
     const point = pointOf(event);
     const { cx, cy, field } = centers(point.width, point.height);
+    if (rt.found.size >= 3 && Math.hypot(point.x - cx, point.y - (cy - 8)) < 36) {
+      setHeart(true);
+      return;
+    }
     const specimen = SPECIMENS.find((item) => {
       const x = cx + Math.cos(item.angle) * field * 0.86;
       const y = cy + Math.sin(item.angle) * field * 0.7;
@@ -340,7 +333,7 @@ export function LivingField({
     });
     if (specimen) {
       rt.found.add(specimen.id);
-      setReading(specimen);
+      setReading(teacher.memories.find((item) => item.id === specimen.id) ?? null);
       return;
     }
     const cell = [...rt.cells].reverse().find((item) => Math.hypot(point.x - (cx + item.x), point.y - (cy + item.y)) < item.r + 4);
@@ -364,7 +357,7 @@ export function LivingField({
     const door = { x: point.width - 120, y: 28, w: 78, h: 120 };
     const inDoor = point.x >= door.x && point.x <= door.x + door.w && point.y >= door.y && point.y <= door.y + door.h;
     if (!inDoor) return;
-    if (rt.found.size >= 3) onEnterMemory();
+    if (rt.found.has("heart")) onEnterMemory();
     else {
       rt.notice = "The way out stays dark until more of the field is alive.";
       announced.current = "";
@@ -391,15 +384,17 @@ export function LivingField({
         Leave
       </button>
       {reading ? (
-        <div className="lab-veil" onClick={() => setReading(null)}>
-          <article className="lab-paper" onClick={(event) => event.stopPropagation()}>
-            <h2>{reading.title}</h2>
-            <p>{reading.body}</p>
-            <button type="button" onClick={() => setReading(null)}>
-              Close
-            </button>
-          </article>
-        </div>
+        <Sequence kind="page" title={reading.title} lines={reading.lines} onDone={() => setReading(null)} />
+      ) : null}
+      {heart ? (
+        <Sequence
+          kind="dark"
+          lines={teacher.memories.find((item) => item.id === "heart")?.lines ?? []}
+          onDone={() => {
+            runtime().found.add("heart");
+            setHeart(false);
+          }}
+        />
       ) : null}
     </div>
   );

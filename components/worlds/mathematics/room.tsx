@@ -1,31 +1,12 @@
 "use client";
 
 import { bridgeProgress, isQuarterTurn } from "@/lib/rooms/puzzles";
-import type { Teacher } from "@/lib/types";
-import { useCallback, useRef, useState, type PointerEvent } from "react";
+import type { Memory, Teacher } from "@/lib/types";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { readFonts, useStage, type Fonts } from "../shared/stage";
+import { Sequence } from "../shared/sequence";
 
 type Stone = { id: string; value: number; x: number; y: number; homeX: number; homeY: number };
-
-type Plate = { id: string; title: string; body: string };
-
-const PLATES: Plate[] = [
-  {
-    id: "bridge",
-    title: "The hinge",
-    body: "The proof looked like a locked door. You handed Leo the hinge, and asked to see the wrong working first.",
-  },
-  {
-    id: "sequence",
-    title: "A coordinate",
-    body: "Mateo missed the next number. You said a wrong turn is a coordinate, not a verdict, and the room waited.",
-  },
-  {
-    id: "turn",
-    title: "The short path",
-    body: "Safa still has your sentence: elegance is an idea that found its shortest path.",
-  },
-];
 
 type Runtime = {
   lengthA: number;
@@ -94,7 +75,10 @@ function layout(width: number, height: number) {
   };
 }
 
+const HOURS = ["09:00", "14:00", "20:00", "01:00", "03:47"];
+
 export function ImpossibleRoom({
+  teacher,
   covered,
   onEnterMemory,
   onLeave,
@@ -105,7 +89,14 @@ export function ImpossibleRoom({
   onLeave: () => void;
 }) {
   const rtRef = useRef<Runtime | null>(null);
-  const [plate, setPlate] = useState<Plate | null>(null);
+  const [plate, setPlate] = useState<Memory | null>(null);
+  const [hour, setHour] = useState(0);
+  const [seenHours, setSeenHours] = useState<number[]>([0]);
+  const [showFinale, setShowFinale] = useState(false);
+  const onlineRef = useRef(false);
+  useEffect(() => {
+    onlineRef.current = seenHours.length >= HOURS.length;
+  }, [seenHours.length]);
   const [announce, setAnnounce] = useState("");
   const announced = useRef("");
   const runtime = useCallback(() => {
@@ -139,7 +130,23 @@ export function ImpossibleRoom({
 
     const progress = bridgeProgress(rt.lengthA, rt.lengthB);
     const turned = isQuarterTurn(rt.angle);
-    const solved = progress > 0.92 && rt.sequence && turned;
+    const solved = progress > 0.92 && rt.sequence && turned && onlineRef.current;
+    if (rt.shear > 0) {
+      ctx.fillStyle = "#f6f1e6";
+      ctx.beginPath();
+      ctx.ellipse(width * 0.12, height * 0.3, 18, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(width * 0.2, height * 0.3, 18, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#140e0a";
+      ctx.beginPath();
+      ctx.arc(width * 0.12, height * 0.3, 4, 0, Math.PI * 2);
+      ctx.arc(width * 0.2, height * 0.3, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(244, 236, 220, 0.8)";
+      ctx.font = `18px ${rt.fonts.hand}`;
+      ctx.textAlign = "left";
+      ctx.fillText("I will kill you.", width * 0.24, height * 0.31);
+    }
 
     const sky = ctx.createLinearGradient(0, 0, 0, height);
     sky.addColorStop(0, "#14110e");
@@ -347,7 +354,7 @@ export function ImpossibleRoom({
         rt.shear = Math.min(18, rt.shear + 6);
         stone.x = stone.homeX;
         stone.y = stone.homeY;
-        rt.notice = "The columns shifted. That number is a coordinate, not the next one.";
+        rt.notice = "I will kill you.";
         announced.current = "";
       } else if (stone && !rt.sequence) {
         stone.x = stone.homeX;
@@ -368,7 +375,7 @@ export function ImpossibleRoom({
         (hitPlate.id === "turn" && turned);
       if (ready) {
         rt.found.add(hitPlate.id);
-        setPlate(PLATES.find((item) => item.id === hitPlate.id) ?? null);
+        setPlate(teacher.memories.find((item) => item.id === hitPlate.id) ?? null);
       }
     }
     const inDoor =
@@ -377,9 +384,11 @@ export function ImpossibleRoom({
       point.y >= place.door.y &&
       point.y <= place.door.y + place.door.h;
     if (inDoor && !held) {
-      if (progress > 0.92 && rt.sequence && turned) onEnterMemory();
+      if (progress > 0.92 && rt.sequence && turned && onlineRef.current) setShowFinale(true);
       else {
-        rt.notice = "The door is part of the room. The lengths, the number, and the turn still have to move it.";
+        rt.notice = onlineRef.current
+          ? "The door is part of the room. The lengths, the number, and the turn still have to move it."
+          : "The clock is still online. Change the hour.";
         announced.current = "";
       }
     }
@@ -405,17 +414,21 @@ export function ImpossibleRoom({
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
-      {plate ? (
-        <div className="lab-veil" onClick={() => setPlate(null)}>
-          <article className="lab-paper" onClick={(event) => event.stopPropagation()}>
-            <h2>{plate.title}</h2>
-            <p>{plate.body}</p>
-            <button type="button" onClick={() => setPlate(null)}>
-              Close the note
-            </button>
-          </article>
-        </div>
-      ) : null}
+      <div className="desk-clock">
+        <button
+          type="button"
+          onClick={() => {
+            const next = (hour + 1) % HOURS.length;
+            setHour(next);
+            setSeenHours((current) => (current.includes(next) ? current : [...current, next]));
+          }}
+        >
+          {HOURS[hour]}
+        </button>
+        <span>Online</span>
+      </div>
+      {plate ? <Sequence kind="page" title={plate.title} lines={plate.lines} onDone={() => setPlate(null)} /> : null}
+      {showFinale ? <Sequence kind="sun" lines={teacher.finale} onDone={onEnterMemory} /> : null}
     </div>
   );
 }
