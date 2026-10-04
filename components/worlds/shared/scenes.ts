@@ -834,88 +834,230 @@ function projectCube(ctx: CanvasRenderingContext2D, cx: number, cy: number, size
 }
 
 function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
-  sky(ctx, frame, "#070814", "#12182a", "#1a140e", "#d4b483");
-  const { width, height, life, time, sim } = frame;
-  for (let index = 0; index < 70; index += 1) {
-    ctx.globalAlpha = 0.2 + hash(index) * 0.5;
-    ctx.fillStyle = "#f4ead8";
-    ctx.fillRect(hash(index + 1) * width, hash(index + 3) * height * 0.62, 1.3, 1.3);
+  sky(ctx, frame, "#070814", "#10182e", "#1a140e", "#e0b56a");
+  const { width, height, life, warmth, time, sim } = frame;
+  ctx.save();
+
+  const milky = ctx.createLinearGradient(0, height * 0.08, width, height * 0.42);
+  milky.addColorStop(0, "rgba(120, 140, 190, 0)");
+  milky.addColorStop(0.45, `rgba(186, 198, 230, ${0.05 + life * 0.06})`);
+  milky.addColorStop(1, "rgba(120, 140, 190, 0)");
+  ctx.fillStyle = milky;
+  ctx.beginPath();
+  ctx.ellipse(width * 0.5, height * 0.22, width * 0.46, height * 0.1, -0.18, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let index = 0; index < 90; index += 1) {
+    const twinkle = 0.25 + Math.abs(Math.sin(time * (0.6 + hash(index) * 1.4) + index)) * 0.75;
+    const x = hash(index + 1) * width;
+    const y = hash(index + 3) * height * 0.7;
+    ctx.globalAlpha = (0.2 + hash(index + 5) * 0.7) * twinkle * (0.55 + life * 0.45);
+    ctx.fillStyle = hash(index + 7) > 0.82 ? "#f6d7a2" : "#f4f7ff";
+    ctx.fillRect(x, y, hash(index) > 0.9 ? 2.1 : 1.2, hash(index) > 0.9 ? 2.1 : 1.2);
   }
   ctx.globalAlpha = 1;
 
-  const cx = width * 0.72;
-  const cy = height * 0.28;
-  const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, 70);
-  glow.addColorStop(0, "rgba(255, 236, 210, 0.9)");
-  glow.addColorStop(1, "rgba(255, 236, 210, 0)");
-  ctx.fillStyle = glow;
+  ctx.strokeStyle = `rgba(214, 196, 170, ${0.16 + life * 0.16})`;
+  ctx.lineWidth = 1.4;
   ctx.beginPath();
-  ctx.arc(cx, cy, 70, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#f6edd8";
-  ctx.beginPath();
-  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-  ctx.fill();
-  const body = sim.orbit;
-  const scale = 0.55;
-  ctx.strokeStyle = "rgba(214, 196, 160, 0.35)";
-  ctx.beginPath();
-  ctx.ellipse(cx, cy, 90, 48, -0.4, 0, Math.PI * 2);
+  ctx.arc(width * 0.5, height * 1.05, Math.max(width, height) * 0.92, Math.PI * 1.12, Math.PI * 1.88);
   ctx.stroke();
-  ctx.fillStyle = "#f4ead8";
+  for (let rib = 0; rib < 5; rib += 1) {
+    ctx.globalAlpha = 0.18 + life * 0.1;
+    ctx.beginPath();
+    ctx.arc(width * (0.2 + rib * 0.15), height * 1.02, height * 0.72, Math.PI * 1.2, Math.PI * 1.8);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  const floor = ctx.createLinearGradient(0, height * 0.74, 0, height);
+  floor.addColorStop(0, mix("#141018", "#3a2a1c", life * 0.45));
+  floor.addColorStop(1, mix("#0c0a10", "#2a1c14", warmth * 0.4));
+  ctx.fillStyle = floor;
+  ctx.fillRect(0, height * 0.74, width, height * 0.26);
+  ctx.strokeStyle = "rgba(232, 210, 176, 0.28)";
   ctx.beginPath();
-  ctx.arc(cx + body.x * scale, cy + body.y * scale * 0.45, 3.2, 0, Math.PI * 2);
+  ctx.moveTo(0, height * 0.74);
+  ctx.lineTo(width, height * 0.74);
+  ctx.stroke();
+  const pool = ctx.createRadialGradient(width * 0.5, height * 0.78, 8, width * 0.5, height * 0.86, width * 0.28);
+  pool.addColorStop(0, `rgba(255, 196, 120, ${0.05 + life * 0.16})`);
+  pool.addColorStop(1, "rgba(255, 196, 120, 0)");
+  ctx.fillStyle = pool;
+  ctx.fillRect(0, height * 0.74, width, height * 0.26);
+
+  const starX = width * 0.7;
+  const starY = height * 0.22;
+  const corona = ctx.createRadialGradient(starX, starY, 2, starX, starY, 90 + life * 50);
+  corona.addColorStop(0, `rgba(255, 244, 220, ${0.95})`);
+  corona.addColorStop(0.18, `rgba(255, 196, 120, ${0.45 + warmth * 0.3})`);
+  corona.addColorStop(1, "rgba(255, 180, 90, 0)");
+  ctx.fillStyle = corona;
+  ctx.beginPath();
+  ctx.arc(starX, starY, 96 + life * 40, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(starX, starY);
+  ctx.rotate(time * 0.08);
+  ctx.strokeStyle = `rgba(255, 232, 196, ${0.28 + life * 0.25})`;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-70, 0);
+  ctx.lineTo(70, 0);
+  ctx.moveTo(0, -46);
+  ctx.lineTo(0, 46);
+  ctx.stroke();
+  ctx.restore();
+  const starBody = ctx.createRadialGradient(starX - 2, starY - 2, 1, starX, starY, 11);
+  starBody.addColorStop(0, "#fffaf0");
+  starBody.addColorStop(1, "#f0c27a");
+  ctx.fillStyle = starBody;
+  ctx.beginPath();
+  ctx.arc(starX, starY, 8 + life * 2, 0, Math.PI * 2);
   ctx.fill();
 
-  const pivotX = width * 0.22;
-  const pivotY = height * 0.18;
-  const length = 120 + life * 20;
-  const angle = Math.sin(time * 1.4) * 0.55;
-  const bobX = pivotX + Math.sin(angle) * length;
-  const bobY = pivotY + Math.cos(angle) * length;
-  ctx.strokeStyle = "rgba(220, 206, 176, 0.7)";
+  const body = sim.orbit;
+  const visual = 0.62;
+  ctx.strokeStyle = `rgba(214, 206, 186, ${0.28 + life * 0.25})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(starX, starY, 118 * visual, 52 * visual, -0.35, 0, Math.PI * 2);
+  ctx.stroke();
+  const planetX = starX + body.x * visual;
+  const planetY = starY + body.y * visual * 0.45;
+  const planetGlow = ctx.createRadialGradient(planetX, planetY, 1, planetX, planetY, 16);
+  planetGlow.addColorStop(0, "rgba(186, 214, 255, 0.9)");
+  planetGlow.addColorStop(1, "rgba(186, 214, 255, 0)");
+  ctx.fillStyle = planetGlow;
+  ctx.beginPath();
+  ctx.arc(planetX, planetY, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#d5e4ff";
+  ctx.beginPath();
+  ctx.arc(planetX, planetY, 4.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  const pivotX = width * 0.3;
+  const pivotY = height * 0.16;
+  const length = Math.min(height * 0.22, 150) + life * 8;
+  const swing = Math.sin(time * 1.35) * 0.62;
+  const bobX = pivotX + Math.sin(swing) * length;
+  const bobY = pivotY + Math.cos(swing) * length;
+  ctx.strokeStyle = "rgba(90, 70, 48, 0.85)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(pivotX - 36, pivotY);
+  ctx.lineTo(pivotX + 28, pivotY);
+  ctx.moveTo(pivotX - 28, pivotY);
+  ctx.lineTo(pivotX - 28, pivotY + 18);
+  ctx.stroke();
+  ctx.strokeStyle = `rgba(232, 214, 180, ${0.18 + life * 0.2})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(pivotX, pivotY, length, Math.PI / 2 - 0.7, Math.PI / 2 + 0.7);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(236, 224, 200, 0.85)";
+  ctx.lineWidth = 1.3;
   ctx.beginPath();
   ctx.moveTo(pivotX, pivotY);
   ctx.lineTo(bobX, bobY);
   ctx.stroke();
-  ctx.fillStyle = "#e6d3ae";
+  ctx.fillStyle = "#8a6840";
   ctx.beginPath();
-  ctx.arc(bobX, bobY, 8, 0, Math.PI * 2);
+  ctx.arc(pivotX, pivotY, 3.5, 0, Math.PI * 2);
   ctx.fill();
+  const bob = ctx.createRadialGradient(bobX - 3, bobY - 3, 1, bobX, bobY, 12);
+  bob.addColorStop(0, "#f4e2c0");
+  bob.addColorStop(1, "#a87848");
+  ctx.fillStyle = bob;
+  ctx.beginPath();
+  ctx.arc(bobX, bobY, 9 + life * 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 236, 210, 0.7)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
 
   const anchor = springAnchor(width, height);
-  const coils = 10;
+  const top = anchor.y - 36;
   const endY = anchor.y + sim.spring;
-  ctx.strokeStyle = "rgba(232, 214, 180, 0.85)";
-  ctx.lineWidth = 1.6;
+  ctx.fillStyle = "#6a5038";
+  roundRect(ctx, anchor.x - 16, top - 8, 32, 8, 2);
+  ctx.fill();
+  ctx.strokeStyle = sim.mass > 1.4 ? "rgba(232, 196, 140, 0.95)" : "rgba(214, 206, 190, 0.9)";
+  ctx.lineWidth = 1.7;
   ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y - 30);
-  for (let index = 0; index <= coils; index += 1) {
-    const t = index / coils;
-    const y = anchor.y - 30 + t * (endY - (anchor.y - 30));
-    const x = anchor.x + (index % 2 === 0 ? -10 : 10);
+  ctx.moveTo(anchor.x, top);
+  const turns = 12;
+  const span = Math.max(24, endY - top);
+  for (let step = 0; step <= turns * 10; step += 1) {
+    const t = step / (turns * 10);
+    const y = top + t * span;
+    const x = anchor.x + Math.sin(t * turns * Math.PI * 2) * 12;
     ctx.lineTo(x, y);
   }
-  ctx.lineTo(anchor.x, endY);
   ctx.stroke();
-  ctx.fillStyle = sim.mass > 1.4 ? "#c4a36a" : "#f4ead8";
+  const weight = 14 + sim.mass * 4;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
   ctx.beginPath();
-  ctx.arc(anchor.x, endY, 12 + sim.mass * 3, 0, Math.PI * 2);
+  ctx.ellipse(anchor.x + 4, endY + weight + 4, weight * 0.7, 4, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(244, 228, 200, 0.4)";
-  ctx.strokeRect(anchor.x + 62, anchor.y - 8, 28, 28);
-  ctx.fillStyle = "rgba(244, 228, 200, 0.75)";
-  ctx.font = "11px Georgia";
-  ctx.fillText("mass", anchor.x + 64, anchor.y + 36);
+  const metal = ctx.createLinearGradient(anchor.x - weight, endY, anchor.x + weight, endY);
+  metal.addColorStop(0, sim.mass > 1.4 ? "#8a6230" : "#c8b49a");
+  metal.addColorStop(0.45, sim.mass > 1.4 ? "#e6c48a" : "#f7f1e6");
+  metal.addColorStop(1, sim.mass > 1.4 ? "#6a4828" : "#a89880");
+  ctx.fillStyle = metal;
+  roundRect(ctx, anchor.x - weight * 0.55, endY, weight * 1.1, weight, 4);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 244, 226, 0.45)";
+  ctx.stroke();
 
+  const switchX = anchor.x + 78;
+  const switchY = anchor.y + 10;
+  ctx.fillStyle = sim.mass > 1.4 ? "#c4a36a" : "rgba(244, 228, 200, 0.16)";
+  ctx.strokeStyle = "rgba(244, 228, 200, 0.7)";
+  ctx.lineWidth = 1.3;
+  roundRect(ctx, switchX - 16, switchY - 14, 32, 28, 4);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(244, 228, 200, 0.85)";
+  ctx.font = "11px Georgia";
+  ctx.textAlign = "center";
+  ctx.fillText("mass", switchX, switchY + 32);
+  ctx.textAlign = "left";
+
+  const waveY = height * 0.7;
   ctx.beginPath();
-  ctx.strokeStyle = `rgba(220, 200, 160, ${0.25 + life * 0.35})`;
-  for (let x = width * 0.12; x < width * 0.88; x += 4) {
-    const y = height * 0.8 + Math.sin(x * 0.02 + time * 1.6) * (6 + life * 10);
-    if (x === width * 0.12) ctx.moveTo(x, y);
+  ctx.strokeStyle = `rgba(126, 168, 220, ${0.22 + life * 0.2})`;
+  ctx.lineWidth = 5;
+  for (let x = width * 0.16; x <= width * 0.84; x += 3) {
+    const y = waveY + Math.sin(x * 0.02 + time * 1.7) * (8 + life * 14);
+    if (x === width * 0.16) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = `rgba(244, 232, 210, ${0.75 + life * 0.2})`;
+  ctx.lineWidth = 1.6;
+  let riderX = width * 0.16;
+  let riderY = waveY;
+  const riderAt = (time * 0.08) % 1;
+  for (let x = width * 0.16; x <= width * 0.84; x += 3) {
+    const local = (x - width * 0.16) / (width * 0.68);
+    const y = waveY + Math.sin(x * 0.02 + time * 1.7) * (8 + life * 14);
+    if (x <= width * 0.16 + 3) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+    if (Math.abs(local - riderAt) < 0.02) {
+      riderX = x;
+      riderY = y;
+    }
+  }
+  ctx.stroke();
+  ctx.fillStyle = "#f4ead8";
+  ctx.beginPath();
+  ctx.arc(riderX, riderY, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(220, 206, 170, 0.95)", time);
 }
 
