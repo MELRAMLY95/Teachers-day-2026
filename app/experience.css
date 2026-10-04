@@ -1960,7 +1960,7 @@ body {
 
 .garden-memory span {
   position: absolute;
-  top: calc(100% - 1.15rem);
+  top: calc(50% + 1.7rem);
   left: 50%;
   width: 8.2rem;
   transform: translateX(-50%);
