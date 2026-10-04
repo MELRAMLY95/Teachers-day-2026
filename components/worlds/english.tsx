@@ -5,7 +5,7 @@ import { RevealLines } from "@/components/reveal-lines";
 import { studentById } from "@/lib/class";
 import { Button } from "@/components/ui/button";
 import type { Teacher, WorldProps } from "@/lib/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Book = {
   id: string;
@@ -85,6 +85,12 @@ export function EnglishWorld({
   const [read, setRead] = useState<string[]>([]);
   const untitledReady = read.length >= 4;
   const [untitled, setUntitled] = useState(false);
+  const spreadRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!openId && !untitled) return;
+    spreadRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  }, [openId, reducedMotion, untitled]);
 
   useEffect(() => {
     if (lamp) return;
@@ -147,7 +153,7 @@ export function EnglishWorld({
         </Button>
       </div>
       {openBookData ? (
-        <article className="spread">
+        <article className="spread" ref={spreadRef}>
           <p className="eyebrow">{openBookData.title}</p>
           {openBookData.passages.map((passage) => (
             <blockquote key={passage.by}>
@@ -161,7 +167,7 @@ export function EnglishWorld({
         </article>
       ) : null}
       {untitled ? (
-        <article className="spread untitled-spread">
+        <article className="spread untitled-spread" ref={spreadRef}>
           <RevealLines
             reducedMotion={reducedMotion}
             lines={[

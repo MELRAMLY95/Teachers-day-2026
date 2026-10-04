@@ -107,6 +107,7 @@ function OrbitBench({
     let last = performance.now();
     let calm = 0;
     let placed = false;
+    let nudged = false;
     const body = { x: 0, y: 0, vx: 0, vy: 0 };
     let dragging = false;
     let origin = { x: 0, y: 0 };
@@ -127,6 +128,7 @@ function OrbitBench({
       const next = point(event);
       body.vx = (next.x - origin.x) * 0.9;
       body.vy = (next.y - origin.y) * 0.9;
+      nudged = true;
       calm = 0;
     };
 
@@ -148,7 +150,8 @@ function OrbitBench({
       if (!placed && rect.width > 40) {
         body.x = sunX - 72;
         body.y = sunY;
-        body.vy = 0;
+        body.vx = 0;
+        body.vy = 50;
         placed = true;
       }
       if (!dragging && placed) {
@@ -166,14 +169,14 @@ function OrbitBench({
           body.vx = 0;
           body.vy = 0;
           calm = 0;
-          setNote("It fell into the star. Try a gentler sideways push.");
+          if (nudged) setNote("It fell into the star. Try a gentler sideways push.");
         } else if (distance > Math.min(rect.width, rect.height) * 0.48) {
           body.x = sunX - 72;
           body.y = sunY;
           body.vx = 0;
           body.vy = 0;
           calm = 0;
-          setNote("It drifted away. A smaller push will hold.");
+          if (nudged) setNote("It drifted away. A smaller push will hold.");
         } else if (distance > 48 && distance < 120) {
           calm += dt;
           if (calm > 2.6 && !stable.current) {
