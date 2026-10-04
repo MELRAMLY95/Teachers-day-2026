@@ -11,7 +11,7 @@ The site is a static page, so it can stay public on GitHub Pages without a paid 
 | Miss Irum Shahid | sunlight | Chemistry. A warm laboratory. The screen stays online. |
 | Miss Hadia Johar | force | Physics. An observatory. Force changes the orbit. |
 | Miss Noshen | future | Mathematics. The room, the stare, and the future. |
-| Miss Kalsoom Ashraf | heart | Biology. The field grows, then the heart. |
+| Miss Kalsoom Ashraf | heart | Biology. A living field. The heart is real, and it is hers. |
 | Miss Naila Naeem | listened | English. A library, then a quiet room. |
 | Miss Maryam Ghazanfar | journey | Islamiat and psychology. The path, then the trip she planned. |
 
@@ -54,7 +54,7 @@ Miss Hadia, physics. Drag the empty sky. Fourteen notes sit at different distanc
 
 Miss Noshen, mathematics. Drag the floor. Cards along the room hold the jokes, the stare, and the line from mathematics to OB/GYN. The lengths are in the first part of the room, the sequence further along, the quarter turn after that. A wrong number brings the stare and shears the walls. Click "look" and the room goes quiet before "Yep." and "That stare." The clock stays online through 09:00, 14:00, 21:00, 23:30, 01:00, and 03:00. The door opens when the room has been solved and every hour has been seen.
 
-Miss Kalsoom, biology. Drag the field. Click a cell and it divides. The glowing points are off to the sides, and each one grows the field. After eight of them, the heart is further along. Those lines are read in the field, one click at a time, and the field goes quiet. The last click after that is the backflip.
+Miss Kalsoom, biology. Drag the field. It starts quiet and grows as it is understood: cells divide, a strand can be paired (A with T, G with C), a neuron will carry a signal, and a heart shows its chambers, valves, and the two colours of blood. Hold the fragile cells still. The still water has nothing to solve. Further on is an empty classroom, then a dark place marked Grade 6 / 7, where the lines wait. There is no hug animation. The far heart is last. The backflip comes after that, and only then the letter.
 
 Miss Naila, English. Drag the shelves. The notebooks are on the desk at the start: mathematics, chemistry, and biology look decorated, and the English one is plainer. Open the decorated ones first. The books are spaced along the shelves. The quiet room is at the far end, after the English notebook and six books.
 

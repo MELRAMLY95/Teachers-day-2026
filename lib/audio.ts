@@ -176,6 +176,41 @@ export class Soundscape {
     this.tone(392, "sine", 0.012);
   }
 
+  /** A quiet heartbeat. Used in the grade 6 / 7 darkness. */
+  thump() {
+    if (!this.enabled || !this.ctx || !this.master) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(58, now);
+    osc.frequency.exponentialRampToValueAtTime(42, now + 0.18);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.22, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+
+  /** A short monitor beep. Used once, after the heart has already been said. */
+  beep() {
+    if (!this.enabled || !this.ctx || !this.master) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(740, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.07, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  }
+
   clink() {
     if (!this.enabled || !this.ctx || !this.master) return;
     const now = this.ctx.currentTime;

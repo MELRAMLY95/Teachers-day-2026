@@ -18,7 +18,7 @@ export function BiologyWorld(props: {
     <WorldShell
       {...props}
       kicker="The living world"
-      line="The field is dark. It will not stay that way."
+      line="It begins quiet. What you find is what makes it grow."
       tone="biology"
       enter="Enter the field"
       returnLabel="Back to the field"
@@ -27,6 +27,7 @@ export function BiologyWorld(props: {
         <LivingField
           teacher={props.teacher}
           covered={covered}
+          reducedMotion={props.reducedMotion}
           onEnterMemory={props.onEnterMemory}
           onLeave={props.onLeave}
         />
