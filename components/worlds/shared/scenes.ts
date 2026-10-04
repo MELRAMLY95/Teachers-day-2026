@@ -933,7 +933,7 @@ function drawBranch(ctx: CanvasRenderingContext2D, x: number, y: number, radius:
 function drawSpiral(ctx: CanvasRenderingContext2D, x: number, y: number, time: number, life: number) {
   ctx.beginPath();
   const turns = 2.4 + life * 1.6;
-  const reach = 26 + life * 20;
+  const reach = 48 + life * 28;
   for (let step = 0; step <= 90; step += 1) {
     const t = step / 90;
     const angle = t * turns * Math.PI * 2 + time * 0.22;
@@ -1156,7 +1156,7 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const step = Math.min(0.05, Math.max(0, live - gazeSeen));
   gazeSeen = live;
   gazeMix += ((frame.freeze ? 1 : 0) - gazeMix) * Math.min(1, step * 2.2);
-  const quiet = 1 - gazeMix * 0.62;
+  const quiet = 1 - gazeMix * 0.28;
 
   const lamp = ctx.createRadialGradient(width * 0.5, height * 0.36, 10, width * 0.5, height * 0.4, 320 + life * 50);
   lamp.addColorStop(0, `rgba(150, 176, 255, ${0.1 + warmth * 0.16 + life * 0.1})`);
@@ -1227,13 +1227,13 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     ctx.stroke();
   }
 
-  drawSpiral(ctx, width * 0.3, height * 0.3, time, life);
+  drawSpiral(ctx, width * 0.28, height * 0.32, time, life);
   const depth = 2 + Math.floor((time * 0.15) % 4);
-  drawBranch(ctx, width * 0.36, height * 0.26, 28 + life * 10, 0, depth, time);
-  projectCube(ctx, width * 0.52, height * 0.36, 46 + life * 14, time, (0.55 + life * 0.35) * quiet);
+  drawBranch(ctx, width * 0.34, height * 0.28, 34 + life * 12, 0, depth, time);
+  projectCube(ctx, width * 0.56, height * 0.34, 58 + life * 16, time, (0.7 + life * 0.25) * quiet);
 
   ctx.save();
-  ctx.translate(width * 0.52, height * 0.36);
+  ctx.translate(width * 0.56, height * 0.34);
   ctx.rotate(time * 0.2);
   ctx.strokeStyle = `rgba(244, 220, 180, ${(0.25 + life * 0.3) * quiet})`;
   ctx.lineWidth = 1.2;
@@ -1255,7 +1255,7 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     const radius = 50 + index * 16;
     ctx.fillStyle = `rgba(244, 214, 160, ${0.35 + life * 0.3})`;
     ctx.beginPath();
-    ctx.arc(width * 0.52 + Math.cos(angle) * radius, height * 0.36 + Math.sin(angle) * radius * 0.4, 2.2, 0, Math.PI * 2);
+    ctx.arc(width * 0.56 + Math.cos(angle) * radius, height * 0.34 + Math.sin(angle) * radius * 0.4, 2.2, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -1319,22 +1319,25 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   drawCompass(ctx, boardX + 34, boardY + boardH - 40, time, 0.7 * quiet);
   ctx.restore();
 
-  if (gazeMix > 0.04) {
-    ctx.fillStyle = `rgba(20, 14, 10, ${gazeMix * 0.16})`;
-    ctx.fillRect(0, 0, width, height);
-  }
   const peek = Math.max(0, Math.sin(live * 0.33) - 0.86) / 0.14;
   const attention = Math.max(gazeMix, peek * (1 - gazeMix));
   if (!frame.focus || frame.freeze) {
     const cycle = (live * 0.22) % 2;
     const going = cycle < 1;
     const along = going ? cycle : 2 - cycle;
-    const idleX = width * (0.34 + along * 0.3);
-    const idleY = height * 0.4;
+    const idleX = width * (0.32 + along * 0.28);
+    const idleY = height * 0.38;
     const gazeX = idleX + (width * 0.5 - idleX) * gazeMix;
-    const gazeY = idleY + (height * 0.32 - idleY) * gazeMix;
-    const scale = (Math.min(width, height) / 780) * (0.95 + gazeMix * 0.55);
+    const gazeY = idleY + (height * 0.24 - idleY) * gazeMix;
+    const scale = (Math.min(width, height) / 460) * (0.9 + gazeMix * 0.42);
     const facing = gazeMix > 0.25 ? 1 : going ? 1 : -1;
+    const glow = ctx.createRadialGradient(gazeX, gazeY - 20, 8, gazeX, gazeY, 90 * scale);
+    glow.addColorStop(0, `rgba(255, 214, 160, ${0.12 + attention * 0.2})`);
+    glow.addColorStop(1, "rgba(255, 214, 160, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(gazeX, gazeY, 100 * scale, 0, Math.PI * 2);
+    ctx.fill();
     drawChibi(ctx, gazeX, gazeY, scale, live, attention, facing);
   }
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(186, 206, 255, 0.95)", time);
