@@ -906,7 +906,14 @@ export function LivingField({
         Escape closes a memory.
       </p>
       <canvas ref={canvasRef} aria-hidden="true" />
-      {focus || vista ? null : <p className="garden-prompt">Explore memories</p>}
+      {focus || vista ? null : (
+        <>
+          <p className="garden-prompt">Explore memories</p>
+          <p className="garden-count">
+            {opened.length} / {garden.length} memories
+          </p>
+        </>
+      )}
       <div ref={layerRef} className={`garden-layer${focus || vista ? " is-quiet" : ""}`}>
         {garden.map((item) => {
           const at = placeOf(item.id, size.w, size.h);

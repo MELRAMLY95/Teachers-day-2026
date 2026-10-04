@@ -8,12 +8,12 @@ The site is a static page, so it can stay public on GitHub Pages without a paid 
 
 | Teacher | Password | World |
 | --- | --- | --- |
-| Miss Irum Shahid | sunlight | Chemistry. A warm laboratory. The screen stays online. |
-| Miss Hadia Johar | force | Physics. An observatory. Force changes the orbit. |
-| Miss Noshen | future | Mathematics. The room, the stare, and the future. |
+| Miss Irum Shahid | sunlight | Chemistry. A warm laboratory. Eight memories, then the letter. |
+| Miss Hadia Johar | force | Physics. An observatory. Eight memories, then the letter. |
+| Miss Noshen | future | Mathematics. The room, the stare, and eight memories. |
 | Miss Kalsoom Ashraf | heart | Biology. A living heart, and the memories around it. |
-| Miss Naila Naeem | listened | English. A library, then a quiet room. |
-| Miss Maryam Ghazanfar | journey | Islamiat and psychology. The path, then the trip she planned. |
+| Miss Naila Naeem | listened | English. A quiet library. Eight memories, then the letter. |
+| Miss Maryam Ghazanfar | journey | A quiet courtyard. Eight memories, then the letter. |
 
 Honorifics are optional. `Miss Irum Shahid` and `irum shahid` both work.
 
@@ -48,19 +48,21 @@ A custom domain is a yearly purchase. The `github.io` address is the part that s
 
 ## What is built
 
-Miss Irum, chemistry. The laboratory is wider than the screen. Drag the empty bench, or use the arrow keys, to look around. Pour copper sulfate, then sodium hydroxide, into the beaker. The pale blue solid is copper hydroxide. It becomes copper oxide only if the burner is lit underneath the glass. The lens shows the same mixture as particles, bonds, and energy. The computer and the phone stay online at 9:00 PM, 11:30 PM, 1:00 AM, and 3:00 AM. The window stays dark until two things have been found, then it opens a lesson nobody had asked for. The folder waits for five finds. The plant waits for seven. Each discovery lets more sunlight in. The letter plays only after the practical and three discoveries.
+Every room opens the same way. The memories are already in the world. One click reads one. Close, or Escape, returns you. A quiet count shows how many are open. There is no score. When all eight are read, the letter uses those same sentences, the view pulls back, and the world ends with the teacher's name and Happy Teachers' Day.
 
-Miss Hadia, physics. Drag the empty sky. Fourteen notes sit at different distances, and each one adds a ring of force around the star. Drag the gold point to apply a force. That drag is the line about physics not being a natural subject, and still wanting to try. The orbit is calculated from mass and velocity. The door opens only after the path has actually changed and six notes are found.
+Miss Irum, chemistry. A dark laboratory and a flask. The room warms as the memories are read. The sun is the last of them. The hour, the jokes, and the lesson nobody asked for are in the open.
 
-Miss Noshen, mathematics. Drag the floor. Cards along the room hold the jokes, the stare, and the line from mathematics to OB/GYN. The lengths are in the first part of the room, the sequence further along, the quarter turn after that. A wrong number brings the stare and shears the walls. Click "look" and the room goes quiet before "Yep." and "That stare." The clock stays online through 09:00, 14:00, 21:00, 23:30, 01:00, and 03:00. The door opens when the room has been solved and every hour has been seen.
+Miss Hadia, physics. A star, orbits, and a wave. Physics is named as a subject that is not a natural favourite, and the want to work at it anyway is the last memory. Praise, effort, and the jokes sit around the star.
 
-Miss Kalsoom, biology. A living heart beats in a dark garden. Eight memories sit in the open, as flowers and small organisms. One click reads one memory. Close returns to the heart. The world grows warmer as they are read. Grade 6 / 7 is quiet, with the heart as the light. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with her name and Happy Teachers' Day.
+Miss Noshen, mathematics. Geometry moves in a quiet room. "I will kill you." is there as the joke it is. The stare holds the room still, then the words. OB/GYN is the last memory. The motivation line stays as it was said.
 
-Miss Naila, English. Drag the shelves. The notebooks are on the desk at the start: mathematics, chemistry, and biology look decorated, and the English one is plainer. Open the decorated ones first. The books are spaced along the shelves. The quiet room is at the far end, after the English notebook and six books.
+Miss Kalsoom, biology. A living heart beats in a dark garden. Eight memories sit in the open. The world grows warmer as they are read. Grade 6 / 7 is quiet, with the heart as the light, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
 
-Miss Maryam, Islamiat and psychology. Drag the path. Six arches come first. The trip stays shut until those six have been walked: itinerary, route, preparations, destination, what you would do, then the fact that she could not come. Nothing is scored. No place is named. The hadith of intentions is quoted from al-Bukhari and Muslim.
+Miss Naila, English. A lamp and shelves. The notebooks are a memory: the other subjects look finished, and the English one is plain. The room is the place that is safe to talk.
 
-Sound can be turned off from the corner. The room goes quiet for the letter.
+Miss Maryam. One arch and a path. The trip is the last memory, and it arrives slowly. The effort of planning it is what the words keep. The hadith of intentions is quoted from al-Bukhari and Muslim. Nothing is scored. No place is named.
+
+Sound can be turned off from the corner. The room goes quiet while a memory is open.
 
 ## How to add the next teacher
 

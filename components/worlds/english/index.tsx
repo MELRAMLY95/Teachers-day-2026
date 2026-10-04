@@ -1,8 +1,9 @@
 "use client";
 
+import { tributeSets } from "@/lib/tribute/sets";
 import type { Teacher } from "@/lib/types";
+import { TributeField } from "../shared/tribute";
 import { WorldShell } from "../shared/world";
-import { Library } from "./library";
 
 export function EnglishWorld(props: {
   teacher: Teacher;
@@ -17,19 +18,21 @@ export function EnglishWorld(props: {
   return (
     <WorldShell
       {...props}
-      kicker="The library of stories"
-      line="The lamps are already on."
+      inMemory={false}
+      kicker="The library"
+      line="The lamp is already on."
       tone="english"
-      enter="Enter the library"
+      enter="Come in"
       returnLabel="Back to the library"
     >
       {(covered) => (
-        <Library
+        <TributeField
           teacher={props.teacher}
           covered={covered}
           reducedMotion={props.reducedMotion}
-          onEnterMemory={props.onEnterMemory}
           onLeave={props.onLeave}
+          tone="english"
+          memories={tributeSets.naila}
         />
       )}
     </WorldShell>

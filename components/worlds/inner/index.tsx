@@ -1,8 +1,9 @@
 "use client";
 
+import { tributeSets } from "@/lib/tribute/sets";
 import type { Teacher } from "@/lib/types";
+import { TributeField } from "../shared/tribute";
 import { WorldShell } from "../shared/world";
-import { Courtyard } from "./courtyard";
 
 export function InnerWorld(props: {
   teacher: Teacher;
@@ -17,19 +18,21 @@ export function InnerWorld(props: {
   return (
     <WorldShell
       {...props}
-      kicker="The inner world"
-      line="There is no score in this room."
+      inMemory={false}
+      kicker="The courtyard"
+      line="The path is already quiet."
       tone="inner"
-      enter="Enter"
+      enter="Come in"
       returnLabel="Back to the courtyard"
     >
       {(covered) => (
-        <Courtyard
+        <TributeField
           teacher={props.teacher}
           covered={covered}
           reducedMotion={props.reducedMotion}
-          onEnterMemory={props.onEnterMemory}
           onLeave={props.onLeave}
+          tone="inner"
+          memories={tributeSets.maryam}
         />
       )}
     </WorldShell>

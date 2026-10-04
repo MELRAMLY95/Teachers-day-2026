@@ -1386,6 +1386,14 @@ body {
   }
 }
 
+.tone-chemistry {
+  background: #120e0a;
+}
+
+.tone-chemistry .chem-flame {
+  background: radial-gradient(ellipse at 50% 80%, #fff1d4, #c47a3a 42%, transparent 72%);
+}
+
 .tone-physics {
   background: #070814;
 }
@@ -1919,6 +1927,26 @@ body {
   background: #070c0a;
 }
 
+.tribute-chemistry {
+  background: #100c09;
+}
+
+.tribute-physics {
+  background: #070814;
+}
+
+.tribute-math {
+  background: #12100c;
+}
+
+.tribute-english {
+  background: #140e0a;
+}
+
+.tribute-inner {
+  background: #100e0c;
+}
+
 .garden-prompt {
   position: absolute;
   z-index: 4;
@@ -1933,6 +1961,20 @@ body {
   text-transform: uppercase;
   pointer-events: none;
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65);
+}
+
+.garden-count {
+  position: absolute;
+  z-index: 4;
+  bottom: 0.85rem;
+  left: 1rem;
+  margin: 0;
+  color: rgba(236, 226, 206, 0.55);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
 .garden-layer {

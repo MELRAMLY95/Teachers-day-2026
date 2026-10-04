@@ -1,8 +1,9 @@
 "use client";
 
+import { tributeSets } from "@/lib/tribute/sets";
 import type { Teacher } from "@/lib/types";
+import { TributeField } from "../shared/tribute";
 import { WorldShell } from "../shared/world";
-import { Observatory } from "./observatory";
 
 export function PhysicsWorld(props: {
   teacher: Teacher;
@@ -17,18 +18,21 @@ export function PhysicsWorld(props: {
   return (
     <WorldShell
       {...props}
-      kicker="The universe"
-      line="The dome is open."
+      inMemory={false}
+      kicker="The observatory"
+      line="The star is already lit."
       tone="physics"
-      enter="Enter the observatory"
+      enter="Come in"
       returnLabel="Back to the observatory"
     >
       {(covered) => (
-        <Observatory
+        <TributeField
           teacher={props.teacher}
           covered={covered}
-          onEnterMemory={props.onEnterMemory}
+          reducedMotion={props.reducedMotion}
           onLeave={props.onLeave}
+          tone="physics"
+          memories={tributeSets.hadia}
         />
       )}
     </WorldShell>

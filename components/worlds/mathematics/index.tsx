@@ -1,8 +1,9 @@
 "use client";
 
+import { tributeSets } from "@/lib/tribute/sets";
 import type { Teacher } from "@/lib/types";
+import { TributeField } from "../shared/tribute";
 import { WorldShell } from "../shared/world";
-import { ImpossibleRoom } from "./room";
 
 export function MathematicsWorld(props: {
   teacher: Teacher;
@@ -17,18 +18,21 @@ export function MathematicsWorld(props: {
   return (
     <WorldShell
       {...props}
-      kicker="The impossible room"
-      line="The geometry is listening."
+      inMemory={false}
+      kicker="The room"
+      line="The shapes are already moving."
       tone="math"
-      enter="Enter the room"
+      enter="Come in"
       returnLabel="Back to the room"
     >
       {(covered) => (
-        <ImpossibleRoom
+        <TributeField
           teacher={props.teacher}
           covered={covered}
-          onEnterMemory={props.onEnterMemory}
+          reducedMotion={props.reducedMotion}
           onLeave={props.onLeave}
+          tone="math"
+          memories={tributeSets.noshen}
         />
       )}
     </WorldShell>

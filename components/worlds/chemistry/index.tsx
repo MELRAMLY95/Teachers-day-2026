@@ -1,21 +1,11 @@
 "use client";
 
+import { tributeSets } from "@/lib/tribute/sets";
 import type { Teacher } from "@/lib/types";
-import { useCallback, useState } from "react";
-import { Classroom } from "../shared/classroom";
-import { Entrance } from "./entrance";
-import { Lab } from "./lab";
+import { TributeField } from "../shared/tribute";
+import { WorldShell } from "../shared/world";
 
-export function ChemistryWorld({
-  teacher,
-  reducedMotion,
-  skipIntro,
-  inMemory,
-  onIntroSeen,
-  onEnterMemory,
-  onReturnToLab,
-  onLeave,
-}: {
+export function ChemistryWorld(props: {
   teacher: Teacher;
   reducedMotion: boolean;
   skipIntro: boolean;
@@ -25,33 +15,26 @@ export function ChemistryWorld({
   onReturnToLab: () => void;
   onLeave: () => void;
 }) {
-  const [labOn, setLabOn] = useState(skipIntro || inMemory);
-  const name = `${teacher.honorific} ${teacher.name}`.trim();
-  const enterLab = useCallback(() => {
-    setLabOn(true);
-    onIntroSeen();
-  }, [onIntroSeen]);
-
   return (
-    <>
-      {!labOn ? <Entrance name={name} reducedMotion={reducedMotion} onDone={enterLab} /> : null}
-      {labOn ? (
-        <Lab
-          teacher={teacher}
-          reducedMotion={reducedMotion}
-          covered={inMemory}
-          onEnterMemory={onEnterMemory}
-          onLeave={onLeave}
+    <WorldShell
+      {...props}
+      inMemory={false}
+      kicker="The laboratory"
+      line="The lamp is already warm."
+      tone="chemistry"
+      enter="Come in"
+      returnLabel="Back to the laboratory"
+    >
+      {(covered) => (
+        <TributeField
+          teacher={props.teacher}
+          covered={covered}
+          reducedMotion={props.reducedMotion}
+          onLeave={props.onLeave}
+          tone="chemistry"
+          memories={tributeSets.irum}
         />
-      ) : null}
-      {inMemory ? (
-        <Classroom
-          teacher={teacher}
-          onReturn={onReturnToLab}
-          onLeave={onLeave}
-          returnLabel="Back to the laboratory"
-        />
-      ) : null}
-    </>
+      )}
+    </WorldShell>
   );
 }
