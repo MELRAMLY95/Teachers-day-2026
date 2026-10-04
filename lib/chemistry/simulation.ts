@@ -119,7 +119,7 @@ export function describeBeaker(beaker: Beaker, heating: boolean) {
   const bits = [`The thermometer reads about ${temp} degrees.`];
   if (beaker.cu2 > 0.0002) bits.push("Copper sulfate is dissolved.");
   if (beaker.oh > 0.0002) bits.push("Hydroxide is still free in the solution.");
-  if (beaker.cuoh2 > 0.0002) bits.push("Pale blue copper hydroxide is forming.");
+  if (beaker.cuoh2 > 0.0002) bits.push("Pale blue copper hydroxide is in the beaker.");
   if (beaker.cuo > 0.0002) bits.push("Black copper oxide is appearing.");
   if (heating) bits.push("The burner is heating the beaker.");
   if (bits.length === 1) bits.push("The beaker holds a little water.");

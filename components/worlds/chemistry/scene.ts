@@ -162,7 +162,7 @@ export function layoutLab(w: number, h: number): LabLayout {
       beaker,
       cuso4: { x: 8, y: benchY - 118, w: 64, h: 118 },
       naoh: { x: w - 72, y: benchY - 124, w: 64, h: 124 },
-      bunsen: { x: 8, y: benchY + 8, w: 54, h: 70 },
+      bunsen: { x: 10, y: benchY + 16, w: 52, h: 56 },
       notebook: { x: 70, y: benchY + 14, w: 84, h: 52 },
       drawer: { x: 70, y: Math.min(h - 50, benchY + 74), w: Math.min(150, w * 0.4), h: 42 },
       report: { x: w - 86, y: benchY + 10, w: 72, h: 88 },
@@ -170,7 +170,7 @@ export function layoutLab(w: number, h: number): LabLayout {
       note: { x: 18, y: 8 + boardH - 28, w: Math.min(190, w * 0.48), h: 24 },
       loupe: { x: w - 64, y: Math.min(h - 60, benchY + 108), w: 52, h: 52 },
       door: { x: w - 64, y: 8, w: 52, h: boardH },
-      back: { x: 16, y: h - 52, w: 210, h: 38 },
+      back: { x: 16, y: h - 58, w: 200, h: 36 },
       thermo: { x: 12, y: boardH + 16, h: 72 },
       tap: { x: 18, y: benchY - 8 },
     };
@@ -185,7 +185,7 @@ export function layoutLab(w: number, h: number): LabLayout {
     beaker,
     cuso4: { x: w * 0.15, y: benchY - 168, w: 88, h: 158 },
     naoh: { x: w * 0.69, y: benchY - 176, w: 82, h: 166 },
-    bunsen: { x: w * 0.57, y: benchY - 148, w: 76, h: 128 },
+    bunsen: { x: w * 0.57, y: benchY - 96, w: 76, h: 96 },
     notebook: { x: w * 0.045, y: benchY - 86, w: 136, h: 80 },
     drawer: { x: w * 0.05, y: benchY + 34, w: 196, h: 52 },
     report: { x: w * 0.86, y: benchY - 128, w: 108, h: 126 },
@@ -193,7 +193,7 @@ export function layoutLab(w: number, h: number): LabLayout {
     note: { x: w * 0.255, y: h * 0.045 + 128, w: 240, h: 34 },
     loupe: { x: w * 0.78, y: benchY - 78, w: 70, h: 70 },
     door: { x: w - 128, y: h * 0.05, w: 92, h: 204 },
-    back: { x: 28, y: h - 64, w: 230, h: 42 },
+    back: { x: w - 250, y: 18, w: 220, h: 36 },
     thermo: { x: 36, y: h * 0.08, h: 150 },
     tap: { x: 46, y: benchY - 36 },
   };
@@ -212,13 +212,30 @@ function overMouth(item: Rect, beaker: Rect) {
   return intersects(item, mouth);
 }
 
-export function burnerHeats(bunsen: Rect, beaker: Rect, lit: boolean) {
+export function burnerHeats(bunsen: Rect, beaker: Rect, benchY: number, lit: boolean) {
   if (!lit) return false;
+  const base = bunsen.y + bunsen.h;
+  const onBench = Math.abs(base - benchY) < 42;
   const cx = bunsen.x + bunsen.w / 2;
-  const within = cx > beaker.x + beaker.w * 0.12 && cx < beaker.x + beaker.w * 0.88;
-  const below = bunsen.y > beaker.y + beaker.h * 0.58;
-  const close = bunsen.y < beaker.y + beaker.h + 28;
-  return within && below && close;
+  const within = cx > beaker.x + beaker.w * 0.08 && cx < beaker.x + beaker.w * 0.92;
+  return onBench && within;
+}
+
+function restBottle(item: Bottle, home: Rect) {
+  item.x = home.x;
+  item.y = home.y;
+  item.w = home.w;
+  item.h = home.h;
+  item.moved = false;
+}
+
+function restBurner(burner: Burner, layout: LabLayout) {
+  const base = burner.y + burner.h;
+  if (Math.abs(base - layout.benchY) > 24) {
+    burner.y = layout.benchY - burner.h + 6;
+  }
+  burner.x = Math.max(8, Math.min(layout.w - burner.w - 8, burner.x));
+  burner.moved = true;
 }
 
 function place(item: Gear, home: Rect) {
@@ -276,8 +293,6 @@ function topHit(rt: Runtime, layout: LabLayout, x: number, y: number): HitId | n
   for (const item of order) {
     if (contains(item.rect, x, y)) return item.id;
   }
-  const upperBeaker = { ...layout.beaker, h: layout.beaker.h * 0.72 };
-  if (contains(upperBeaker, x, y)) return "beaker";
   if (contains(rt.bunsen, x, y)) return "bunsen";
   if (contains(layout.beaker, x, y)) return "beaker";
   return null;
@@ -329,6 +344,9 @@ export function pointerUp(rt: Runtime, layout: LabLayout, x: number, y: number):
   const moved = Math.hypot(x - rt.downX, y - rt.downY) > 8;
   const held = rt.held;
   rt.held = null;
+  if (held === "cuso4") restBottle(rt.cuso4, layout.cuso4);
+  if (held === "naoh") restBottle(rt.naoh, layout.naoh);
+  if (held === "bunsen") restBurner(rt.bunsen, layout);
   if (moved) return null;
   const id = topHit(rt, layout, x, y);
   if (rt.view === "molecule") {
@@ -520,7 +538,7 @@ export function step(rt: Runtime, layout: LabLayout, dt: number): StepFlags {
   }
   if (!rt.pouring) rt.pourArmed = true;
 
-  rt.heating = burnerHeats(rt.bunsen, layout.beaker, rt.bunsen.lit);
+  rt.heating = burnerHeats(rt.bunsen, layout.beaker, layout.benchY, rt.bunsen.lit);
   const result = tick(rt.beaker, rt.heating, safeDt);
   rt.beaker = result.beaker;
   rt.maxTemp = Math.max(rt.maxTemp, rt.beaker.tempC);
@@ -622,8 +640,8 @@ function sedimentPaint(beaker: Beaker) {
     r: Math.round(150 - dark * 128),
     g: Math.round(188 - dark * 168),
     b: Math.round(204 - dark * 188),
-    a: 0.55 + dark * 0.35,
-    height: Math.min(90, 12 + solid * 4200),
+    a: 0.78 + dark * 0.18,
+    height: Math.min(120, 36 + solid * 7000),
   };
 }
 
@@ -848,26 +866,38 @@ function drawBottle(
   ctx.fillText(`${Math.ceil(bottle.ml)} mL`, x + w / 2, y + h * 0.66);
 }
 
-function drawBunsen(ctx: CanvasRenderingContext2D, burner: Burner, time: number, heating: boolean) {
+function drawBunsen(ctx: CanvasRenderingContext2D, burner: Burner) {
   const { x, y, w, h } = burner;
-  ctx.fillStyle = "#1b1d22";
-  roundRect(ctx, x + w * 0.38, y + 18, w * 0.24, h - 28, 2);
+  ctx.fillStyle = "#14161a";
+  roundRect(ctx, x + w * 0.42, y + 22, w * 0.16, h - 30, 2);
   ctx.fill();
-  ctx.fillStyle = "#2a2e36";
+  ctx.fillStyle = "#8a6232";
+  roundRect(ctx, x + w * 0.3, y + 16, w * 0.4, 12, 2);
+  ctx.fill();
+  ctx.fillStyle = "#2c3138";
   ctx.beginPath();
-  ctx.ellipse(x + w / 2, y + h - 8, w * 0.38, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + w / 2, y + h - 6, w * 0.46, 9, 0, 0, Math.PI * 2);
   ctx.fill();
-  if (!burner.lit) return;
-  const height = (heating ? 78 : 52) + Math.sin(time * 14) * 6;
-  const gradient = ctx.createLinearGradient(x, y + 16, x, y + 16 - height);
+}
+
+function drawFlame(ctx: CanvasRenderingContext2D, burner: Burner, time: number, heating: boolean) {
+  const { x, y, w, h } = burner;
+  const origin = y + h - 18;
+  const height = (heating ? 72 : 42) + Math.sin(time * 14) * 5;
+  const gradient = ctx.createLinearGradient(x, origin, x, origin - height);
   gradient.addColorStop(0, "rgba(90, 170, 255, 0.1)");
   gradient.addColorStop(0.35, "rgba(255, 186, 70, 0.85)");
   gradient.addColorStop(1, "rgba(255, 244, 210, 0.95)");
   ctx.fillStyle = gradient;
   ctx.beginPath();
-  ctx.moveTo(x + w * 0.38, y + 20);
-  ctx.quadraticCurveTo(x + w * 0.5 + Math.sin(time * 11) * 6, y + 10 - height * 0.7, x + w * 0.5, y + 16 - height);
-  ctx.quadraticCurveTo(x + w * 0.5 - Math.sin(time * 9) * 5, y + 8 - height * 0.55, x + w * 0.62, y + 20);
+  ctx.moveTo(x + w * 0.34, origin);
+  ctx.quadraticCurveTo(
+    x + w * 0.5 + Math.sin(time * 11) * 6,
+    origin - height * 0.65,
+    x + w * 0.5,
+    origin - height,
+  );
+  ctx.quadraticCurveTo(x + w * 0.5 - Math.sin(time * 9) * 5, origin - height * 0.5, x + w * 0.66, origin);
   ctx.fill();
 }
 
@@ -882,11 +912,31 @@ function drawBeaker(ctx: CanvasRenderingContext2D, layout: LabLayout, rt: Runtim
   ctx.save();
   beakerOutline(ctx, r);
   ctx.clip();
-  ctx.fillStyle = `rgba(${paint.r}, ${paint.g}, ${paint.b}, ${paint.a})`;
+  ctx.fillStyle = "rgba(198, 220, 228, 0.07)";
+  ctx.fillRect(r.x, r.y, r.w, r.h + 8);
+  const liquid = ctx.createLinearGradient(r.x, surface, r.x + r.w, bottom);
+  liquid.addColorStop(0, `rgba(${paint.r}, ${paint.g}, ${paint.b}, ${Math.min(0.92, paint.a + 0.08)})`);
+  liquid.addColorStop(1, `rgba(${Math.round(paint.r * 0.72)}, ${Math.round(paint.g * 0.78)}, ${paint.b}, ${Math.min(0.95, paint.a + 0.28)})`);
+  ctx.fillStyle = liquid;
   ctx.fillRect(r.x, surface, r.w, bottom - surface + 20);
   if (sediment) {
-    ctx.fillStyle = `rgba(${sediment.r}, ${sediment.g}, ${sediment.b}, ${sediment.a})`;
-    ctx.fillRect(r.x, bottom - sediment.height, r.w, sediment.height + 20);
+    const band = ctx.createLinearGradient(r.x, bottom - sediment.height, r.x, bottom);
+    band.addColorStop(0, `rgba(${sediment.r}, ${sediment.g}, ${sediment.b}, 0.15)`);
+    band.addColorStop(1, `rgba(${sediment.r}, ${sediment.g}, ${sediment.b}, ${sediment.a})`);
+    ctx.fillStyle = band;
+    ctx.fillRect(r.x, bottom - sediment.height, r.w, sediment.height + 24);
+  }
+  const solid = rt.beaker.cuoh2 + rt.beaker.cuo;
+  if (sediment && solid > 0.0003) {
+    const dark = rt.beaker.cuo / solid;
+    for (let i = 0; i < 9; i += 1) {
+      const px = r.x + 18 + ((i * 19) % Math.max(12, r.w - 36));
+      const py = bottom - 10 - ((i * 11) % Math.max(12, sediment.height - 8));
+      ctx.fillStyle = dark > 0.45 ? "rgba(12, 10, 8, 0.9)" : "rgba(244, 248, 250, 0.95)";
+      ctx.beginPath();
+      ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   for (const spark of rt.sparks) {
     if (spark.kind === "heat") continue;
@@ -896,9 +946,15 @@ function drawBeaker(ctx: CanvasRenderingContext2D, layout: LabLayout, rt: Runtim
   }
   ctx.restore();
 
-  ctx.strokeStyle = "rgba(214, 232, 238, 0.78)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(226, 238, 242, 0.88)";
+  ctx.lineWidth = 2.5;
   beakerOutline(ctx, r);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(r.x + 18, r.y + 14);
+  ctx.lineTo(r.x + 12, r.y + r.h - 30);
   ctx.stroke();
   ctx.beginPath();
   ctx.ellipse(r.x + r.w / 2, r.y, r.w / 2 - 8, 7, 0, 0, Math.PI * 2);
@@ -1072,8 +1128,9 @@ function drawMolecules(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabLa
   const caption = moleculeCaption(rt.beaker, rt.forming, rt.breaking);
   ctx.fillStyle = "#f4f0e6";
   ctx.textAlign = "left";
-  ctx.font = `22px ${rt.fonts.display}`;
-  wrapText(ctx, caption, 24, layout.h - 92, layout.w - 48, 26);
+  ctx.font = `${layout.w < 800 ? 18 : 22}px ${rt.fonts.display}`;
+  const captionTop = layout.w < 800 ? layout.back.y - 78 : layout.h - 108;
+  wrapText(ctx, caption, 24, captionTop, layout.w - 48, layout.w < 800 ? 22 : 26);
 
   roundRect(ctx, layout.back.x, layout.back.y, layout.back.w, layout.back.h, 0);
   ctx.strokeStyle = "rgba(244,240,230,0.7)";
@@ -1094,15 +1151,16 @@ export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabL
   drawDoor(ctx, layout, rt.doorReady, rt.time, rt.fonts);
   drawThermo(ctx, layout, rt.beaker.tempC, rt.fonts);
   drawTube(ctx, layout, rt.bunsen);
+  drawBunsen(ctx, rt.bunsen);
   drawNotebook(ctx, layout.notebook, rt.found.has("notebook"), rt.fonts);
   drawDrawer(ctx, layout.drawer, rt.found.has("drawer"), rt.fonts);
   drawReport(ctx, layout.report, rt.found.has("report"), rt.fonts);
   drawLoupe(ctx, layout.loupe, rt.fonts);
   drawBeaker(ctx, layout, rt);
+  if (rt.bunsen.lit) drawFlame(ctx, rt.bunsen, rt.time, rt.heating);
   const gear: { item: Gear; draw: () => void }[] = [
     { item: rt.cuso4, draw: () => drawBottle(ctx, rt.cuso4, "CuSO4", "rgba(32, 92, 168, 0.9)", rt.fonts) },
     { item: rt.naoh, draw: () => drawBottle(ctx, rt.naoh, "NaOH", "rgba(226, 234, 238, 0.55)", rt.fonts) },
-    { item: rt.bunsen, draw: () => drawBunsen(ctx, rt.bunsen, rt.time, rt.heating) },
   ];
   gear.sort((a, b) => a.item.y - b.item.y);
   for (const piece of gear) piece.draw();
