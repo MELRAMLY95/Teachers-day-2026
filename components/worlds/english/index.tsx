@@ -27,6 +27,7 @@ export function EnglishWorld(props: {
         <Library
           teacher={props.teacher}
           covered={covered}
+          reducedMotion={props.reducedMotion}
           onEnterMemory={props.onEnterMemory}
           onLeave={props.onLeave}
         />

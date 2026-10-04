@@ -1545,14 +1545,66 @@ body {
 }
 
 .manuscript {
-  width: min(38rem, 100%);
-  min-height: 18rem;
-  padding: 2.2rem 1.7rem 1.4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  width: min(52rem, 100%);
+  min-height: 20rem;
+  padding: 0;
+  overflow: hidden;
   background:
-    repeating-linear-gradient(transparent, transparent 2.15rem, rgba(180, 140, 90, 0.28) 2.16rem),
-    #f6edd8;
+    linear-gradient(90deg, rgba(90, 50, 20, 0.1), transparent 7%, transparent 47%, rgba(70, 36, 12, 0.16) 50%, transparent 53%),
+    repeating-linear-gradient(transparent, transparent 2.15rem, rgba(180, 140, 90, 0.22) 2.16rem),
+    #f4e7c8;
   color: #2a1c14;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 34px 80px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(90, 60, 30, 0.22);
+  transform-origin: 18% 70%;
+  animation: manuscript-open 0.52s cubic-bezier(0.16, 0.84, 0.3, 1);
+}
+
+.manuscript-face,
+.manuscript-leaf {
+  padding: 2rem 1.45rem 1.25rem;
+}
+
+.manuscript-leaf {
+  box-shadow: inset 16px 0 18px rgba(80, 40, 16, 0.07);
+}
+
+.manuscript p.manuscript-kicker {
+  margin-top: 1.4rem;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.manuscript.is-turning .manuscript-leaf {
+  animation: manuscript-flip 0.34s ease;
+}
+
+@keyframes manuscript-open {
+  from {
+    transform: perspective(1100px) rotateY(-28deg) translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes manuscript-flip {
+  from {
+    transform: perspective(900px) rotateY(-62deg);
+    filter: brightness(0.82);
+  }
+  to {
+    transform: none;
+    filter: none;
+  }
 }
 
 .manuscript h2 {
@@ -1707,8 +1759,21 @@ body {
   }
 }
 
+@media (max-width: 720px) {
+  .manuscript {
+    grid-template-columns: 1fr;
+  }
+
+  .manuscript-leaf {
+    box-shadow: inset 0 12px 16px rgba(80, 40, 16, 0.06);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .library-book {
+  .library-book,
+  .manuscript,
+  .manuscript.is-turning .manuscript-leaf {
+    animation: none;
     transition: none;
   }
 }
