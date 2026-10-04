@@ -1,5 +1,7 @@
 "use client";
 
+import { useSound } from "@/components/sound";
+import { clampLook, createLook, drawSlip, dragPan, startPan, stopPan, type Look } from "@/components/worlds/shared/look";
 import { STAR_GM, circularVelocity, orbitWord, stepOrbit } from "@/lib/physics/orbit";
 import type { Teacher } from "@/lib/types";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
@@ -27,9 +29,12 @@ type Runtime = {
   lastWord: string;
   grabX: number;
   grabY: number;
+  look: Look;
+  slip: string;
 };
 
 const RADIUS = 180;
+const STAR_ANGLES = [-2.6, -1.15, 0.15, 1.15, 2.15, 2.9, -3.5, 0.7];
 
 function createRuntime(teacher: Teacher): Runtime {
   const speed = circularVelocity(STAR_GM, RADIUS);
@@ -37,7 +42,7 @@ function createRuntime(teacher: Teacher): Runtime {
     id: note.id,
     name: note.label,
     line: note.line,
-    angle: -Math.PI * 0.85 + (index / 8) * Math.PI * 1.7,
+    angle: STAR_ANGLES[index] ?? index,
   }));
   return {
     x: RADIUS,
@@ -58,6 +63,29 @@ function createRuntime(teacher: Teacher): Runtime {
     lastWord: "",
     grabX: 0,
     grabY: 0,
+    look: createLook(),
+    slip: "",
+  };
+}
+
+function space(width: number, height: number) {
+  const worldW = width * 2.2;
+  const worldH = height * 1.62;
+  return {
+    worldW,
+    worldH,
+    cx: worldW * 0.5,
+    cy: worldH * 0.48,
+    span: Math.min(width, height),
+  };
+}
+
+function starAt(index: number, angle: number, cx: number, cy: number, span: number) {
+  const far = index >= 3;
+  const radius = far ? span * 0.98 : span * 0.26;
+  return {
+    x: cx + Math.cos(angle) * radius,
+    y: cy + Math.sin(angle) * radius * (far ? 0.7 : 0.82),
   };
 }
 
@@ -134,8 +162,8 @@ export function Observatory({
   onEnterMemory: () => void;
   onLeave: () => void;
 }) {
+  const sound = useSound();
   const rtRef = useRef<Runtime | null>(null);
-  const [reading, setReading] = useState<StarNote | null>(null);
   const [showFinale, setShowFinale] = useState(false);
   const [announce, setAnnounce] = useState("");
   const announced = useRef("");
@@ -151,8 +179,18 @@ export function Observatory({
       rt.fontsReady = true;
     }
     rt.time += dt;
-    const cx = width * 0.5;
-    const cy = height * 0.46;
+    const room = space(width, height);
+    const { cx, cy, worldW, worldH, span } = room;
+    rt.look.viewW = width;
+    rt.look.viewH = height;
+    rt.look.worldW = worldW;
+    rt.look.worldH = worldH;
+    if (!rt.look.framed) {
+      rt.look.x = cx - width / 2;
+      rt.look.y = cy - height / 2;
+      rt.look.framed = true;
+    }
+    clampLook(rt.look);
     const gm = STAR_GM * rt.mass;
     if (rt.held !== "planet") {
       const next = stepOrbit({ x: rt.x, y: rt.y, vx: rt.vx, vy: rt.vy }, gm, dt);
@@ -171,33 +209,41 @@ export function Observatory({
     rt.trail.push({ x: rt.x, y: rt.y });
     if (rt.trail.length > 90) rt.trail.shift();
 
-    sky(ctx, width, height, rt.time);
-    drawDome(ctx, width, height);
+    ctx.save();
+    ctx.translate(-rt.look.x, -rt.look.y);
+    sky(ctx, worldW, worldH, rt.time);
+    drawDome(ctx, worldW, worldH);
 
-    const ring = Math.min(width, height) * 0.34;
-    const ordered = [...rt.stars].sort((a, b) => a.angle - b.angle);
+    rt.stars.forEach((_, index) => {
+      if (index >= rt.found.size) return;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 54 + index * 22, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 206, 130, ${0.12 + index * 0.06})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    });
+
+    const ordered = rt.stars.map((star, index) => ({ star, index, at: starAt(index, star.angle, cx, cy, span) }));
     ctx.beginPath();
     ctx.strokeStyle = "rgba(244, 220, 170, 0.85)";
     ctx.lineWidth = 1.6;
     let drawing = false;
-    for (const star of ordered) {
-      if (!rt.found.has(star.id)) {
+    for (const item of [...ordered].sort((a, b) => a.star.angle - b.star.angle)) {
+      if (!rt.found.has(item.star.id)) {
         drawing = false;
         continue;
       }
-      const sx = cx + Math.cos(star.angle) * ring;
-      const sy = cy + Math.sin(star.angle) * ring * 0.72;
       if (!drawing) {
-        ctx.moveTo(sx, sy);
+        ctx.moveTo(item.at.x, item.at.y);
         drawing = true;
-      } else ctx.lineTo(sx, sy);
+      } else ctx.lineTo(item.at.x, item.at.y);
     }
     ctx.stroke();
 
-    for (const star of rt.stars) {
-      const sx = cx + Math.cos(star.angle) * ring;
-      const sy = cy + Math.sin(star.angle) * ring * 0.72;
-      const found = rt.found.has(star.id);
+    for (const item of ordered) {
+      const sx = item.at.x;
+      const sy = item.at.y;
+      const found = rt.found.has(item.star.id);
       if (found) {
         const halo = ctx.createRadialGradient(sx, sy, 1, sx, sy, 22);
         halo.addColorStop(0, "rgba(255, 226, 170, 0.55)");
@@ -215,7 +261,7 @@ export function Observatory({
         ctx.fillStyle = "rgba(244, 240, 230, 0.8)";
         ctx.font = `14px ${rt.fonts.hand}`;
         ctx.textAlign = "center";
-        ctx.fillText(star.name.split(" ")[0] ?? star.name, sx, sy - 12);
+        ctx.fillText(item.star.name.split(" ")[0] ?? item.star.name, sx, sy - 12);
       }
     }
 
@@ -276,12 +322,7 @@ export function Observatory({
     ctx.fill();
 
     const ready = rt.pushed && rt.found.size >= 4;
-    ctx.fillStyle = ready ? "rgba(255, 196, 120, 0.9)" : "rgba(244,240,230,0.55)";
-    ctx.font = `14px ${rt.fonts.mono}`;
-    ctx.textAlign = "left";
     const word = orbitWord({ x: rt.x, y: rt.y, vx: rt.vx, vy: rt.vy }, gm);
-    ctx.fillText(word, 24, height - 28);
-    ctx.fillText(`star mass ${rt.mass.toFixed(2)}`, 24, height - 48);
     if (rt.found.size >= 5) {
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(246, 226, 176, 0.7)";
@@ -291,15 +332,7 @@ export function Observatory({
       ctx.font = `28px ${rt.fonts.display}`;
       ctx.fillText(teacher.name, cx, cy - sunR - 14);
     }
-    ctx.textAlign = "left";
-    ctx.fillStyle = "rgba(244, 240, 230, 0.62)";
-    ctx.font = `15px ${rt.fonts.hand}`;
-    ctx.fillText("Drag the gold point. Force changes the path.", 24, 32);
-    if (rt.pushed) {
-      ctx.fillStyle = "rgba(255, 214, 160, 0.85)";
-      ctx.fillText("A force has changed the path.", 24, 54);
-    }
-    const door = { x: width - 150, y: height * 0.08, w: 86, h: 150 };
+    const door = { x: worldW - 160, y: cy - 40, w: 86, h: 150 };
     ctx.fillStyle = "#100e14";
     ctx.fillRect(door.x, door.y, door.w, door.h);
     ctx.strokeStyle = ready ? "rgba(255, 196, 120, 0.9)" : "#5c5348";
@@ -312,8 +345,23 @@ export function Observatory({
     ctx.font = `12px ${rt.fonts.mono}`;
     ctx.textAlign = "center";
     ctx.fillText(ready ? "open" : "shut", door.x + door.w / 2, door.y + door.h - 16);
+    ctx.restore();
 
-    const nextAnnounce = rt.notice || `${word} ${rt.found.size} notes found in the sky.`;
+    ctx.fillStyle = "rgba(244, 240, 230, 0.72)";
+    ctx.font = `14px ${rt.fonts.mono}`;
+    ctx.textAlign = "left";
+    ctx.fillText(word, 24, height - 28);
+    ctx.fillText(`star mass ${rt.mass.toFixed(2)}`, 24, height - 48);
+    ctx.fillStyle = "rgba(244, 240, 230, 0.62)";
+    ctx.font = `15px ${rt.fonts.hand}`;
+    ctx.fillText(rt.look.looked ? "Drag the gold point. Force changes the path." : "Drag the empty sky. Some of the notes are further out.", 24, 32);
+    if (rt.pushed) {
+      ctx.fillStyle = "rgba(255, 214, 160, 0.85)";
+      ctx.fillText("A force has changed the path.", 24, 54);
+    }
+    if (rt.slip) drawSlip(ctx, rt.slip, rt.fonts.hand, width, height);
+
+    const nextAnnounce = rt.notice || `${word}. ${rt.found.size} notes found in the sky.`;
     if (nextAnnounce !== announced.current) {
       announced.current = nextAnnounce;
       rt.lastWord = nextAnnounce;
@@ -331,82 +379,92 @@ export function Observatory({
   }
 
   function geometry(width: number, height: number, rt: Runtime) {
-    const cx = width * 0.5;
-    const cy = height * 0.46;
-    const ring = Math.min(width, height) * 0.34;
+    const room = space(width, height);
+    const px = room.cx + rt.x;
+    const py = room.cy + rt.y;
     return {
-      cx,
-      cy,
+      ...room,
       sun: 26 + rt.mass * 16,
-      planet: { x: cx + rt.x, y: cy + rt.y },
-      handle: { x: cx + rt.x + rt.vx * 0.28, y: cy + rt.y + rt.vy * 0.28 },
-      stars: rt.stars.map((star) => ({
+      planet: { x: px, y: py },
+      handle: { x: px + rt.vx * 0.28, y: py + rt.vy * 0.28 },
+      stars: rt.stars.map((star, index) => ({
         star,
-        x: cx + Math.cos(star.angle) * ring,
-        y: cy + Math.sin(star.angle) * ring * 0.72,
+        ...starAt(index, star.angle, room.cx, room.cy, room.span),
       })),
-      door: { x: width - 150, y: height * 0.08, w: 86, h: 150 },
+      door: { x: room.worldW - 160, y: room.cy - 40, w: 86, h: 150 },
     };
   }
 
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
     const point = local(event);
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
     const rect = event.currentTarget.getBoundingClientRect();
     const geo = geometry(rect.width, rect.height, rt);
-    const near = (x: number, y: number, r: number) => Math.hypot(point.x - x, point.y - y) < r;
+    const near = (x: number, y: number, r: number) => Math.hypot(world.x - x, world.y - y) < r;
     rt.held = null;
+    rt.look.panning = false;
     if (near(geo.handle.x, geo.handle.y, 16)) rt.held = "vel";
     else if (near(geo.planet.x, geo.planet.y, 20)) rt.held = "planet";
     else if (near(geo.cx, geo.cy, geo.sun + 8)) rt.held = "sun";
     if (rt.held) {
       event.currentTarget.setPointerCapture(event.pointerId);
-      rt.grabX = point.x;
-      rt.grabY = point.y;
+      rt.grabX = world.x;
+      rt.grabY = world.y;
+      return;
     }
+    startPan(rt.look, point.x, point.y);
+    event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function onPointerMove(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
-    if (!rt.held) return;
     const point = local(event);
+    if (rt.look.panning) {
+      dragPan(rt.look, point.x, point.y);
+      return;
+    }
+    if (!rt.held) return;
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
     const rect = event.currentTarget.getBoundingClientRect();
-    const cx = rect.width * 0.5;
-    const cy = rect.height * 0.46;
+    const room = space(rect.width, rect.height);
     rt.disturbed = true;
     if (rt.held === "planet") {
-      rt.x = point.x - cx;
-      rt.y = point.y - cy;
+      rt.x = world.x - room.cx;
+      rt.y = world.y - room.cy;
     } else if (rt.held === "vel") {
-      rt.vx = (point.x - (cx + rt.x)) / 0.28;
-      rt.vy = (point.y - (cy + rt.y)) / 0.28;
+      rt.vx = (world.x - (room.cx + rt.x)) / 0.28;
+      rt.vy = (world.y - (room.cy + rt.y)) / 0.28;
       rt.pushed = true;
     } else if (rt.held === "sun") {
-      rt.mass = Math.min(2.4, Math.max(0.35, rt.mass + (rt.grabY - point.y) * 0.008));
-      rt.grabY = point.y;
+      rt.mass = Math.min(2.4, Math.max(0.35, rt.mass + (rt.grabY - world.y) * 0.008));
+      rt.grabY = world.y;
     }
   }
 
   function onPointerUp(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
     const point = local(event);
-    const moved = Math.hypot(point.x - rt.grabX, point.y - rt.grabY);
+    const panned = stopPan(rt.look, point.x, point.y);
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
+    const moved = Math.hypot(world.x - rt.grabX, world.y - rt.grabY);
     const held = rt.held;
     rt.held = null;
-    if (held && moved > 8) return;
+    if (panned || (held && moved > 8)) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const geo = geometry(rect.width, rect.height, rt);
-    const star = geo.stars.find((item) => Math.hypot(point.x - item.x, point.y - item.y) < 18);
+    const star = geo.stars.find((item) => Math.hypot(world.x - item.x, world.y - item.y) < 18);
     if (star) {
       rt.found.add(star.star.id);
-      setReading(star.star);
+      rt.slip = star.star.line;
       return;
     }
     const door = geo.door;
     const inDoor =
-      point.x >= door.x && point.x <= door.x + door.w && point.y >= door.y && point.y <= door.y + door.h;
+      world.x >= door.x && world.x <= door.x + door.w && world.y >= door.y && world.y <= door.y + door.h;
     if (!inDoor) return;
     if (rt.pushed && rt.found.size >= 4) {
+      sound.duck(0.14);
       setShowFinale(true);
       return;
     }
@@ -419,8 +477,9 @@ export function Observatory({
   return (
     <div className={`lab-shell${covered ? " is-covered" : ""}`}>
       <p className="sr-only">
-        Drag the planet to move it. Drag the gold handle to change its speed. Drag up or down on the
-        star to change its mass. Click the named stars.
+        Drag the empty sky to look around the observatory. Drag the planet to move it. Drag the gold
+        handle to change its speed. Drag up or down on the star to change its mass. Click the notes
+        hidden further out in the sky.
       </p>
       <canvas
         ref={canvasRef}
@@ -437,17 +496,6 @@ export function Observatory({
         Leave
       </button>
       {showFinale ? <Sequence kind="dark" lines={teacher.finale} onDone={onEnterMemory} /> : null}
-      {reading ? (
-        <div className="lab-veil" onClick={() => setReading(null)}>
-          <article className="lab-paper" onClick={(event) => event.stopPropagation()}>
-            <h2>{reading.name}</h2>
-            <p>{reading.line}</p>
-            <button type="button" onClick={() => setReading(null)}>
-              Close the star
-            </button>
-          </article>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
   pointerMove,
   pointerUp,
   releasePointer,
+  setMove,
   step,
   type Runtime,
 } from "./scene";
@@ -92,7 +93,12 @@ export function Lab({
         }
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const layout = layoutLab(cssW, cssH);
+      const narrow = cssW < 800;
+      const worldW = cssW * (narrow ? 1.7 : 1.95);
+      const worldH = cssH * (narrow ? 1.28 : 1.38);
+      rt.look.viewW = cssW;
+      rt.look.viewH = cssH;
+      const layout = rt.view === "molecule" ? layoutLab(cssW, cssH) : layoutLab(worldW, worldH);
       rt.reduced = reducedRef.current;
       const flags = step(rt, layout, dt);
       drawLab(ctx, rt, layout);
@@ -115,8 +121,38 @@ export function Lab({
 
   function withLayout(canvas: HTMLCanvasElement) {
     const rect = canvas.getBoundingClientRect();
-    return layoutLab(Math.max(1, rect.width), Math.max(1, rect.height));
+    const cssW = Math.max(1, rect.width);
+    const cssH = Math.max(1, rect.height);
+    const rt = runtime();
+    if (rt.view === "molecule") return layoutLab(cssW, cssH);
+    const narrow = cssW < 800;
+    return layoutLab(cssW * (narrow ? 1.7 : 1.95), cssH * (narrow ? 1.28 : 1.38));
   }
+
+  useEffect(() => {
+    function down(event: KeyboardEvent) {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      const rt = runtime();
+      if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") rt.moveX = -1;
+      if (event.key === "ArrowRight" || event.key === "d" || event.key === "D") rt.moveX = 1;
+      if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") rt.moveY = -1;
+      if (event.key === "ArrowDown" || event.key === "s" || event.key === "S") rt.moveY = 1;
+      if (event.key.startsWith("Arrow")) event.preventDefault();
+    }
+    function up(event: KeyboardEvent) {
+      const rt = runtime();
+      if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") setMove(rt, 0, rt.moveY);
+      if (event.key === "ArrowRight" || event.key === "d" || event.key === "D") setMove(rt, 0, rt.moveY);
+      if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") setMove(rt, rt.moveX, 0);
+      if (event.key === "ArrowDown" || event.key === "s" || event.key === "S") setMove(rt, rt.moveX, 0);
+    }
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, [runtime]);
 
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
     if (reading || finale) return;
@@ -139,8 +175,25 @@ export function Lab({
     const action = pointerUp(rt, withLayout(event.currentTarget), p.x, p.y);
     if (action?.type === "ignite") sound.ignite();
     if (action?.type === "memory") {
-      if (!memoryById(teacher, action.id)) return;
-      setReading(action.id);
+      const memory = memoryById(teacher, action.id);
+      if (!memory) return;
+      if (action.id === "monitor") {
+        setReading("monitor");
+        return;
+      }
+      if (!rt.line || rt.line.id !== action.id) {
+        rt.line = { id: action.id, index: 0, text: memory.lines[0] ?? "" };
+        sound.page();
+        return;
+      }
+      const next = rt.line.index + 1;
+      if (next >= memory.lines.length) {
+        rt.line = null;
+        finishMemory(action.id);
+        return;
+      }
+      rt.line = { id: action.id, index: next, text: memory.lines[next] ?? "" };
+      sound.page();
     }
     if (action?.type === "door") {
       const solid = rt.beaker.cuoh2 + rt.beaker.cuo > 0.001 && rt.maxTemp >= 80;
@@ -150,6 +203,7 @@ export function Lab({
         announced.current = action.line;
         setAnnounce(action.line);
       } else if (worldRef.current.finalUnlocked) {
+        sound.duck(0.12);
         setFinale(true);
       }
     }
@@ -170,10 +224,11 @@ export function Lab({
   return (
     <div className={`lab-shell${covered ? " is-covered" : ""}`}>
       <p className="sr-only">
-        Drag the copper sulfate bottle and the sodium hydroxide bottle over the mouth of the beaker and
-        hold to pour. Drag the burner underneath the beaker and click it to light it. Open the lab book,
-        the drawer, the window, the margin, and the screen. The screen stays online at every hour. Use the
-        lens to see the molecules.
+        Drag the empty bench to look around the laboratory. Drag the copper sulfate bottle and the sodium
+        hydroxide bottle over the mouth of the beaker and hold to pour. Drag the burner underneath the
+        beaker and click it to light it. Open the lab book, the drawer, the margin, and the screen. The
+        window stays dark until two things have been found. The screen stays online at every hour. Use the
+        lens, or the beaker, to see the molecules. Arrow keys also move through the room.
       </p>
       <canvas
         ref={canvasRef}
@@ -195,14 +250,6 @@ export function Lab({
           punchline={memoryById(teacher, "monitor")?.lines[0] ?? "How are you always online?"}
           onClose={() => setReading(null)}
           onDone={() => finishMemory("monitor")}
-        />
-      ) : null}
-      {reading && reading !== "monitor" ? (
-        <Sequence
-          kind={reading === "window" ? "glass" : "page"}
-          title={memoryById(teacher, reading)?.title}
-          lines={memoryById(teacher, reading)?.lines ?? []}
-          onDone={() => finishMemory(reading)}
         />
       ) : null}
       {finale ? (

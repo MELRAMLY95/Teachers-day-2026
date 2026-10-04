@@ -1,3 +1,4 @@
+import { clampLook, createLook, drawSlip, startPan, stopPan, type Look } from "@/components/worlds/shared/look";
 import {
   addReagent,
   describeBeaker,
@@ -96,6 +97,12 @@ export type Runtime = {
   heating: boolean;
   forming: boolean;
   breaking: boolean;
+  look: Look;
+  hover: string | null;
+  line: { id: string; index: number; text: string } | null;
+  dust: { x: number; y: number; r: number; v: number }[];
+  moveX: number;
+  moveY: number;
 };
 
 export type Action =
@@ -143,7 +150,18 @@ export function createRuntime(): Runtime {
     heating: false,
     forming: false,
     breaking: false,
+    look: createLook(),
+    hover: null,
+    line: null,
+    dust: [],
+    moveX: 0,
+    moveY: 0,
   };
+}
+
+export function setMove(rt: Runtime, x: number, y: number) {
+  rt.moveX = x;
+  rt.moveY = y;
 }
 
 export function layoutLab(w: number, h: number): LabLayout {
@@ -309,57 +327,81 @@ function topHit(rt: Runtime, layout: LabLayout, x: number, y: number): HitId | n
   return null;
 }
 
+function worldPoint(rt: Runtime, x: number, y: number) {
+  if (rt.view === "molecule") return { x, y };
+  return { x: x + rt.look.x, y: y + rt.look.y };
+}
+
 export function cursorFor(rt: Runtime, layout: LabLayout, x: number, y: number) {
-  if (rt.held) return "grabbing";
-  const id = topHit(rt, layout, x, y);
+  if (rt.held || rt.look.panning) return "grabbing";
+  const world = worldPoint(rt, x, y);
+  const id = topHit(rt, layout, world.x, world.y);
   if (id === "cuso4" || id === "naoh" || id === "bunsen") return "grab";
   if (id) return "pointer";
-  return "default";
+  return rt.view === "lab" ? "grab" : "default";
 }
 
 export function pointerDown(rt: Runtime, layout: LabLayout, x: number, y: number) {
-  settle(rt, layout);
+  if (rt.view === "lab") settle(rt, layout);
   rt.pointerDown = true;
-  rt.pointerX = x;
-  rt.pointerY = y;
-  rt.downX = x;
-  rt.downY = y;
+  rt.look.panning = false;
+  const world = worldPoint(rt, x, y);
+  rt.pointerX = world.x;
+  rt.pointerY = world.y;
+  rt.downX = world.x;
+  rt.downY = world.y;
   rt.held = null;
   if (rt.view === "molecule") return;
-  const id = topHit(rt, layout, x, y);
+  const id = topHit(rt, layout, world.x, world.y);
+  rt.hover = id;
   if (id === "cuso4" || id === "naoh" || id === "bunsen") {
     rt.held = id;
     const item = rt[id];
-    rt.grabX = x - item.x;
-    rt.grabY = y - item.y;
+    rt.grabX = world.x - item.x;
+    rt.grabY = world.y - item.y;
+    return;
   }
+  if (!id) startPan(rt.look, x, y);
 }
 
 export function pointerMove(rt: Runtime, layout: LabLayout, x: number, y: number) {
-  rt.pointerX = x;
-  rt.pointerY = y;
-  if (!rt.held) return;
+  if (rt.look.panning && rt.view === "lab") {
+    rt.look.x = rt.look.ox - (x - rt.look.sx);
+    rt.look.y = rt.look.oy - (y - rt.look.sy);
+    if (Math.hypot(x - rt.look.sx, y - rt.look.sy) > 6) rt.look.looked = true;
+    clampLook(rt.look);
+    return;
+  }
+  const world = worldPoint(rt, x, y);
+  rt.pointerX = world.x;
+  rt.pointerY = world.y;
+  if (!rt.held) {
+    rt.hover = rt.view === "lab" ? topHit(rt, layout, world.x, world.y) : null;
+    return;
+  }
   const item = rt[rt.held];
-  item.x = x - rt.grabX;
-  item.y = y - rt.grabY;
+  item.x = world.x - rt.grabX;
+  item.y = world.y - rt.grabY;
   item.moved = true;
   item.x = Math.max(-item.w * 0.2, Math.min(layout.w - item.w * 0.6, item.x));
   item.y = Math.max(0, Math.min(layout.h - item.h * 0.45, item.y));
 }
 
 export function pointerUp(rt: Runtime, layout: LabLayout, x: number, y: number): Action {
-  settle(rt, layout);
+  if (rt.view === "lab") settle(rt, layout);
+  const panned = stopPan(rt.look, x, y);
   rt.pointerDown = false;
-  rt.pointerX = x;
-  rt.pointerY = y;
-  const moved = Math.hypot(x - rt.downX, y - rt.downY) > 8;
+  const world = worldPoint(rt, x, y);
+  rt.pointerX = world.x;
+  rt.pointerY = world.y;
+  const moved = Math.hypot(world.x - rt.downX, world.y - rt.downY) > 8;
   const held = rt.held;
   rt.held = null;
   if (held === "cuso4") restBottle(rt.cuso4, layout.cuso4);
   if (held === "naoh") restBottle(rt.naoh, layout.naoh);
   if (held === "bunsen") restBurner(rt.bunsen, layout);
-  if (moved) return null;
-  const id = topHit(rt, layout, x, y);
+  if (panned || moved) return null;
+  const id = topHit(rt, layout, world.x, world.y);
   if (rt.view === "molecule") {
     if (id === "back") rt.view = "lab";
     return null;
@@ -371,6 +413,10 @@ export function pointerUp(rt: Runtime, layout: LabLayout, x: number, y: number):
   if (id === "loupe" || id === "beaker") {
     rt.view = "molecule";
     rt.molSeeded = false;
+    return null;
+  }
+  if (id === "window" && rt.found.size < 2) {
+    rt.notice = { text: "The window is still dark.", life: 4 };
     return null;
   }
   if (id === "notebook" || id === "drawer" || id === "monitor" || id === "window" || id === "note") {
@@ -391,6 +437,7 @@ export function releasePointer(rt: Runtime) {
   rt.pointerDown = false;
   rt.held = null;
   rt.pouring = null;
+  rt.look.panning = false;
 }
 
 function spawnSpark(rt: Runtime, x: number, y: number, kind: Spark["kind"]) {
@@ -526,8 +573,43 @@ function stepMolecules(rt: Runtime, layout: LabLayout, dt: number) {
 }
 
 export function step(rt: Runtime, layout: LabLayout, dt: number): StepFlags {
-  settle(rt, layout);
   const safeDt = Math.max(0, Math.min(0.05, dt));
+  if (rt.view === "lab") {
+    settle(rt, layout);
+    rt.look.worldW = layout.w;
+    rt.look.worldH = layout.h;
+    if (!rt.look.framed && rt.look.viewW > 1) {
+      rt.look.x = layout.beaker.x + layout.beaker.w / 2 - rt.look.viewW / 2;
+      rt.look.y = layout.benchY - rt.look.viewH * 0.72;
+      rt.look.framed = true;
+      clampLook(rt.look);
+    }
+    if (!rt.held && !rt.look.panning && (rt.moveX !== 0 || rt.moveY !== 0)) {
+      rt.look.x += rt.moveX * 380 * safeDt;
+      rt.look.y += rt.moveY * 380 * safeDt;
+      rt.look.looked = true;
+      clampLook(rt.look);
+    }
+    if (rt.dust.length < 42) {
+      while (rt.dust.length < 42) {
+        rt.dust.push({
+          x: Math.random() * layout.w,
+          y: Math.random() * layout.h,
+          r: 0.7 + Math.random() * 1.5,
+          v: 8 + Math.random() * 16,
+        });
+      }
+    } else if (!rt.reduced) {
+      for (const mote of rt.dust) {
+        mote.y -= mote.v * safeDt;
+        mote.x += Math.sin(rt.time * 0.8 + mote.y * 0.01) * 12 * safeDt;
+        if (mote.y < -6) {
+          mote.y = layout.h + 4;
+          mote.x = Math.random() * layout.w;
+        }
+      }
+    }
+  }
   rt.time += safeDt;
   let clink = false;
   rt.pouring = null;
@@ -1180,15 +1262,33 @@ function drawMonitor(ctx: CanvasRenderingContext2D, rect: Rect, found: boolean, 
   ctx.fillRect(rect.x + rect.w * 0.4, rect.y + rect.h - 12, rect.w * 0.2, 12);
 }
 
+function liftOf(rt: Runtime, id: string) {
+  if (rt.hover !== id || rt.reduced) return 0;
+  return Math.sin(rt.time * 4) * 4;
+}
+
 export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabLayout) {
   if (rt.view === "molecule") {
     drawMolecules(ctx, rt, layout);
     return;
   }
   const light = Math.min(1, rt.found.size / 3);
+  ctx.save();
+  ctx.translate(-rt.look.x, -rt.look.y);
   drawRoom(ctx, layout, light);
+  const presence = ctx.createRadialGradient(rt.pointerX, rt.pointerY, 8, rt.pointerX, rt.pointerY, 190);
+  presence.addColorStop(0, `rgba(255, 198, 130, ${0.05 + light * 0.07})`);
+  presence.addColorStop(1, "rgba(255, 198, 130, 0)");
+  ctx.fillStyle = presence;
+  ctx.fillRect(rt.look.x, rt.look.y, rt.look.viewW, rt.look.viewH);
+  ctx.save();
+  ctx.translate(0, liftOf(rt, "window"));
   drawWindow(ctx, layout.window, light, rt.found.has("window"));
+  ctx.restore();
+  ctx.save();
+  ctx.translate(0, liftOf(rt, "monitor"));
   drawMonitor(ctx, layout.monitor, rt.found.has("monitor"), rt.fonts);
+  ctx.restore();
   drawBoard(ctx, layout, rt.fonts, rt.found.has("margin"));
   if (light > 0.4 && rt.plaque) {
     ctx.fillStyle = `rgba(255, 226, 186, ${0.45 + light * 0.5})`;
@@ -1200,8 +1300,14 @@ export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabL
   drawThermo(ctx, layout, rt.beaker.tempC, rt.fonts);
   drawTube(ctx, layout, rt.bunsen);
   drawBunsen(ctx, rt.bunsen);
+  ctx.save();
+  ctx.translate(0, liftOf(rt, "notebook"));
   drawNotebook(ctx, layout.notebook, rt.found.has("notebook"), rt.fonts);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(0, liftOf(rt, "drawer"));
   drawDrawer(ctx, layout.drawer, rt.found.has("drawer"), rt.fonts);
+  ctx.restore();
   drawLoupe(ctx, layout.loupe, rt.fonts);
   drawBeaker(ctx, layout, rt);
   if (rt.bunsen.lit) drawFlame(ctx, rt.bunsen, rt.time, rt.heating);
@@ -1232,4 +1338,37 @@ export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabL
             ? "sodium hydroxide"
             : "water";
   ctx.fillText(status, layout.thermo.x, layout.thermo.y + layout.thermo.h + 22);
+  for (const mote of rt.dust) {
+    const inSun = mote.x < layout.window.x + layout.window.w + 140;
+    ctx.fillStyle = inSun ? `rgba(255, 214, 160, ${0.2 + light * 0.55})` : "rgba(244, 236, 220, 0.22)";
+    ctx.beginPath();
+    ctx.arc(mote.x, mote.y, mote.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  if (layout.window.x + layout.window.w < rt.look.x + 12) {
+    const shaft = ctx.createLinearGradient(0, 0, 42, 0);
+    shaft.addColorStop(0, `rgba(255, 196, 130, ${0.18 + light * 0.35})`);
+    shaft.addColorStop(1, "rgba(255, 196, 130, 0)");
+    ctx.fillStyle = shaft;
+    ctx.fillRect(0, 0, 42, rt.look.viewH);
+  }
+  if (layout.monitor.x > rt.look.x + rt.look.viewW - 8) {
+    ctx.fillStyle = "rgba(140, 220, 150, 0.85)";
+    ctx.beginPath();
+    ctx.arc(rt.look.viewW - 16, rt.look.viewH * 0.42, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (rt.doorReady && layout.door.x > rt.look.x + rt.look.viewW - 8) {
+    ctx.fillStyle = "rgba(255, 186, 110, 0.9)";
+    ctx.fillRect(rt.look.viewW - 8, rt.look.viewH * 0.18, 8, 90);
+  }
+  if (!rt.look.looked) {
+    ctx.fillStyle = "rgba(244, 236, 220, 0.78)";
+    ctx.font = `16px ${rt.fonts.hand}`;
+    ctx.textAlign = "left";
+    ctx.fillText("Drag the empty bench to look around the room.", 22, 36);
+  }
+  if (rt.line) drawSlip(ctx, rt.line.text, rt.fonts.hand, rt.look.viewW, rt.look.viewH);
 }

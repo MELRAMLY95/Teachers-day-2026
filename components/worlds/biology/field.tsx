@@ -1,9 +1,10 @@
 "use client";
 
-import type { Memory, Teacher } from "@/lib/types";
+import { useSound } from "@/components/sound";
+import type { Teacher } from "@/lib/types";
 import { useCallback, useRef, useState, type PointerEvent } from "react";
+import { clampLook, createLook, drawSlip, dragPan, startPan, stopPan, type Look } from "../shared/look";
 import { readFonts, useStage, type Fonts } from "../shared/stage";
-import { Sequence } from "../shared/sequence";
 
 type Cell = { x: number; y: number; r: number; vx: number; vy: number };
 type Specimen = { id: string; angle: number };
@@ -23,6 +24,9 @@ type Runtime = {
   fonts: Fonts;
   fontsReady: boolean;
   notice: string;
+  look: Look;
+  slip: string;
+  heartAt: number;
 };
 
 function hash(index: number) {
@@ -60,11 +64,22 @@ function drawPlant(
   }
 }
 
-function centers(width: number, height: number) {
-  const cx = width * 0.5;
-  const cy = height * 0.46;
-  const field = Math.min(width, height) * 0.38;
-  return { cx, cy, field };
+function worldOf(width: number, height: number) {
+  const worldW = width * 2.2;
+  const worldH = height * 1.6;
+  return {
+    worldW,
+    worldH,
+    cx: worldW * 0.4,
+    cy: worldH * 0.5,
+    field: Math.min(width, height) * 0.34,
+  };
+}
+
+function specimenAt(id: string, cx: number, cy: number, width: number, height: number) {
+  if (id === "smile") return { x: cx - width * 0.78, y: cy - height * 0.08 };
+  if (id === "ease") return { x: cx + width * 0.08, y: cy - height * 0.7 };
+  return { x: cx + width * 0.82, y: cy + height * 0.28 };
 }
 
 function createRuntime(): Runtime {
@@ -77,6 +92,9 @@ function createRuntime(): Runtime {
     fonts: { display: "Georgia", mono: "monospace", hand: "Georgia" },
     fontsReady: false,
     notice: "",
+    look: createLook(),
+    slip: "",
+    heartAt: -1,
   };
 }
 
@@ -91,9 +109,8 @@ export function LivingField({
   onEnterMemory: () => void;
   onLeave: () => void;
 }) {
+  const sound = useSound();
   const rtRef = useRef<Runtime | null>(null);
-  const [reading, setReading] = useState<Memory | null>(null);
-  const [heart, setHeart] = useState(false);
   const [announce, setAnnounce] = useState("");
   const announced = useRef("");
   const runtime = useCallback(() => {
@@ -108,17 +125,28 @@ export function LivingField({
       rt.fontsReady = true;
     }
     rt.time += dt;
-    const cx = width * 0.5;
-    const cy = height * 0.46;
-    const field = Math.min(width, height) * 0.38;
+    const room = worldOf(width, height);
+    const { cx, cy, field, worldW, worldH } = room;
+    rt.look.viewW = width;
+    rt.look.viewH = height;
+    rt.look.worldW = worldW;
+    rt.look.worldH = worldH;
+    if (!rt.look.framed) {
+      rt.look.x = cx - width / 2;
+      rt.look.y = cy - height / 2;
+      rt.look.framed = true;
+    }
+    clampLook(rt.look);
 
     ctx.fillStyle = "#06110c";
     ctx.fillRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(-rt.look.x, -rt.look.y);
     const vignette = ctx.createRadialGradient(cx, cy, field * 0.2, cx, cy, field * 1.35);
     vignette.addColorStop(0, "rgba(18, 48, 36, 0.95)");
     vignette.addColorStop(1, "rgba(3, 8, 6, 1)");
     ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, worldW, worldH);
 
     const growth = rt.found.size;
     const soil = ctx.createRadialGradient(cx, cy + field * 0.9, 10, cx, cy + field * 0.8, field * 1.2);
@@ -133,7 +161,7 @@ export function LivingField({
       const drift = (rt.time * (10 + hash(i) * 16) + hash(i + 2) * height) % height;
       ctx.fillStyle = `rgba(210, 232, 190, ${0.12 + hash(i + 1) * 0.28})`;
       ctx.beginPath();
-      ctx.arc(hash(i + 4) * width, drift, hash(i + 6) > 0.7 ? 2.2 : 1.2, 0, Math.PI * 2);
+      ctx.arc(hash(i + 4) * worldW, (drift / height) * worldH, hash(i + 6) > 0.7 ? 2.2 : 1.2, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -229,9 +257,11 @@ export function LivingField({
     ctx.fillText("drag the strands", cx, cy + field * 0.15 + 42);
 
     for (const specimen of SPECIMENS) {
-      const x = cx + Math.cos(specimen.angle) * field * 0.86;
-      const y = cy + Math.sin(specimen.angle) * field * 0.7;
+      const at = specimenAt(specimen.id, cx, cy, width, height);
+      const x = at.x;
+      const y = at.y;
       const found = rt.found.has(specimen.id);
+      if (found) drawPlant(ctx, x, y + 46, 48 + growth * 10, specimen.angle, rt.time);
       const pulse = 0.55 + Math.sin(rt.time * 2 + specimen.angle) * 0.25;
       const glow = ctx.createRadialGradient(x, y, 2, x, y, 26);
       glow.addColorStop(0, found ? "rgba(232, 210, 150, 0.7)" : `rgba(170, 230, 180, ${pulse})`);
@@ -253,9 +283,10 @@ export function LivingField({
     }
 
     const ready = rt.found.has("heart");
+    const heart = { x: cx + width * 1.12, y: cy - 10 };
     if (rt.found.size >= 3) {
-      const hx = cx;
-      const hy = cy - 8;
+      const hx = heart.x;
+      const hy = heart.y;
       ctx.save();
       ctx.translate(hx, hy);
       ctx.fillStyle = ready ? "rgba(120, 36, 42, 0.2)" : "rgba(176, 64, 72, 0.85)";
@@ -274,11 +305,11 @@ export function LivingField({
     ctx.font = `15px ${rt.fonts.hand}`;
     ctx.textAlign = "center";
     ctx.fillText(
-      growth === 0 ? "The field is almost empty." : `${rt.cells.length} cells, ${growth} memories growing.`,
+      growth === 0 ? "The field is almost empty." : `${rt.cells.length} cells. The field is growing.`,
       cx,
-      height - 36,
+      cy + field + 36,
     );
-    const door = { x: width - 120, y: 28, w: 78, h: 120 };
+    const door = { x: worldW - 120, y: cy - 30, w: 78, h: 120 };
     ctx.fillStyle = ready ? "rgba(232, 196, 120, 0.35)" : "#07140e";
     ctx.fillRect(door.x, door.y, door.w, door.h);
     ctx.strokeStyle = ready ? "#e4c48a" : "#3d5a48";
@@ -286,6 +317,18 @@ export function LivingField({
     ctx.font = `12px ${rt.fonts.mono}`;
     ctx.fillStyle = "rgba(236,232,214,0.8)";
     ctx.fillText(ready ? "open" : "shut", door.x + door.w / 2, door.y + door.h - 14);
+    if (rt.heartAt >= 0 && !ready) {
+      ctx.fillStyle = "rgba(4, 6, 8, 0.45)";
+      ctx.fillRect(rt.look.x, rt.look.y, width, height);
+    }
+    ctx.restore();
+    if (!rt.look.looked) {
+      ctx.fillStyle = "rgba(220, 236, 214, 0.75)";
+      ctx.font = `16px ${rt.fonts.hand}`;
+      ctx.textAlign = "left";
+      ctx.fillText("Drag the field. Things are growing out of sight.", 22, 36);
+    }
+    if (rt.slip) drawSlip(ctx, rt.slip, rt.fonts.hand, width, height);
 
     const status = rt.notice || (ready ? "The way out is lit." : "The field is waiting for what you find.");
     if (status !== announced.current) {
@@ -302,44 +345,73 @@ export function LivingField({
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
     const point = pointOf(event);
-    const { cx, cy, field } = centers(point.width, point.height);
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
+    const { cx, cy, field } = worldOf(point.width, point.height);
     const helixY = cy + field * 0.15;
-    if (Math.abs(point.y - helixY) < 36 && Math.abs(point.x - cx) < field * 0.55) {
+    rt.look.panning = false;
+    if (Math.abs(world.y - helixY) < 36 && Math.abs(world.x - cx) < field * 0.55) {
       rt.held = "helix";
       event.currentTarget.setPointerCapture(event.pointerId);
+      return;
     }
+    startPan(rt.look, point.x, point.y);
+    event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function onPointerMove(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
-    if (rt.held !== "helix") return;
     const point = pointOf(event);
-    rt.angle = (point.x / Math.max(1, point.width)) * Math.PI * 2;
+    if (rt.look.panning) {
+      dragPan(rt.look, point.x, point.y);
+      return;
+    }
+    if (rt.held !== "helix") return;
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
+    rt.angle = world.x * 0.01;
   }
 
   function onPointerUp(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
-    rt.held = null;
     const point = pointOf(event);
-    const { cx, cy, field } = centers(point.width, point.height);
-    if (rt.found.size >= 3 && Math.hypot(point.x - cx, point.y - (cy - 8)) < 36) {
-      setHeart(true);
+    const panned = stopPan(rt.look, point.x, point.y);
+    const wasHelix = rt.held === "helix";
+    rt.held = null;
+    if (panned || wasHelix) return;
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
+    const { cx, cy, worldW } = worldOf(point.width, point.height);
+    const heart = { x: cx + point.width * 1.12, y: cy - 10 };
+    if (rt.found.size >= 3 && Math.hypot(world.x - heart.x, world.y - heart.y) < 36) {
+      const lines = teacher.memories.find((item) => item.id === "heart")?.lines ?? [];
+      const next = rt.heartAt + 1;
+      if (next >= lines.length) {
+        rt.found.add("heart");
+        rt.slip = "";
+        rt.heartAt = lines.length;
+        rt.notice = "The way out is lit.";
+        announced.current = "";
+        return;
+      }
+      if (rt.heartAt < 0) sound.duck(0.1);
+      rt.heartAt = next;
+      rt.slip = lines[next] ?? "";
       return;
     }
     const specimen = SPECIMENS.find((item) => {
-      const x = cx + Math.cos(item.angle) * field * 0.86;
-      const y = cy + Math.sin(item.angle) * field * 0.7;
-      return Math.hypot(point.x - x, point.y - y) < 22;
+      const at = specimenAt(item.id, cx, cy, point.width, point.height);
+      return Math.hypot(world.x - at.x, world.y - at.y) < 22;
     });
     if (specimen) {
+      const memory = teacher.memories.find((item) => item.id === specimen.id);
       rt.found.add(specimen.id);
-      setReading(teacher.memories.find((item) => item.id === specimen.id) ?? null);
+      const lines = memory?.lines ?? [];
+      const index = rt.slip && lines.includes(rt.slip) ? lines.indexOf(rt.slip) + 1 : 0;
+      rt.slip = lines[index] ?? lines[0] ?? "";
       return;
     }
-    const cell = [...rt.cells].reverse().find((item) => Math.hypot(point.x - (cx + item.x), point.y - (cy + item.y)) < item.r + 4);
+    const cell = [...rt.cells].reverse().find((item) => Math.hypot(world.x - (cx + item.x), world.y - (cy + item.y)) < item.r + 4);
     if (cell && cell.r > 14 && rt.cells.length < 16) {
       const child = cell.r * 0.72;
-      const angle = Math.atan2(point.y - (cy + cell.y), point.x - (cx + cell.x)) || rt.time;
+      const angle = Math.atan2(world.y - (cy + cell.y), world.x - (cx + cell.x)) || rt.time;
       cell.r = child;
       cell.vx = Math.cos(angle) * -160;
       cell.vy = Math.sin(angle) * -160;
@@ -354,8 +426,8 @@ export function LivingField({
       announced.current = "";
       return;
     }
-    const door = { x: point.width - 120, y: 28, w: 78, h: 120 };
-    const inDoor = point.x >= door.x && point.x <= door.x + door.w && point.y >= door.y && point.y <= door.y + door.h;
+    const door = { x: worldW - 120, y: cy - 30, w: 78, h: 120 };
+    const inDoor = world.x >= door.x && world.x <= door.x + door.w && world.y >= door.y && world.y <= door.y + door.h;
     if (!inDoor) return;
     if (rt.found.has("heart")) onEnterMemory();
     else {
@@ -367,7 +439,8 @@ export function LivingField({
   return (
     <div className={`lab-shell${covered ? " is-covered" : ""}`}>
       <p className="sr-only">
-        Click a cell to divide it. Drag across the strands to turn them. Click the glowing points around the field.
+        Drag the field to look further. Click a cell to divide it. Drag across the strands to turn them.
+        The glowing points are further out. The heart appears after the field has started to grow.
       </p>
       <canvas
         ref={canvasRef}
@@ -383,19 +456,6 @@ export function LivingField({
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
-      {reading ? (
-        <Sequence kind="page" title={reading.title} lines={reading.lines} onDone={() => setReading(null)} />
-      ) : null}
-      {heart ? (
-        <Sequence
-          kind="dark"
-          lines={teacher.memories.find((item) => item.id === "heart")?.lines ?? []}
-          onDone={() => {
-            runtime().found.add("heart");
-            setHeart(false);
-          }}
-        />
-      ) : null}
     </div>
   );
 }

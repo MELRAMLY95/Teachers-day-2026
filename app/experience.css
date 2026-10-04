@@ -1430,7 +1430,24 @@ body {
 .courtyard canvas {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.sound-toggle {
+  position: fixed;
+  z-index: 60;
+  top: 0.75rem;
+  right: 0.9rem;
+  border: 0;
+  background: transparent;
+  color: rgba(244, 240, 230, 0.72);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .library-books {

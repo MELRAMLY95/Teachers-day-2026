@@ -48,17 +48,19 @@ A custom domain is a yearly purchase. The `github.io` address is the part that s
 
 ## What is built
 
-Miss Irum, chemistry. The laboratory starts dark. Pour copper sulfate, then sodium hydroxide, into the beaker. The pale blue solid is copper hydroxide. It becomes copper oxide only if the burner is lit underneath the glass. The lens shows the same mixture as particles, bonds, and energy. The screen stays online at 09:00, 14:00, 20:00, 01:00, and 03:47. The window, the notebook, and the drawer hold her memories. Each one adds light. The sunlight lines play only after the practical and three discoveries.
+Miss Irum, chemistry. The laboratory is wider than the screen. Drag the empty bench, or use the arrow keys, to look around. Pour copper sulfate, then sodium hydroxide, into the beaker. The pale blue solid is copper hydroxide. It becomes copper oxide only if the burner is lit underneath the glass. The lens shows the same mixture as particles, bonds, and energy. The screen stays online at 09:00, 14:00, 20:00, 01:00, and 03:47. The window stays dark until two things have been found. Each discovery lets more sunlight in. The letter plays only after the practical and three discoveries.
 
-Miss Hadia, physics. Drag the gold point to apply a force. The orbit is calculated from mass and velocity. The notes in the sky join when enough of them are found and the path has actually changed.
+Miss Hadia, physics. Drag the empty sky. Some notes are further out, and each one adds a ring of force around the star. Drag the gold point to apply a force. The orbit is calculated from mass and velocity. The door opens only after the path has actually changed and four notes are found.
 
-Miss Noshen, mathematics. The lengths, the next Fibonacci number, and a quarter turn change the room. A wrong number brings the stare. The clock stays online. The door then leads through mathematics to the future.
+Miss Noshen, mathematics. Drag the floor. The lengths are in the first part of the room, the sequence further along, the quarter turn after that. A wrong number brings the stare and shears the walls. The clock stays online. The door opens when the room has been solved.
 
-Miss Kalsoom, biology. Click a cell and it divides. The glowing points grow the field. The heart appears after those memories, and the lines about that day are spoken one at a time.
+Miss Kalsoom, biology. Drag the field. Click a cell and it divides. The glowing points are off to the sides, and each one grows the field. The heart appears further along, and those lines are read in the field, one click at a time.
 
-Miss Naila, English. The books are hers. Three of them open the quiet room.
+Miss Naila, English. Drag the shelves. The books are spaced along them. Opening three of them lights the quiet room at the far end.
 
-Miss Maryam, Islamiat and psychology. Three arches, no score. The hadith of intentions is quoted from al-Bukhari and Muslim. The journey is the trip she planned.
+Miss Maryam, Islamiat and psychology. Drag the path. The arches are spaced along it. Nothing is scored. The hadith of intentions is quoted from al-Bukhari and Muslim. The journey is the trip she planned, at the end of the path.
+
+Sound can be turned off from the corner. The room goes quiet for the letter.
 
 ## How to add the next teacher
 

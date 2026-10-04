@@ -1,8 +1,10 @@
 "use client";
 
+import { useSound } from "@/components/sound";
 import { bridgeProgress, isQuarterTurn } from "@/lib/rooms/puzzles";
-import type { Memory, Teacher } from "@/lib/types";
+import type { Teacher } from "@/lib/types";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { clampLook, createLook, drawSlip, dragPan, startPan, stopPan, type Look } from "../shared/look";
 import { readFonts, useStage, type Fonts } from "../shared/stage";
 import { Sequence } from "../shared/sequence";
 
@@ -23,6 +25,8 @@ type Runtime = {
   notice: string;
   grabX: number;
   grabY: number;
+  look: Look;
+  line: { id: string; index: number; text: string } | null;
 };
 
 function createRuntime(): Runtime {
@@ -49,28 +53,35 @@ function createRuntime(): Runtime {
     notice: "",
     grabX: 0,
     grabY: 0,
+    look: createLook(),
+    line: null,
   };
 }
 
-function layout(width: number, height: number) {
-  const narrow = width < 800;
+function layout(viewW: number, viewH: number) {
+  const worldW = viewW * 2.6;
+  const worldH = viewH;
+  const zone = worldW / 3;
+  const narrow = viewW < 800;
   return {
-    gap: { x: width * 0.08, y: height * 0.62, w: narrow ? width * 0.84 : width * 0.28, h: 18 },
-    originA: { x: width * 0.1, y: height * (narrow ? 0.34 : 0.28) },
-    originB: { x: width * 0.1, y: height * (narrow ? 0.42 : 0.36) },
-    slot: { x: width * (narrow ? 0.28 : 0.42), y: height * 0.58, w: 72, h: 72 },
-    turn: { x: width * (narrow ? 0.62 : 0.72), y: height * 0.34 },
-    door: { x: width * 0.5 - 46, y: height * 0.08, w: 92, h: narrow ? 120 : 180 },
+    worldW,
+    worldH,
+    gap: { x: zone * 0.12, y: worldH * 0.62, w: narrow ? zone * 0.76 : zone * 0.5, h: 18 },
+    originA: { x: zone * 0.14, y: worldH * (narrow ? 0.32 : 0.28) },
+    originB: { x: zone * 0.14, y: worldH * (narrow ? 0.42 : 0.38) },
+    slot: { x: zone + zone * 0.36, y: worldH * 0.56, w: 72, h: 72 },
+    turn: { x: zone * 2 + zone * 0.42, y: worldH * 0.36 },
+    door: { x: worldW - 130, y: worldH * 0.12, w: 92, h: narrow ? 120 : 170 },
     plates: [
-      { id: "bridge", x: width * 0.08, y: height * 0.5, w: 120, h: 36 },
-      { id: "sequence", x: width * (narrow ? 0.38 : 0.46), y: height * 0.5, w: 130, h: 36 },
-      { id: "turn", x: width * (narrow ? 0.62 : 0.7), y: height * 0.52, w: 110, h: 36 },
+      { id: "bridge", x: zone * 0.14, y: worldH * 0.5, w: 130, h: 36 },
+      { id: "sequence", x: zone + zone * 0.32, y: worldH * 0.46, w: 140, h: 36 },
+      { id: "turn", x: zone * 2 + zone * 0.28, y: worldH * 0.52, w: 120, h: 36 },
     ],
     homes: [
-      { x: width * 0.38, y: height * 0.78 },
-      { x: width * 0.5, y: height * 0.78 },
-      { x: width * 0.62, y: height * 0.78 },
-      { x: width * 0.74, y: height * 0.78 },
+      { x: zone + zone * 0.18, y: worldH * 0.8 },
+      { x: zone + zone * 0.38, y: worldH * 0.8 },
+      { x: zone + zone * 0.56, y: worldH * 0.8 },
+      { x: zone + zone * 0.74, y: worldH * 0.8 },
     ],
   };
 }
@@ -88,8 +99,8 @@ export function ImpossibleRoom({
   onEnterMemory: () => void;
   onLeave: () => void;
 }) {
+  const sound = useSound();
   const rtRef = useRef<Runtime | null>(null);
-  const [plate, setPlate] = useState<Memory | null>(null);
   const [hour, setHour] = useState(0);
   const [seenHours, setSeenHours] = useState<number[]>([0]);
   const [showFinale, setShowFinale] = useState(false);
@@ -111,6 +122,14 @@ export function ImpossibleRoom({
       rt.fontsReady = true;
     }
     const place = layout(width, height);
+    rt.look.viewW = width;
+    rt.look.viewH = height;
+    rt.look.worldW = place.worldW;
+    rt.look.worldH = place.worldH;
+    if (!rt.look.framed) rt.look.framed = true;
+    clampLook(rt.look);
+    ctx.save();
+    ctx.translate(-rt.look.x, -rt.look.y);
     rt.stones.forEach((stone, index) => {
       const home = place.homes[index];
       if (!home) return;
@@ -131,38 +150,38 @@ export function ImpossibleRoom({
     const progress = bridgeProgress(rt.lengthA, rt.lengthB);
     const turned = isQuarterTurn(rt.angle);
     const solved = progress > 0.92 && rt.sequence && turned && onlineRef.current;
+    const sky = ctx.createLinearGradient(0, 0, 0, place.worldH);
+    sky.addColorStop(0, "#14110e");
+    sky.addColorStop(1, "#2a2218");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, place.worldW, place.worldH);
+
+    ctx.strokeStyle = "rgba(214, 186, 130, 0.35)";
+    ctx.lineWidth = 1;
+    const vanishX = place.worldW * 0.5;
+    const vanishY = place.worldH * 0.16;
+    for (let i = 0; i < 9; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(vanishX, vanishY);
+      ctx.lineTo((i / 8) * place.worldW, place.worldH);
+      ctx.stroke();
+    }
+
     if (rt.shear > 0) {
       ctx.fillStyle = "#f6f1e6";
       ctx.beginPath();
-      ctx.ellipse(width * 0.12, height * 0.3, 18, 11, 0, 0, Math.PI * 2);
-      ctx.ellipse(width * 0.2, height * 0.3, 18, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(place.originA.x + 20, place.originA.y - 70, 18, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(place.originA.x + 78, place.originA.y - 70, 18, 11, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = "#140e0a";
       ctx.beginPath();
-      ctx.arc(width * 0.12, height * 0.3, 4, 0, Math.PI * 2);
-      ctx.arc(width * 0.2, height * 0.3, 4, 0, Math.PI * 2);
+      ctx.arc(place.originA.x + 20, place.originA.y - 70, 4, 0, Math.PI * 2);
+      ctx.arc(place.originA.x + 78, place.originA.y - 70, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = "rgba(244, 236, 220, 0.8)";
       ctx.font = `18px ${rt.fonts.hand}`;
       ctx.textAlign = "left";
-      ctx.fillText("I will kill you.", width * 0.24, height * 0.31);
-    }
-
-    const sky = ctx.createLinearGradient(0, 0, 0, height);
-    sky.addColorStop(0, "#14110e");
-    sky.addColorStop(1, "#2a2218");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.strokeStyle = "rgba(214, 186, 130, 0.35)";
-    ctx.lineWidth = 1;
-    const vanishX = width * 0.5;
-    const vanishY = height * 0.2;
-    for (let i = 0; i < 7; i += 1) {
-      ctx.beginPath();
-      ctx.moveTo(vanishX, vanishY);
-      ctx.lineTo((i / 6) * width, height);
-      ctx.stroke();
+      ctx.fillText("I will kill you.", place.originA.x + 108, place.originA.y - 64);
     }
 
     ctx.fillStyle = "#070605";
@@ -175,18 +194,18 @@ export function ImpossibleRoom({
     ctx.fill();
 
     ctx.save();
-    ctx.translate(width * 0.06, height * 0.12);
+    ctx.translate(36, place.worldH * 0.12);
     ctx.transform(1, 0, rt.shear * 0.02, 1, 0, 0);
     ctx.fillStyle = "#2c261f";
-    ctx.fillRect(0, 0, 26, height * 0.78);
+    ctx.fillRect(0, 0, 26, place.worldH * 0.78);
     ctx.fillStyle = "#4a4034";
     ctx.fillRect(-6, 0, 38, 10);
     ctx.restore();
     ctx.save();
-    ctx.translate(width * 0.9, height * 0.12);
+    ctx.translate(place.worldW - 70, place.worldH * 0.12);
     ctx.transform(1, 0, -rt.shear * 0.02, 1, 0, 0);
     ctx.fillStyle = "#2c261f";
-    ctx.fillRect(0, 0, 26, height * 0.78);
+    ctx.fillRect(0, 0, 26, place.worldH * 0.78);
     ctx.fillStyle = "#4a4034";
     ctx.fillRect(-6, 0, 38, 10);
     ctx.restore();
@@ -278,6 +297,18 @@ export function ImpossibleRoom({
       ctx.fillText(open ? "a note" : "—", item.x + 10, item.y + 22);
     }
 
+    ctx.restore();
+    if (progress > 0.92 && rt.look.x < 24) {
+      ctx.fillStyle = "rgba(240, 215, 164, 0.9)";
+      ctx.fillRect(width - 8, height * 0.4, 8, 80);
+    }
+    if (!rt.look.looked) {
+      ctx.fillStyle = "rgba(244, 236, 220, 0.78)";
+      ctx.font = `16px ${rt.fonts.hand}`;
+      ctx.textAlign = "left";
+      ctx.fillText("Drag the floor. The rest of the room is further along.", 22, 36);
+    }
+    if (rt.line) drawSlip(ctx, rt.line.text, rt.fonts.hand, width, height);
     const status = rt.notice || (solved ? "The door is open." : "The room is still waiting on the lengths, the number, and the turn.");
     if (status !== announced.current) {
       announced.current = status;
@@ -293,41 +324,47 @@ export function ImpossibleRoom({
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
     const point = pointOf(event);
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
     const place = layout(point.width, point.height);
     rt.held = null;
     rt.stoneId = null;
+    rt.look.panning = false;
     const handleA = { x: place.originA.x + rt.lengthA, y: place.originA.y };
     const handleB = { x: place.originB.x + rt.lengthB, y: place.originB.y };
-    if (Math.hypot(point.x - handleA.x, point.y - handleA.y) < 18) rt.held = "a";
-    else if (Math.hypot(point.x - handleB.x, point.y - handleB.y) < 18) rt.held = "b";
-    else if (Math.hypot(point.x - place.turn.x, point.y - place.turn.y) < 64) rt.held = "turn";
+    if (Math.hypot(world.x - handleA.x, world.y - handleA.y) < 18) rt.held = "a";
+    else if (Math.hypot(world.x - handleB.x, world.y - handleB.y) < 18) rt.held = "b";
+    else if (Math.hypot(world.x - place.turn.x, world.y - place.turn.y) < 64) rt.held = "turn";
     else {
-      const stone = [...rt.stones].reverse().find((item) => Math.hypot(point.x - item.x, point.y - item.y) < 28);
+      const stone = [...rt.stones].reverse().find((item) => Math.hypot(world.x - item.x, world.y - item.y) < 28);
       if (stone && !(rt.sequence && stone.value === 8)) {
         rt.held = "stone";
         rt.stoneId = stone.id;
       }
     }
-    if (rt.held) {
-      event.currentTarget.setPointerCapture(event.pointerId);
-      rt.grabX = point.x;
-      rt.grabY = point.y;
-    }
+    event.currentTarget.setPointerCapture(event.pointerId);
+    rt.grabX = world.x;
+    rt.grabY = world.y;
+    if (!rt.held) startPan(rt.look, point.x, point.y);
   }
 
   function onPointerMove(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
-    if (!rt.held) return;
     const point = pointOf(event);
+    if (rt.look.panning) {
+      dragPan(rt.look, point.x, point.y);
+      return;
+    }
+    if (!rt.held) return;
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
     const place = layout(point.width, point.height);
-    if (rt.held === "a") rt.lengthA = Math.min(280, Math.max(48, point.x - place.originA.x));
-    if (rt.held === "b") rt.lengthB = Math.min(280, Math.max(48, point.x - place.originB.x));
-    if (rt.held === "turn") rt.angle = Math.atan2(point.y - place.turn.y, point.x - place.turn.x);
+    if (rt.held === "a") rt.lengthA = Math.min(280, Math.max(48, world.x - place.originA.x));
+    if (rt.held === "b") rt.lengthB = Math.min(280, Math.max(48, world.x - place.originB.x));
+    if (rt.held === "turn") rt.angle = Math.atan2(world.y - place.turn.y, world.x - place.turn.x);
     if (rt.held === "stone") {
       const stone = rt.stones.find((item) => item.id === rt.stoneId);
       if (stone) {
-        stone.x = point.x;
-        stone.y = point.y;
+        stone.x = world.x;
+        stone.y = world.y;
       }
     }
   }
@@ -335,9 +372,12 @@ export function ImpossibleRoom({
   function onPointerUp(event: PointerEvent<HTMLCanvasElement>) {
     const rt = runtime();
     const point = pointOf(event);
+    const panned = stopPan(rt.look, point.x, point.y);
+    const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
     const place = layout(point.width, point.height);
     const held = rt.held;
     rt.held = null;
+    if (panned) return;
     if (held === "stone") {
       const stone = rt.stones.find((item) => item.id === rt.stoneId);
       const slot = place.slot;
@@ -366,7 +406,7 @@ export function ImpossibleRoom({
     const progress = bridgeProgress(rt.lengthA, rt.lengthB);
     const turned = isQuarterTurn(rt.angle);
     const hitPlate = place.plates.find(
-      (item) => point.x >= item.x && point.x <= item.x + item.w && point.y >= item.y && point.y <= item.y + item.h,
+      (item) => world.x >= item.x && world.x <= item.x + item.w && world.y >= item.y && world.y <= item.y + item.h,
     );
     if (hitPlate && !held) {
       const ready =
@@ -374,17 +414,28 @@ export function ImpossibleRoom({
         (hitPlate.id === "sequence" && rt.sequence) ||
         (hitPlate.id === "turn" && turned);
       if (ready) {
+        const memory = teacher.memories.find((item) => item.id === hitPlate.id);
+        const lines = memory?.lines ?? [];
         rt.found.add(hitPlate.id);
-        setPlate(teacher.memories.find((item) => item.id === hitPlate.id) ?? null);
+        if (!rt.line || rt.line.id !== hitPlate.id) {
+          rt.line = { id: hitPlate.id, index: 0, text: lines[0] ?? "" };
+        } else {
+          const next = rt.line.index + 1;
+          rt.line = next >= lines.length ? null : { id: hitPlate.id, index: next, text: lines[next] ?? "" };
+        }
+        sound.page();
       }
     }
     const inDoor =
-      point.x >= place.door.x &&
-      point.x <= place.door.x + place.door.w &&
-      point.y >= place.door.y &&
-      point.y <= place.door.y + place.door.h;
+      world.x >= place.door.x &&
+      world.x <= place.door.x + place.door.w &&
+      world.y >= place.door.y &&
+      world.y <= place.door.y + place.door.h;
     if (inDoor && !held) {
-      if (progress > 0.92 && rt.sequence && turned && onlineRef.current) setShowFinale(true);
+      if (progress > 0.92 && rt.sequence && turned && onlineRef.current) {
+        sound.duck(0.14);
+        setShowFinale(true);
+      }
       else {
         rt.notice = onlineRef.current
           ? "The door is part of the room. The lengths, the number, and the turn still have to move it."
@@ -397,8 +448,9 @@ export function ImpossibleRoom({
   return (
     <div className={`lab-shell${covered ? " is-covered" : ""}`}>
       <p className="sr-only">
-        Drag the ends of the two lengths until the longer divided by the shorter is the golden ratio.
-        Drag the next number in the sequence into the gap. Drag the square through a quarter turn.
+        Drag the floor to move through the room. Drag the ends of the two lengths until the longer
+        divided by the shorter is the golden ratio. Further along, drag the next number into the gap
+        and turn the square a quarter. The clock stays online. Change the hour.
       </p>
       <canvas
         ref={canvasRef}
@@ -427,7 +479,6 @@ export function ImpossibleRoom({
         </button>
         <span>Online</span>
       </div>
-      {plate ? <Sequence kind="page" title={plate.title} lines={plate.lines} onDone={() => setPlate(null)} /> : null}
       {showFinale ? <Sequence kind="sun" lines={teacher.finale} onDone={onEnterMemory} /> : null}
     </div>
   );

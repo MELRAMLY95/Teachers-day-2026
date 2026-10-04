@@ -8,6 +8,7 @@ import { MathematicsWorld } from "@/components/worlds/mathematics";
 import { PhysicsWorld } from "@/components/worlds/physics";
 import { UnopenedWorld } from "@/components/worlds/unopened";
 import { Gate } from "@/components/gate";
+import { SoundToggle } from "@/components/sound-toggle";
 import { SoundProvider, useSound } from "@/components/sound";
 import { useReducedMotion } from "@/components/use-reduced-motion";
 import type { Bed } from "@/lib/audio";
@@ -50,6 +51,7 @@ function Journey() {
   useEffect(() => {
     const bed: Bed = !teacher || phase === "gate" ? "none" : phase === "memory" ? "memory" : teacher.subject;
     void sound.playBed(bed);
+    sound.duck(phase === "memory" ? 0.16 : 1);
   }, [phase, sound, teacher]);
 
   useEffect(() => {
@@ -62,6 +64,7 @@ function Journey() {
 
   function signOut() {
     clearSession();
+    sound.duck(1);
     setJourney({ teacher: null, phase: "gate", introSeen: false });
     void sound.playBed("none");
   }
@@ -117,6 +120,7 @@ export function Experience() {
   return (
     <SoundProvider>
       <div className="grain" aria-hidden="true" />
+      <SoundToggle />
       <Journey />
     </SoundProvider>
   );

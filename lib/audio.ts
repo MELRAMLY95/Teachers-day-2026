@@ -16,6 +16,7 @@ export class Soundscape {
   private bedNodes: AudioNode[] = [];
   private current: Bed = "none";
   enabled = true;
+  private duckScale = 1;
 
   constructor() {
     if (typeof window === "undefined") return;
@@ -52,7 +53,34 @@ export class Soundscape {
     if (!this.master || !this.ctx) return;
     const now = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(now);
-    this.master.gain.linearRampToValueAtTime(on ? 0.16 : 0, now + 0.15);
+    this.master.gain.linearRampToValueAtTime(on ? 0.16 * this.duckScale : 0, now + 0.15);
+  }
+
+  /** 1 is the room as it is. Lower values quiet the bed for a letter. */
+  duck(scale: number) {
+    this.duckScale = scale;
+    if (!this.master || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const target = this.enabled ? 0.16 * scale : 0;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.linearRampToValueAtTime(target, now + 0.6);
+  }
+
+  page() {
+    if (!this.enabled || !this.ctx || !this.master) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.05, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.2);
   }
 
   private stopBed() {
