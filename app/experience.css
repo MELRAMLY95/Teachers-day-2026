@@ -1966,8 +1966,9 @@ body {
 .garden-count {
   position: absolute;
   z-index: 4;
-  bottom: 0.85rem;
-  left: 1rem;
+  top: 2.45rem;
+  left: 50%;
+  transform: translateX(-50%);
   margin: 0;
   color: rgba(236, 226, 206, 0.55);
   font-family: var(--font-mono-face), ui-monospace, monospace;
@@ -2110,7 +2111,9 @@ body {
   font-weight: 500;
   letter-spacing: -0.025em;
   line-height: 1.42;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.72);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 10px 28px rgba(0, 0, 0, 0.82);
   animation: garden-in 1.15s ease both;
 }
 

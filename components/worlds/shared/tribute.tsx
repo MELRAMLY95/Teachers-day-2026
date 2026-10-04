@@ -208,7 +208,7 @@ export function TributeField({
 
   const readClass = memory
     ? `garden-read${memory.slow || memory.freeze ? " is-grade" : ""}${memory.lines.length === 1 ? " is-one" : ""}${
-        memory.id === "sun" || memory.id === "safe" || memory.id === "try" || memory.id === "notebooks" ? " is-heart" : ""
+        memory.id === "safe" || memory.id === "notebooks" ? " is-heart" : ""
       }`
     : "";
 
@@ -218,7 +218,7 @@ export function TributeField({
         {teacher.worldTitle}. The memories are in the open. Choose one to read it. Close returns you. Escape closes a memory.
       </p>
       <canvas ref={canvasRef} aria-hidden="true" />
-      {focus || vista ? null : (
+      {focus || vista || allRead ? null : (
         <>
           <p className="garden-prompt">Explore memories</p>
           <p className="garden-count">

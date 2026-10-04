@@ -55,7 +55,7 @@ function vignette(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.fillStyle = veil;
   ctx.fillRect(0, 0, frame.width, frame.height);
   if (frame.focus) {
-    ctx.fillStyle = "rgba(6, 4, 3, 0.28)";
+    ctx.fillStyle = "rgba(6, 4, 3, 0.5)";
     ctx.fillRect(0, 0, frame.width, frame.height);
   }
 }
@@ -285,7 +285,7 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     ctx.stroke();
   }
 
-  const waveY = height * 0.78;
+  const waveY = height * 0.66;
   ctx.beginPath();
   ctx.strokeStyle = `rgba(232, 210, 170, ${0.25 + life * 0.45})`;
   ctx.lineWidth = 1.4;
@@ -363,9 +363,9 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
 
   ctx.beginPath();
   ctx.strokeStyle = `rgba(232, 206, 150, ${0.35 + life * 0.4})`;
-  for (let x = width * 0.18; x <= width * 0.82; x += 3) {
-    const local = (x - width * 0.18) / (width * 0.64);
-    const y = cy + 70 + Math.sin(local * Math.PI * 4 + time * 0.6) * (18 + life * 22);
+  for (let x = width * 0.34; x <= width * 0.66; x += 3) {
+    const local = (x - width * 0.34) / (width * 0.32);
+    const y = cy + Math.min(width, height) * 0.16 + Math.sin(local * Math.PI * 3 + time * 0.6) * (8 + life * 8);
     if (x === width * 0.18) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
@@ -385,27 +385,28 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   if (frame.freeze) {
     ctx.fillStyle = "rgba(8, 6, 4, 0.5)";
     ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "rgba(244, 228, 200, 0.85)";
+    const lookY = cy - Math.min(width, height) * 0.2;
+    ctx.fillStyle = "rgba(244, 228, 200, 0.9)";
     ctx.beginPath();
-    ctx.arc(cx - 16, cy - 36, 3.2, 0, Math.PI * 2);
-    ctx.arc(cx + 16, cy - 36, 3.2, 0, Math.PI * 2);
+    ctx.arc(cx - 18, lookY, 2.2, 0, Math.PI * 2);
+    ctx.arc(cx + 18, lookY, 2.2, 0, Math.PI * 2);
     ctx.fill();
   }
 }
 
 function shelf(ctx: CanvasRenderingContext2D, x: number, y: number, books: number, life: number, seed: number) {
   for (let index = 0; index < books; index += 1) {
-    const h = 28 + hash(seed + index) * 26 + life * 8;
+    const h = 22 + hash(seed + index) * 18 + life * 6;
     const colors = ["#6a3028", "#3c4a34", "#5a3a28", "#2c2622", "#7a6238", "#4a342c"];
-    ctx.globalAlpha = 0.4 + life * 0.5;
+    ctx.globalAlpha = 0.45 + life * 0.45;
     ctx.fillStyle = colors[(seed + index) % colors.length];
-    ctx.fillRect(x + index * 14, y - h, 11, h);
+    ctx.fillRect(x + index * 11, y - h, 8, h);
   }
   ctx.globalAlpha = 1;
   ctx.strokeStyle = `rgba(212, 180, 140, ${0.25 + life * 0.3})`;
   ctx.beginPath();
-  ctx.moveTo(x - 6, y);
-  ctx.lineTo(x + books * 14, y);
+  ctx.moveTo(x - 4, y);
+  ctx.lineTo(x + books * 11, y);
   ctx.stroke();
 }
 
@@ -430,16 +431,18 @@ function drawEnglish(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.arc(lampX, lampY, 7, 0, Math.PI * 2);
   ctx.stroke();
 
-  shelf(ctx, width * 0.06, height * 0.38, 7, life, 2);
-  shelf(ctx, width * 0.06, height * 0.56, 8, life, 5);
-  shelf(ctx, width * 0.78, height * 0.38, 7, life, 8);
-  shelf(ctx, width * 0.78, height * 0.56, 6, life, 11);
+  shelf(ctx, 16, height * 0.34, 5, life, 2);
+  shelf(ctx, 16, height * 0.58, 5, life, 5);
+  shelf(ctx, width - 78, height * 0.34, 5, life, 8);
+  shelf(ctx, width - 78, height * 0.58, 5, life, 11);
 
-  ctx.fillStyle = mix("#1a120e", "#3a281c", life);
-  ctx.fillRect(width * 0.32, height * 0.72, width * 0.36, 10);
-  ctx.strokeStyle = `rgba(244, 220, 180, ${0.35 + life * 0.3})`;
-  ctx.strokeRect(width * 0.4, height * 0.62, width * 0.09, height * 0.1);
-  ctx.strokeRect(width * 0.51, height * 0.62, width * 0.09, height * 0.1);
+  if (focus !== "notebooks") {
+    ctx.fillStyle = mix("#1a120e", "#3a281c", life);
+    ctx.fillRect(width * 0.32, height * 0.72, width * 0.36, 10);
+    ctx.strokeStyle = `rgba(244, 220, 180, ${0.35 + life * 0.3})`;
+    ctx.strokeRect(width * 0.4, height * 0.62, width * 0.09, height * 0.1);
+    ctx.strokeRect(width * 0.51, height * 0.62, width * 0.09, height * 0.1);
+  }
 
   if (focus === "notebooks") {
     const covers = [

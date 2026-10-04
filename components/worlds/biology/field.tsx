@@ -906,7 +906,7 @@ export function LivingField({
         Escape closes a memory.
       </p>
       <canvas ref={canvasRef} aria-hidden="true" />
-      {focus || vista ? null : (
+      {focus || vista || allRead ? null : (
         <>
           <p className="garden-prompt">Explore memories</p>
           <p className="garden-count">
