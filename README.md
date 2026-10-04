@@ -8,12 +8,12 @@ The site is a static page, so it can stay public on GitHub Pages without a paid 
 
 | Teacher | Password | World |
 | --- | --- | --- |
-| Miss Irum Shahid | sunlight | Chemistry. A warm laboratory. Eight memories, then the letter. |
-| Miss Hadia Johar | force | Physics. An observatory. Eight memories, then the letter. |
-| Miss Noshen | future | Mathematics. The room, the stare, and eight memories. |
-| Miss Kalsoom Ashraf | heart | Biology. A living heart, and the memories around it. |
-| Miss Naila Naeem | listened | English. A quiet library. Eight memories, then the letter. |
-| Miss Maryam Ghazanfar | journey | A quiet courtyard. Eight memories, then the letter. |
+| Miss Irum Shahid | sunlight | Chemistry. The bench, the beaker, and the memories. |
+| Miss Hadia Johar | force | Physics. The spring, the orbit, and the memories. |
+| Miss Noshen | future | Mathematics. The curve, the stare, and the memories. |
+| Miss Kalsoom Ashraf | heart | Biology. The heart, the garden, and the memories. |
+| Miss Naila Naeem | listened | English. The page, the words, and the memories. |
+| Miss Maryam Ghazanfar | journey | A courtyard, a manuscript, and the memories. |
 
 Honorifics are optional. `Miss Irum Shahid` and `irum shahid` both work.
 
