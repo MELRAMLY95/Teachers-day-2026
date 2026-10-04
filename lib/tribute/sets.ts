@@ -129,7 +129,7 @@ const noshen: TributeMemory[] = [
     id: "motive",
     label: "Motivation",
     lines: [
-      "You motivate me to work hard, and I feel how much you mean it.",
+      "You motivate me to work hard. You give me that.",
       "I would never want to be the reason you need motivation.",
     ],
   },
