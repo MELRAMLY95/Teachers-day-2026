@@ -414,8 +414,8 @@ function drawDna(
   font: string,
 ) {
   const phase = still ? 0.4 : time * 0.6;
-  ctx.strokeStyle = "rgba(92, 70, 58, 0.9)";
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(214, 196, 168, 0.8)";
+  ctx.lineWidth = 4;
   ctx.beginPath();
   for (let step = 0; step <= 6; step += 1) {
     const yy = y + step * 28;
@@ -636,37 +636,37 @@ function heartLayout(cx: number, cy: number, scale: number, atrial: number, vent
   const chambers = [
     {
       id: "ra",
-      x: cx - scale * 0.28,
-      y: cy - scale * 0.2,
-      rx: scale * 0.22,
-      ry: scale * 0.16 * ay,
+      x: cx - scale * 0.34,
+      y: cy - scale * 0.34,
+      rx: scale * 0.16,
+      ry: scale * 0.12 * ay,
       caption: "Right atrium. Blood from the body arrives here. It is low in oxygen.",
       oxygenated: false,
     },
     {
       id: "rv",
-      x: cx - scale * 0.18,
-      y: cy + scale * 0.16,
-      rx: scale * 0.26,
-      ry: scale * 0.28 * vy,
+      x: cx - scale * 0.3,
+      y: cy + scale * 0.08,
+      rx: scale * 0.2,
+      ry: scale * 0.22 * vy,
       caption: "Right ventricle. It sends that blood to the lungs.",
       oxygenated: false,
     },
     {
       id: "la",
-      x: cx + scale * 0.26,
-      y: cy - scale * 0.18,
-      rx: scale * 0.2,
-      ry: scale * 0.15 * ay,
+      x: cx + scale * 0.32,
+      y: cy - scale * 0.32,
+      rx: scale * 0.15,
+      ry: scale * 0.11 * ay,
       caption: "Left atrium. Blood returns from the lungs, carrying oxygen.",
       oxygenated: true,
     },
     {
       id: "lv",
-      x: cx + scale * 0.16,
-      y: cy + scale * 0.18,
-      rx: scale * 0.28,
-      ry: scale * 0.32 * vy,
+      x: cx + scale * 0.28,
+      y: cy + scale * 0.1,
+      rx: scale * 0.22,
+      ry: scale * 0.26 * vy,
       caption: "Left ventricle. The thickest wall. It sends oxygenated blood out to the body.",
       oxygenated: true,
     },
@@ -674,26 +674,26 @@ function heartLayout(cx: number, cy: number, scale: number, atrial: number, vent
   const valves = [
     {
       id: "tricuspid",
-      x: cx - scale * 0.22,
-      y: cy - scale * 0.02,
+      x: cx - scale * 0.32,
+      y: cy - scale * 0.12,
       caption: "The tricuspid valve. Blood passes from the right atrium into the right ventricle, and the valve stops it flowing back.",
     },
     {
       id: "mitral",
-      x: cx + scale * 0.2,
-      y: cy,
+      x: cx + scale * 0.3,
+      y: cy - scale * 0.1,
       caption: "The mitral valve, between the left atrium and the left ventricle.",
     },
     {
       id: "pulmonary",
-      x: cx - scale * 0.05,
-      y: cy - scale * 0.4,
+      x: cx - scale * 0.16,
+      y: cy - scale * 0.5,
       caption: "The pulmonary valve. It opens when the right ventricle sends blood toward the lungs.",
     },
     {
       id: "aortic",
-      x: cx + scale * 0.08,
-      y: cy - scale * 0.46,
+      x: cx + scale * 0.14,
+      y: cy - scale * 0.52,
       caption: "The aortic valve. It opens when the left ventricle contracts, and blood leaves for the body.",
     },
   ];
@@ -716,10 +716,10 @@ function drawHeartOrgan(
   muscle.addColorStop(0, mix("#8d4544", "#c47a68", warmth));
   muscle.addColorStop(1, "#4e2428");
   ctx.beginPath();
-  ctx.moveTo(cx, cy - scale * 0.58);
-  ctx.bezierCurveTo(cx - scale * 0.85, cy - scale * 0.72, cx - scale * 0.78, cy + scale * 0.2, cx - scale * 0.08, cy + scale * 0.62);
-  ctx.quadraticCurveTo(cx + scale * 0.12, cy + scale * 0.78, cx + scale * 0.42, cy + scale * 0.42);
-  ctx.bezierCurveTo(cx + scale * 0.9, cy + scale * 0.05, cx + scale * 0.72, cy - scale * 0.7, cx + scale * 0.05, cy - scale * 0.5);
+  ctx.moveTo(cx - scale * 0.02, cy - scale * 0.7);
+  ctx.bezierCurveTo(cx - scale * 1.05, cy - scale * 0.86, cx - scale * 1.02, cy + scale * 0.02, cx - scale * 0.42, cy + scale * 0.46);
+  ctx.quadraticCurveTo(cx - scale * 0.02, cy + scale * 0.7, cx + scale * 0.36, cy + scale * 0.5);
+  ctx.bezierCurveTo(cx + scale * 1.08, cy + scale * 0.12, cx + scale * 0.95, cy - scale * 0.84, cx + scale * 0.08, cy - scale * 0.62);
   ctx.closePath();
   ctx.fillStyle = muscle;
   ctx.fill();
@@ -735,21 +735,21 @@ function drawHeartOrgan(
   ctx.strokeStyle = "#7f96b0";
   ctx.lineWidth = Math.max(6, scale * 0.08);
   ctx.beginPath();
-  ctx.moveTo(cx - scale * 0.28, cy - scale * 0.2);
-  ctx.lineTo(cx - scale * 0.32, cy - scale * 0.62);
+  ctx.moveTo(cx - scale * 0.34, cy - scale * 0.34);
+  ctx.lineTo(cx - scale * 0.4, cy - scale * 0.78);
   ctx.stroke();
   ctx.strokeStyle = "#b5524e";
   ctx.beginPath();
-  ctx.moveTo(cx + scale * 0.16, cy + scale * 0.02);
-  ctx.quadraticCurveTo(cx + scale * 0.08, cy - scale * 0.55, cx + scale * 0.46, cy - scale * 0.58);
+  ctx.moveTo(cx + scale * 0.28, cy + scale * 0.02);
+  ctx.quadraticCurveTo(cx + scale * 0.1, cy - scale * 0.62, cx + scale * 0.52, cy - scale * 0.66);
   ctx.stroke();
   ctx.strokeStyle = "#8ea4bc";
   ctx.beginPath();
-  ctx.moveTo(cx - scale * 0.12, cy - scale * 0.05);
-  ctx.quadraticCurveTo(cx - scale * 0.02, cy - scale * 0.48, cx + scale * 0.16, cy - scale * 0.7);
+  ctx.moveTo(cx - scale * 0.2, cy - scale * 0.08);
+  ctx.quadraticCurveTo(cx - scale * 0.08, cy - scale * 0.55, cx + scale * 0.08, cy - scale * 0.78);
   ctx.stroke();
   for (const chamber of layout.chambers) {
-    const fill = chamber.oxygenated ? "rgba(168, 72, 68, 0.92)" : "rgba(96, 122, 150, 0.92)";
+    const fill = chamber.oxygenated ? "#a84844" : "#6e8eae";
     ctx.beginPath();
     ctx.ellipse(chamber.x, chamber.y, chamber.rx, chamber.ry, 0, 0, Math.PI * 2);
     ctx.fillStyle = fill;
@@ -780,16 +780,16 @@ function drawHeartOrgan(
 
 function waypoint(route: "body" | "lung", t: number, cx: number, cy: number, scale: number) {
   const body = [
-    { x: cx - scale * 0.32, y: cy - scale * 0.62 },
-    { x: cx - scale * 0.28, y: cy - scale * 0.2 },
-    { x: cx - scale * 0.18, y: cy + scale * 0.16 },
-    { x: cx + scale * 0.12, y: cy - scale * 0.62 },
+    { x: cx - scale * 0.4, y: cy - scale * 0.78 },
+    { x: cx - scale * 0.34, y: cy - scale * 0.34 },
+    { x: cx - scale * 0.3, y: cy + scale * 0.08 },
+    { x: cx + scale * 0.08, y: cy - scale * 0.78 },
   ];
   const lung = [
-    { x: cx + scale * 0.48, y: cy - scale * 0.5 },
-    { x: cx + scale * 0.26, y: cy - scale * 0.18 },
-    { x: cx + scale * 0.16, y: cy + scale * 0.18 },
-    { x: cx + scale * 0.5, y: cy - scale * 0.58 },
+    { x: cx + scale * 0.52, y: cy - scale * 0.6 },
+    { x: cx + scale * 0.32, y: cy - scale * 0.32 },
+    { x: cx + scale * 0.28, y: cy + scale * 0.1 },
+    { x: cx + scale * 0.52, y: cy - scale * 0.66 },
   ];
   const points = route === "body" ? body : lung;
   const scaled = t * (points.length - 1);
@@ -856,6 +856,14 @@ function inEllipse(x: number, y: number, cx: number, cy: number, rx: number, ry:
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fillStyle = wash;
     ctx.fill();
+    for (let grain = 0; grain < 80; grain += 1) {
+      const angle = hash(grain) * Math.PI * 2;
+      const dist = hash(grain + 4) * radius * 0.9;
+      ctx.fillStyle = "rgba(120, 78, 48, 0.12)";
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.strokeStyle = "rgba(92, 58, 42, 0.85)";
     ctx.lineWidth = 10;
     ctx.stroke();
@@ -1066,6 +1074,7 @@ export function LivingField({
       if (event.key === "Escape" && (rt.view === "cell" || rt.view === "heart")) {
         rt.view = "field";
         rt.pendingHeart = false;
+        rt.caption = "";
       }
       if ((event.key === "Enter" || event.key === " ") && (rt.speech || rt.leaveDark || rt.comfortSit)) {
         event.preventDefault();
@@ -1192,7 +1201,7 @@ export function LivingField({
     rt.look.worldH = place.worldH;
     if (!rt.look.framed) {
       rt.look.x = 0;
-      rt.look.y = place.ground - height * 0.84;
+      rt.look.y = place.ground - height * 0.78;
       rt.look.framed = true;
     }
     if (rt.focus === "after-dark") {
@@ -1274,31 +1283,55 @@ export function LivingField({
     ctx.translate(-rt.look.x, -rt.look.y);
     const sky = ctx.createLinearGradient(0, 0, 0, place.ground);
     sky.addColorStop(0, skyTop);
-    sky.addColorStop(0.62, skyMid);
+    sky.addColorStop(0.55, skyMid);
+    sky.addColorStop(0.86, mix("#2a3a2c", "#5a4636", rt.warmth));
     sky.addColorStop(1, "#142019");
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, place.worldW, place.worldH);
 
-    ctx.fillStyle = mix("#1a2c24", "#24362a", life);
+    const moon = ctx.createRadialGradient(width * 0.74, place.ground - height * 0.58, 4, width * 0.74, place.ground - height * 0.58, 70);
+    moon.addColorStop(0, `rgba(244, 232, 206, ${0.55 + rt.warmth * 0.35})`);
+    moon.addColorStop(1, "rgba(244, 232, 206, 0)");
+    ctx.fillStyle = moon;
     ctx.beginPath();
-    ctx.moveTo(0, place.ground - 30);
-    for (let x = 0; x <= place.worldW; x += 36) {
-      const rise = 70 + life * 36 + Math.sin(x * 0.004) * 24 + Math.sin(x * 0.0011) * 40;
+    ctx.arc(width * 0.74, place.ground - height * 0.58, 70, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(248, 240, 220, ${0.75 + rt.warmth * 0.2})`;
+    ctx.beginPath();
+    ctx.arc(width * 0.74, place.ground - height * 0.58, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = mix("#15241c", "#1e3024", life);
+    ctx.beginPath();
+    ctx.moveTo(0, place.ground - 80);
+    for (let x = 0; x <= place.worldW; x += 48) {
+      const rise = 180 + Math.sin(x * 0.0016) * 46 + Math.sin(x * 0.0007) * 28;
       ctx.lineTo(x, place.ground - rise);
     }
     ctx.lineTo(place.worldW, place.ground);
     ctx.lineTo(0, place.ground);
     ctx.fill();
 
-    const trees = 18 + Math.floor(life * 16);
+    ctx.fillStyle = mix("#1c3026", "#2a4030", life);
+    ctx.beginPath();
+    ctx.moveTo(0, place.ground - 20);
+    for (let x = 0; x <= place.worldW; x += 28) {
+      const rise = 90 + life * 24 + Math.sin(x * 0.004 + 1) * 18 + Math.sin(x * 0.0013) * 26;
+      ctx.lineTo(x, place.ground - rise);
+    }
+    ctx.lineTo(place.worldW, place.ground);
+    ctx.lineTo(0, place.ground);
+    ctx.fill();
+
+    const trees = 26 + Math.floor(life * 10);
     for (let index = 0; index < trees; index += 1) {
-      const x = (index + 0.5) * (place.worldW / trees);
-      const h = 28 + hash(index) * 46 + life * 50;
-      ctx.fillStyle = `rgba(20, 42, 30, ${0.45 + life * 0.35})`;
+      const x = (index + 0.2) * (place.worldW / trees);
+      const h = 90 + hash(index) * 110 + life * 70;
+      ctx.fillStyle = `rgba(16, 36, 26, ${0.55 + life * 0.3})`;
       ctx.beginPath();
-      ctx.moveTo(x, place.ground - 20);
-      ctx.lineTo(x + 14, place.ground - 20 - h);
-      ctx.lineTo(x + 28, place.ground - 20);
+      ctx.moveTo(x, place.ground - 70);
+      ctx.quadraticCurveTo(x + 18, place.ground - 70 - h * 0.7, x + 10, place.ground - 70 - h);
+      ctx.quadraticCurveTo(x + 4, place.ground - 70 - h * 0.55, x + 26, place.ground - 70);
       ctx.fill();
     }
 
@@ -1306,6 +1339,31 @@ export function LivingField({
     ctx.fillRect(0, place.ground - 6, place.worldW, place.worldH - place.ground + 8);
     ctx.fillStyle = "#24362c";
     ctx.fillRect(0, place.ground - 2, place.worldW, 16);
+    ctx.strokeStyle = "rgba(92, 130, 86, 0.28)";
+    ctx.lineWidth = 1;
+    for (let blade = 0; blade < 280; blade += 1) {
+      const x = hash(blade + 20) * place.worldW;
+      ctx.beginPath();
+      ctx.moveTo(x, place.ground);
+      ctx.lineTo(x + 3, place.ground - 7 - hash(blade + 21) * 14);
+      ctx.stroke();
+    }
+    for (let blade = 0; blade < 160; blade += 1) {
+      const x = hash(blade + 80) * place.worldW;
+      const y = place.ground + 16 + hash(blade + 81) * 90;
+      ctx.strokeStyle = `rgba(46, 78, 52, ${0.25 + hash(blade + 82) * 0.35})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y + 18);
+      ctx.quadraticCurveTo(x + 6, y, x + 2, y - 16);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(214, 206, 180, 0.05)";
+    for (let band = 0; band < 4; band += 1) {
+      ctx.beginPath();
+      ctx.ellipse(place.worldW * (0.15 + band * 0.22), place.ground - 30, 220, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     const pond = ctx.createRadialGradient(place.pond.x, place.ground - 20, 10, place.pond.x, place.ground - 10, 120);
     pond.addColorStop(0, "rgba(48, 78, 70, 0.55)");
@@ -1321,25 +1379,30 @@ export function LivingField({
       ctx.fill();
     }
 
-    const quiet = ctx.createRadialGradient(place.pool.x, place.pool.y, 8, place.pool.x, place.pool.y, 150);
-    quiet.addColorStop(0, "rgba(28, 48, 52, 0.72)");
-    quiet.addColorStop(1, "rgba(16, 28, 28, 0.05)");
+    const quiet = ctx.createRadialGradient(place.pool.x, place.pool.y, 10, place.pool.x, place.pool.y, 190);
+    quiet.addColorStop(0, "rgba(42, 78, 82, 0.9)");
+    quiet.addColorStop(0.7, "rgba(22, 40, 46, 0.75)");
+    quiet.addColorStop(1, "rgba(16, 28, 28, 0)");
     ctx.fillStyle = quiet;
     ctx.beginPath();
-    ctx.ellipse(place.pool.x, place.pool.y + 16, 150, 42, 0, 0, Math.PI * 2);
+    ctx.ellipse(place.pool.x, place.pool.y + 8, 190, 58, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "rgba(186, 206, 170, 0.25)";
-    ctx.lineWidth = 1;
-    for (let pad = 0; pad < 3; pad += 1) {
+    ctx.strokeStyle = "rgba(198, 214, 186, 0.35)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.ellipse(place.pool.x, place.pool.y + 4, 150, 28, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let pad = 0; pad < 4; pad += 1) {
+      ctx.fillStyle = "rgba(70, 110, 72, 0.55)";
       ctx.beginPath();
-      ctx.ellipse(place.pool.x - 40 + pad * 42, place.pool.y + 10, 16, 7, 0.2, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.ellipse(place.pool.x - 70 + pad * 46, place.pool.y + 6, 18, 8, 0.3, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     drawWindow(ctx, place.window.x, place.window.y, rt.warmth);
     drawTree(ctx, place.tree.x, place.ground, rt.found, rt.fonts.hand);
 
-    const plantCount = 24;
+    const plantCount = 42;
     for (let index = 0; index < plantCount; index += 1) {
       const x = 80 + ((index + hash(index) * 0.4) / plantCount) * (place.worldW - 160);
       const near =
@@ -1351,7 +1414,7 @@ export function LivingField({
         Math.abs(x - place.fragile.x) < 90 ||
         Math.abs(x - place.room.x) < 100;
       if (near) continue;
-      const stem = 14 + open * 74 * (0.45 + hash(index + 3) * 0.7);
+      const stem = 34 + open * 78 * (0.4 + hash(index + 3) * 0.7);
       drawPlant(ctx, x, place.ground, stem, open, index, rt.time, reducedMotion);
     }
 
@@ -1537,6 +1600,7 @@ export function LivingField({
     if (rt.view === "cell") {
       if (x < 140 && y < 64) {
         rt.view = "field";
+        rt.caption = "";
         return;
       }
       inspectCell(rt, x, y, width, height);
@@ -1546,6 +1610,7 @@ export function LivingField({
       if (x < 140 && y < 64) {
         rt.view = "field";
         rt.pendingHeart = false;
+        rt.caption = "";
         return;
       }
       inspectHeart(rt, x, y, width, height);
@@ -1626,6 +1691,7 @@ export function LivingField({
     if (Math.hypot(worldX - place.heart.x, worldY - place.heart.y) < 48) {
       rt.view = "heart";
       rt.pendingHeart = false;
+      rt.caption = "";
       return;
     }
 
@@ -1700,6 +1766,7 @@ export function LivingField({
         return;
       }
       rt.view = "heart";
+      rt.caption = "";
       if (!rt.found.has("heart") && !rt.speech) {
         if (!rt.found.has("warm")) {
           rt.pendingHeart = true;
@@ -1787,6 +1854,7 @@ export function LivingField({
     const rt = runtime();
     rt.view = "field";
     rt.pendingHeart = false;
+    rt.caption = "";
   }
 
   return (
