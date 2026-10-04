@@ -27,6 +27,7 @@ type Runtime = {
   grabY: number;
   look: Look;
   line: { id: string; index: number; text: string } | null;
+  stare: number;
 };
 
 function createRuntime(): Runtime {
@@ -55,7 +56,35 @@ function createRuntime(): Runtime {
     grabY: 0,
     look: createLook(),
     line: null,
+    stare: 0,
   };
+}
+
+const RELIC_SPOTS: { id: string; x: number; y: number }[] = [
+  { id: "sweet", x: 0.05, y: 0.8 },
+  { id: "talk", x: 0.11, y: 0.16 },
+  { id: "company", x: 0.18, y: 0.82 },
+  { id: "love", x: 0.24, y: 0.14 },
+  { id: "amazing", x: 0.32, y: 0.8 },
+  { id: "work", x: 0.36, y: 0.62 },
+  { id: "kill", x: 0.08, y: 0.48 },
+  { id: "stare", x: 0.15, y: 0.32 },
+  { id: "maths", x: 0.4, y: 0.16 },
+  { id: "you", x: 0.48, y: 0.78 },
+  { id: "motive", x: 0.56, y: 0.18 },
+  { id: "ambition", x: 0.66, y: 0.76 },
+  { id: "future", x: 0.76, y: 0.18 },
+  { id: "obgyn", x: 0.9, y: 0.46 },
+];
+
+function relicRects(worldW: number, worldH: number) {
+  return RELIC_SPOTS.map((spot) => ({
+    id: spot.id,
+    x: spot.x * worldW,
+    y: spot.y * worldH,
+    w: 100,
+    h: 40,
+  }));
 }
 
 function layout(viewW: number, viewH: number) {
@@ -86,7 +115,7 @@ function layout(viewW: number, viewH: number) {
   };
 }
 
-const HOURS = ["09:00", "14:00", "20:00", "01:00", "03:47"];
+const HOURS = ["09:00", "14:00", "21:00", "23:30", "01:00", "03:00"];
 
 export function ImpossibleRoom({
   teacher,
@@ -297,7 +326,48 @@ export function ImpossibleRoom({
       ctx.fillText(open ? "a note" : "—", item.x + 10, item.y + 22);
     }
 
+    for (const relic of relicRects(place.worldW, place.worldH)) {
+      const open = rt.found.has(relic.id);
+      ctx.fillStyle = relic.id === "kill" ? "rgba(90, 20, 16, 0.85)" : open ? "rgba(243, 234, 216, 0.92)" : "rgba(243, 234, 216, 0.2)";
+      ctx.fillRect(relic.x, relic.y, relic.w, relic.h);
+      ctx.fillStyle = relic.id === "kill" ? "#f6e6dc" : open ? "#241c14" : "rgba(244,236,220,0.75)";
+      ctx.font = `14px ${rt.fonts.hand}`;
+      ctx.textAlign = "center";
+      const label = relic.id === "stare" ? "look" : relic.id === "kill" ? "the line" : relic.id === "obgyn" ? "OB/GYN" : relic.id;
+      ctx.fillText(label, relic.x + relic.w / 2, relic.y + 25);
+      if (relic.id === "stare") {
+        ctx.fillStyle = "#f4efe6";
+        ctx.beginPath();
+        ctx.ellipse(relic.x + 28, relic.y - 16, 10, 7, 0, 0, Math.PI * 2);
+        ctx.ellipse(relic.x + 58, relic.y - 16, 10, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#140e0a";
+        ctx.beginPath();
+        ctx.arc(relic.x + 28, relic.y - 16, 3, 0, Math.PI * 2);
+        ctx.arc(relic.x + 58, relic.y - 16, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
     ctx.restore();
+    if (rt.stare > 0) {
+      ctx.fillStyle = "rgba(6, 4, 3, 0.78)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = "#f6f1e6";
+      ctx.beginPath();
+      ctx.ellipse(width * 0.4, height * 0.42, 54, 34, 0, 0, Math.PI * 2);
+      ctx.ellipse(width * 0.6, height * 0.42, 54, 34, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#140e0a";
+      ctx.beginPath();
+      ctx.arc(width * 0.4, height * 0.42, 10, 0, Math.PI * 2);
+      ctx.arc(width * 0.6, height * 0.42, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = "#d7f5d4";
+    ctx.font = `14px ${rt.fonts.mono}`;
+    ctx.textAlign = "left";
+    ctx.fillText(`${HOURS[hour] ?? ""}   ONLINE`, 24, height - 24);
     if (progress > 0.92 && rt.look.x < 24) {
       ctx.fillStyle = "rgba(240, 215, 164, 0.9)";
       ctx.fillRect(width - 8, height * 0.4, 8, 80);
@@ -308,8 +378,11 @@ export function ImpossibleRoom({
       ctx.textAlign = "left";
       ctx.fillText("Drag the floor. The rest of the room is further along.", 22, 36);
     }
-    if (rt.line) drawSlip(ctx, rt.line.text, rt.fonts.hand, width, height);
-    const status = rt.notice || (solved ? "The door is open." : "The room is still waiting on the lengths, the number, and the turn.");
+    if (rt.line && rt.stare !== 1) drawSlip(ctx, rt.line.text, rt.fonts.hand, width, height);
+    const status =
+      (rt.stare === 1 ? "" : rt.line?.text) ||
+      rt.notice ||
+      (solved ? "The door is open." : "The room is still waiting on the lengths, the number, and the turn.");
     if (status !== announced.current) {
       announced.current = status;
       setAnnounce(status);
@@ -319,6 +392,47 @@ export function ImpossibleRoom({
   function pointOf(event: PointerEvent<HTMLCanvasElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     return { x: event.clientX - rect.left, y: event.clientY - rect.top, width: rect.width, height: rect.height };
+  }
+
+  function openRelic(id: string) {
+    const rt = runtime();
+    const memory = teacher.memories.find((item) => item.id === id);
+    const lines = memory?.lines ?? [];
+    if (id === "stare") {
+      rt.stare += 1;
+      if (rt.stare === 1) {
+        rt.line = null;
+        sound.duck(0.04);
+        return;
+      }
+      if (rt.stare === 2) {
+        rt.line = { id, index: 0, text: lines[0] ?? "Yep." };
+        sound.page();
+        return;
+      }
+      rt.found.add("stare");
+      rt.line = { id, index: 1, text: lines[1] ?? "That stare." };
+      rt.stare = 3;
+      sound.duck(1);
+      sound.page();
+      return;
+    }
+    if (id === "kill") {
+      rt.found.add("kill");
+      rt.stare = 0;
+      rt.line = { id, index: 0, text: lines[0] ?? "I WILL KILL YOU." };
+      sound.page();
+      return;
+    }
+    rt.stare = 0;
+    rt.found.add(id);
+    if (!rt.line || rt.line.id !== id) {
+      rt.line = { id, index: 0, text: lines[0] ?? "" };
+    } else {
+      const next = rt.line.index + 1;
+      rt.line = next >= lines.length ? null : { id, index: next, text: lines[next] ?? "" };
+    }
+    sound.page();
   }
 
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
@@ -403,6 +517,14 @@ export function ImpossibleRoom({
     }
     rt.stoneId = null;
 
+    const relic = relicRects(place.worldW, place.worldH).find(
+      (item) => world.x >= item.x && world.x <= item.x + item.w && world.y >= item.y && world.y <= item.y + item.h,
+    );
+    if (relic && !held) {
+      openRelic(relic.id);
+      return;
+    }
+
     const progress = bridgeProgress(rt.lengthA, rt.lengthB);
     const turned = isQuarterTurn(rt.angle);
     const hitPlate = place.plates.find(
@@ -471,8 +593,15 @@ export function ImpossibleRoom({
           type="button"
           onClick={() => {
             const next = (hour + 1) % HOURS.length;
+            const seen = seenHours.includes(next) ? seenHours : [...seenHours, next];
             setHour(next);
-            setSeenHours((current) => (current.includes(next) ? current : [...current, next]));
+            setSeenHours(seen);
+            if (seen.length >= HOURS.length) {
+              const rt = runtime();
+              rt.found.add("online");
+              rt.line = { id: "online", index: 0, text: "How are you online this often?" };
+              sound.page();
+            }
           }}
         >
           {HOURS[hour]}

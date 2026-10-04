@@ -9,7 +9,14 @@ import { Sequence } from "../shared/sequence";
 
 type Book = { id: string; title: string; pages: string[] };
 
-const SPINES = ["#7c2f24", "#3c4a34", "#6a3d28", "#243246", "#5a2c28"];
+const SPINES = ["#7c2f24", "#3c4a34", "#6a3d28", "#243246", "#5a2c28", "#5c3a2a", "#2e4038", "#6a442e"];
+
+const NOTEBOOKS = [
+  { id: "nb-math", title: "Mathematics", fancy: true },
+  { id: "nb-chem", title: "Chemistry", fancy: true },
+  { id: "nb-bio", title: "Biology", fancy: true },
+  { id: "nb-eng", title: "English", fancy: false },
+];
 
 export function Library({
   teacher,
@@ -32,13 +39,20 @@ export function Library({
   const [showFinal, setShowFinal] = useState(false);
 
   function spots(width: number, height: number) {
-    const worldW = Math.max(width * 2.1, 220 + books.length * 150);
+    const worldW = Math.max(width * 2.4, 640 + books.length * 150);
     return {
       worldW,
       door: { x: worldW - 150, y: height * 0.22, w: 86, h: height * 0.46 },
+      notebooks: NOTEBOOKS.map((notebook, index) => ({
+        ...notebook,
+        x: 48 + index * 92,
+        y: height * 0.62,
+        w: 78,
+        h: 96,
+      })),
       books: books.map((book, index) => ({
         book,
-        x: 70 + index * 148,
+        x: 460 + index * 148,
         y: height * (index % 2 === 0 ? 0.22 : 0.48) - (index % 2 === 0 ? 120 : 108),
         w: 34,
         h: index % 2 === 0 ? 120 : 108,
@@ -85,6 +99,27 @@ export function Library({
       ctx.stroke();
     }
 
+    for (const notebook of place.notebooks) {
+      ctx.fillStyle = notebook.fancy ? "#f4e7c4" : "#d9d0c2";
+      ctx.fillRect(notebook.x, notebook.y, notebook.w, notebook.h);
+      if (notebook.fancy) {
+        ctx.strokeStyle = "#8a6230";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(notebook.x + 6, notebook.y + 6, notebook.w - 12, notebook.h - 12);
+        ctx.strokeStyle = "#c45a4a";
+        ctx.beginPath();
+        ctx.arc(notebook.x + notebook.w / 2, notebook.y + 28, 8, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = "rgba(80, 60, 40, 0.35)";
+        ctx.strokeRect(notebook.x + 8, notebook.y + 10, notebook.w - 16, notebook.h - 20);
+      }
+      ctx.fillStyle = "#241c14";
+      ctx.font = `13px ${fonts.hand}`;
+      ctx.textAlign = "center";
+      ctx.fillText(notebook.title, notebook.x + notebook.w / 2, notebook.y + notebook.h - 14);
+    }
+
     for (const spot of place.books) {
       const known = openedRef.current.includes(spot.book.id);
       ctx.fillStyle = spot.color;
@@ -103,7 +138,7 @@ export function Library({
       }
     }
 
-    const ready = openedRef.current.length >= 3;
+    const ready = openedRef.current.filter((id) => !id.startsWith("nb-")).length >= 6 && openedRef.current.includes("nb-eng");
     ctx.fillStyle = ready ? "#c6a56e" : "#1a1410";
     ctx.fillRect(place.door.x, place.door.y, place.door.w, place.door.h);
     ctx.strokeStyle = ready ? "#f0ddb4" : "#4a3424";
@@ -151,6 +186,25 @@ export function Library({
     if (panned) return;
     const place = spots(point.width, point.height);
     const worldX = point.x + look.x;
+    const notebook = place.notebooks.find(
+      (spot) => worldX >= spot.x && worldX <= spot.x + spot.w && point.y >= spot.y && point.y <= spot.y + spot.h,
+    );
+    if (notebook) {
+      if (!openedRef.current.includes(notebook.id)) openedRef.current = [...openedRef.current, notebook.id];
+      setOpened(openedRef.current);
+      const seenPretty = ["nb-math", "nb-chem", "nb-bio"].every((id) => openedRef.current.includes(id));
+      if (!notebook.fancy && seenPretty) {
+        const memory = teacher.memories.find((item) => item.id === "jealous");
+        setCurrent({ id: "jealous", title: "The English notebook", pages: memory?.lines ?? [] });
+      } else if (notebook.fancy) {
+        setCurrent({ id: notebook.id, title: notebook.title, pages: ["This one looks really good."] });
+      } else {
+        setCurrent({ id: notebook.id, title: notebook.title, pages: ["This one is plainer. Open the decorated ones."] });
+      }
+      setPage(0);
+      sound.page();
+      return;
+    }
     const hit = place.books.find(
       (spot) => worldX >= spot.x && worldX <= spot.x + spot.w && point.y >= spot.y && point.y <= spot.y + spot.h,
     );
@@ -168,7 +222,8 @@ export function Library({
     const door = place.door;
     const inDoor = worldX >= door.x && worldX <= door.x + door.w && point.y >= door.y && point.y <= door.y + door.h;
     if (!inDoor) return;
-    if (openedRef.current.length >= 3) {
+    const ready = openedRef.current.filter((id) => !id.startsWith("nb-")).length >= 6 && openedRef.current.includes("nb-eng");
+    if (ready) {
       sound.duck(0.14);
       setShowFinal(true);
       setCurrent(null);

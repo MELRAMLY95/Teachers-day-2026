@@ -34,11 +34,11 @@ type Runtime = {
 };
 
 const RADIUS = 180;
-const STAR_ANGLES = [-2.6, -1.15, 0.15, 1.15, 2.15, 2.9, -3.5, 0.7];
+const STAR_ANGLES = [-2.6, -1.15, 0.15, 1.15, 2.15, 2.9, -3.5, 0.7, -0.8, 1.8, 3.4, -2.1, 0.45, -1.7];
 
 function createRuntime(teacher: Teacher): Runtime {
   const speed = circularVelocity(STAR_GM, RADIUS);
-  const stars = teacher.notes.slice(0, 8).map((note, index) => ({
+  const stars = teacher.notes.map((note, index) => ({
     id: note.id,
     name: note.label,
     line: note.line,
@@ -69,8 +69,8 @@ function createRuntime(teacher: Teacher): Runtime {
 }
 
 function space(width: number, height: number) {
-  const worldW = width * 2.2;
-  const worldH = height * 1.62;
+  const worldW = width * 2.7;
+  const worldH = height * 1.85;
   return {
     worldW,
     worldH,
@@ -81,11 +81,10 @@ function space(width: number, height: number) {
 }
 
 function starAt(index: number, angle: number, cx: number, cy: number, span: number) {
-  const far = index >= 3;
-  const radius = far ? span * 0.98 : span * 0.26;
+  const band = index < 3 ? 0.26 : index < 8 ? 0.98 : 1.45;
   return {
-    x: cx + Math.cos(angle) * radius,
-    y: cy + Math.sin(angle) * radius * (far ? 0.7 : 0.82),
+    x: cx + Math.cos(angle) * span * band,
+    y: cy + Math.sin(angle) * span * band * 0.72,
   };
 }
 
@@ -321,9 +320,9 @@ export function Observatory({
     ctx.arc(hx, hy, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    const ready = rt.pushed && rt.found.size >= 4;
+    const ready = rt.pushed && rt.found.size >= 6;
     const word = orbitWord({ x: rt.x, y: rt.y, vx: rt.vx, vy: rt.vy }, gm);
-    if (rt.found.size >= 5) {
+    if (rt.found.size >= 8) {
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(246, 226, 176, 0.7)";
       ctx.font = `15px ${rt.fonts.hand}`;
@@ -361,7 +360,7 @@ export function Observatory({
     }
     if (rt.slip) drawSlip(ctx, rt.slip, rt.fonts.hand, width, height);
 
-    const nextAnnounce = rt.notice || `${word}. ${rt.found.size} notes found in the sky.`;
+    const nextAnnounce = rt.slip || rt.notice || `${word}. ${rt.found.size} notes found in the sky.`;
     if (nextAnnounce !== announced.current) {
       announced.current = nextAnnounce;
       rt.lastWord = nextAnnounce;
@@ -436,6 +435,11 @@ export function Observatory({
       rt.vx = (world.x - (room.cx + rt.x)) / 0.28;
       rt.vy = (world.y - (room.cy + rt.y)) / 0.28;
       rt.pushed = true;
+      if (!rt.found.has("try")) {
+        rt.found.add("try");
+        const line = teacher.memories.find((item) => item.id === "try")?.lines[0];
+        if (line) rt.slip = line;
+      }
     } else if (rt.held === "sun") {
       rt.mass = Math.min(2.4, Math.max(0.35, rt.mass + (rt.grabY - world.y) * 0.008));
       rt.grabY = world.y;
@@ -450,6 +454,10 @@ export function Observatory({
     const moved = Math.hypot(world.x - rt.grabX, world.y - rt.grabY);
     const held = rt.held;
     rt.held = null;
+    if (held === "vel" && rt.found.has("try")) {
+      const second = teacher.memories.find((item) => item.id === "try")?.lines[1];
+      if (second) rt.slip = second;
+    }
     if (panned || (held && moved > 8)) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const geo = geometry(rect.width, rect.height, rt);
@@ -463,7 +471,7 @@ export function Observatory({
     const inDoor =
       world.x >= door.x && world.x <= door.x + door.w && world.y >= door.y && world.y <= door.y + door.h;
     if (!inDoor) return;
-    if (rt.pushed && rt.found.size >= 4) {
+    if (rt.pushed && rt.found.size >= 6) {
       sound.duck(0.14);
       setShowFinale(true);
       return;

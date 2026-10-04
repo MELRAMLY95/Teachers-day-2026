@@ -33,10 +33,20 @@ export function Sequence({
   );
 }
 
-export function AlwaysOnline({ punchline, onDone, onClose }: { punchline: string; onDone: () => void; onClose: () => void }) {
+export function AlwaysOnline({
+  lines,
+  hours = HOURS,
+  onDone,
+  onClose,
+}: {
+  lines: string[];
+  hours?: string[];
+  onDone: () => void;
+  onClose: () => void;
+}) {
   const [index, setIndex] = useState(0);
   const [seen, setSeen] = useState<number[]>([0]);
-  const done = seen.length >= HOURS.length;
+  const done = seen.length >= hours.length;
 
   return (
     <div className="sequence sequence-screen">
@@ -46,14 +56,18 @@ export function AlwaysOnline({ punchline, onDone, onClose }: { punchline: string
           type="button"
           className="screen-time"
           onClick={() => {
-            const next = (index + 1) % HOURS.length;
+            const next = (index + 1) % hours.length;
             setIndex(next);
             setSeen((current) => (current.includes(next) ? current : [...current, next]));
           }}
         >
-          {HOURS[index]}
+          {hours[index]}
         </button>
-        <p>{done ? punchline : "The hour changes. The status does not."}</p>
+        {done ? (
+          lines.map((line) => <p key={line}>{line}</p>)
+        ) : (
+          <p>The hour changes. The status does not.</p>
+        )}
         <button type="button" onClick={done ? onDone : onClose}>
           {done ? "Leave the screen" : "Close"}
         </button>

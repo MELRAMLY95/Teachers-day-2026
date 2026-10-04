@@ -7,13 +7,8 @@ import { clampLook, createLook, drawSlip, dragPan, startPan, stopPan, type Look 
 import { readFonts, useStage, type Fonts } from "../shared/stage";
 
 type Cell = { x: number; y: number; r: number; vx: number; vy: number };
-type Specimen = { id: string; angle: number };
 
-const SPECIMENS: Specimen[] = [
-  { id: "smile", angle: -2.2 },
-  { id: "ease", angle: -0.4 },
-  { id: "mind", angle: 0.9 },
-];
+const SPECIMENS = ["comfort", "smile", "warm", "smart", "teach", "kind", "ease", "mind", "grade", "class"];
 
 type Runtime = {
   cells: Cell[];
@@ -65,8 +60,8 @@ function drawPlant(
 }
 
 function worldOf(width: number, height: number) {
-  const worldW = width * 2.2;
-  const worldH = height * 1.6;
+  const worldW = width * 3.2;
+  const worldH = height * 1.9;
   return {
     worldW,
     worldH,
@@ -76,10 +71,17 @@ function worldOf(width: number, height: number) {
   };
 }
 
-function specimenAt(id: string, cx: number, cy: number, width: number, height: number) {
-  if (id === "smile") return { x: cx - width * 0.78, y: cy - height * 0.08 };
-  if (id === "ease") return { x: cx + width * 0.08, y: cy - height * 0.7 };
-  return { x: cx + width * 0.82, y: cy + height * 0.28 };
+function specimenAt(index: number, cx: number, cy: number, width: number, height: number) {
+  const angle = -2.5 + index * 0.58;
+  const ring = index < 3 ? 0.2 : index < 7 ? 0.82 : 1.25;
+  return {
+    x: cx + Math.cos(angle) * width * ring,
+    y: cy + Math.sin(angle) * height * ring * 0.48,
+  };
+}
+
+function heartPoint(cx: number, cy: number, width: number) {
+  return { x: cx + width * 1.35, y: cy - 10 };
 }
 
 function createRuntime(): Runtime {
@@ -256,13 +258,13 @@ export function LivingField({
     ctx.textAlign = "center";
     ctx.fillText("drag the strands", cx, cy + field * 0.15 + 42);
 
-    for (const specimen of SPECIMENS) {
-      const at = specimenAt(specimen.id, cx, cy, width, height);
+    for (const [index, specimen] of SPECIMENS.entries()) {
+      const at = specimenAt(index, cx, cy, width, height);
       const x = at.x;
       const y = at.y;
-      const found = rt.found.has(specimen.id);
-      if (found) drawPlant(ctx, x, y + 46, 48 + growth * 10, specimen.angle, rt.time);
-      const pulse = 0.55 + Math.sin(rt.time * 2 + specimen.angle) * 0.25;
+      const found = rt.found.has(specimen);
+      if (found) drawPlant(ctx, x, y + 46, 48 + growth * 6, index, rt.time);
+      const pulse = 0.55 + Math.sin(rt.time * 2 + index) * 0.25;
       const glow = ctx.createRadialGradient(x, y, 2, x, y, 26);
       glow.addColorStop(0, found ? "rgba(232, 210, 150, 0.7)" : `rgba(170, 230, 180, ${pulse})`);
       glow.addColorStop(1, "rgba(0,0,0,0)");
@@ -275,16 +277,16 @@ export function LivingField({
       ctx.fillStyle = found ? "#f0ddb0" : "#d7f0dc";
       ctx.fill();
       if (found) {
-        const memory = teacher.memories.find((item) => item.id === specimen.id);
+        const memory = teacher.memories.find((item) => item.id === specimen);
         ctx.font = `13px ${rt.fonts.hand}`;
         ctx.fillStyle = "rgba(236, 232, 214, 0.85)";
         ctx.fillText(memory?.title ?? "", x, y - 16);
       }
     }
 
-    const ready = rt.found.has("heart");
-    const heart = { x: cx + width * 1.12, y: cy - 10 };
-    if (rt.found.size >= 3) {
+    const ready = rt.found.has("heart") && rt.found.has("backflip");
+    const heart = heartPoint(cx, cy, width);
+    if (rt.found.size >= 8) {
       const hx = heart.x;
       const hy = heart.y;
       ctx.save();
@@ -330,7 +332,7 @@ export function LivingField({
     }
     if (rt.slip) drawSlip(ctx, rt.slip, rt.fonts.hand, width, height);
 
-    const status = rt.notice || (ready ? "The way out is lit." : "The field is waiting for what you find.");
+    const status = rt.slip || rt.notice || (ready ? "The way out is lit." : "The field is waiting for what you find.");
     if (status !== announced.current) {
       announced.current = status;
       setAnnounce(status);
@@ -379,16 +381,22 @@ export function LivingField({
     if (panned || wasHelix) return;
     const world = { x: point.x + rt.look.x, y: point.y + rt.look.y };
     const { cx, cy, worldW } = worldOf(point.width, point.height);
-    const heart = { x: cx + point.width * 1.12, y: cy - 10 };
-    if (rt.found.size >= 3 && Math.hypot(world.x - heart.x, world.y - heart.y) < 36) {
+    const heart = heartPoint(cx, cy, point.width);
+    if (rt.found.size >= 8 && Math.hypot(world.x - heart.x, world.y - heart.y) < 40) {
+      if (rt.found.has("heart")) {
+        const line = teacher.memories.find((item) => item.id === "backflip")?.lines[0] ?? "";
+        rt.found.add("backflip");
+        rt.slip = line;
+        rt.notice = "The way out is lit.";
+        announced.current = "";
+        return;
+      }
       const lines = teacher.memories.find((item) => item.id === "heart")?.lines ?? [];
       const next = rt.heartAt + 1;
       if (next >= lines.length) {
         rt.found.add("heart");
         rt.slip = "";
         rt.heartAt = lines.length;
-        rt.notice = "The way out is lit.";
-        announced.current = "";
         return;
       }
       if (rt.heartAt < 0) sound.duck(0.1);
@@ -396,13 +404,13 @@ export function LivingField({
       rt.slip = lines[next] ?? "";
       return;
     }
-    const specimen = SPECIMENS.find((item) => {
-      const at = specimenAt(item.id, cx, cy, point.width, point.height);
+    const specimen = SPECIMENS.find((item, index) => {
+      const at = specimenAt(index, cx, cy, point.width, point.height);
       return Math.hypot(world.x - at.x, world.y - at.y) < 22;
     });
     if (specimen) {
-      const memory = teacher.memories.find((item) => item.id === specimen.id);
-      rt.found.add(specimen.id);
+      const memory = teacher.memories.find((item) => item.id === specimen);
+      rt.found.add(specimen);
       const lines = memory?.lines ?? [];
       const index = rt.slip && lines.includes(rt.slip) ? lines.indexOf(rt.slip) + 1 : 0;
       rt.slip = lines[index] ?? lines[0] ?? "";
@@ -429,7 +437,7 @@ export function LivingField({
     const door = { x: worldW - 120, y: cy - 30, w: 78, h: 120 };
     const inDoor = world.x >= door.x && world.x <= door.x + door.w && world.y >= door.y && world.y <= door.y + door.h;
     if (!inDoor) return;
-    if (rt.found.has("heart")) onEnterMemory();
+    if (rt.found.has("heart") && rt.found.has("backflip")) onEnterMemory();
     else {
       rt.notice = "The way out stays dark until more of the field is alive.";
       announced.current = "";

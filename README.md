@@ -13,7 +13,7 @@ The site is a static page, so it can stay public on GitHub Pages without a paid 
 | Miss Noshen | future | Mathematics. The room, the stare, and the future. |
 | Miss Kalsoom Ashraf | heart | Biology. The field grows, then the heart. |
 | Miss Naila Naeem | listened | English. A library, then a quiet room. |
-| Miss Maryam Ghazanfar | journey | Islamiat and psychology. Three arches, then the journey. |
+| Miss Maryam Ghazanfar | journey | Islamiat and psychology. The path, then the trip she planned. |
 
 Honorifics are optional. `Miss Irum Shahid` and `irum shahid` both work.
 
@@ -32,7 +32,7 @@ Edit that teacher in `lib/teachers.ts`. The world reads memories, notes, books, 
 
 To add a photograph, put the file in `public/memories/` and add it only with that person's permission. It will be public.
 
-The notes in `teacher's day preparation/` are a checklist for gathering the real lines.
+`CONTENT.md` lists every memory: the detail, the object you touch, where it sits, and the tone. The notes in `teacher's day preparation/` are a checklist for gathering the real lines.
 
 ## Keep it public without paying
 
@@ -48,17 +48,17 @@ A custom domain is a yearly purchase. The `github.io` address is the part that s
 
 ## What is built
 
-Miss Irum, chemistry. The laboratory is wider than the screen. Drag the empty bench, or use the arrow keys, to look around. Pour copper sulfate, then sodium hydroxide, into the beaker. The pale blue solid is copper hydroxide. It becomes copper oxide only if the burner is lit underneath the glass. The lens shows the same mixture as particles, bonds, and energy. The screen stays online at 09:00, 14:00, 20:00, 01:00, and 03:47. The window stays dark until two things have been found. Each discovery lets more sunlight in. The letter plays only after the practical and three discoveries.
+Miss Irum, chemistry. The laboratory is wider than the screen. Drag the empty bench, or use the arrow keys, to look around. Pour copper sulfate, then sodium hydroxide, into the beaker. The pale blue solid is copper hydroxide. It becomes copper oxide only if the burner is lit underneath the glass. The lens shows the same mixture as particles, bonds, and energy. The computer and the phone stay online at 9:00 PM, 11:30 PM, 1:00 AM, and 3:00 AM. The window stays dark until two things have been found, then it opens a lesson nobody had asked for. The folder waits for five finds. The plant waits for seven. Each discovery lets more sunlight in. The letter plays only after the practical and three discoveries.
 
-Miss Hadia, physics. Drag the empty sky. Some notes are further out, and each one adds a ring of force around the star. Drag the gold point to apply a force. The orbit is calculated from mass and velocity. The door opens only after the path has actually changed and four notes are found.
+Miss Hadia, physics. Drag the empty sky. Fourteen notes sit at different distances, and each one adds a ring of force around the star. Drag the gold point to apply a force. That drag is the line about physics not being a natural subject, and still wanting to try. The orbit is calculated from mass and velocity. The door opens only after the path has actually changed and six notes are found.
 
-Miss Noshen, mathematics. Drag the floor. The lengths are in the first part of the room, the sequence further along, the quarter turn after that. A wrong number brings the stare and shears the walls. The clock stays online. The door opens when the room has been solved.
+Miss Noshen, mathematics. Drag the floor. Cards along the room hold the jokes, the stare, and the line from mathematics to OB/GYN. The lengths are in the first part of the room, the sequence further along, the quarter turn after that. A wrong number brings the stare and shears the walls. Click "look" and the room goes quiet before "Yep." and "That stare." The clock stays online through 09:00, 14:00, 21:00, 23:30, 01:00, and 03:00. The door opens when the room has been solved and every hour has been seen.
 
-Miss Kalsoom, biology. Drag the field. Click a cell and it divides. The glowing points are off to the sides, and each one grows the field. The heart appears further along, and those lines are read in the field, one click at a time.
+Miss Kalsoom, biology. Drag the field. Click a cell and it divides. The glowing points are off to the sides, and each one grows the field. After eight of them, the heart is further along. Those lines are read in the field, one click at a time, and the field goes quiet. The last click after that is the backflip.
 
-Miss Naila, English. Drag the shelves. The books are spaced along them. Opening three of them lights the quiet room at the far end.
+Miss Naila, English. Drag the shelves. The notebooks are on the desk at the start: mathematics, chemistry, and biology look decorated, and the English one is plainer. Open the decorated ones first. The books are spaced along the shelves. The quiet room is at the far end, after the English notebook and six books.
 
-Miss Maryam, Islamiat and psychology. Drag the path. The arches are spaced along it. Nothing is scored. The hadith of intentions is quoted from al-Bukhari and Muslim. The journey is the trip she planned, at the end of the path.
+Miss Maryam, Islamiat and psychology. Drag the path. Six arches come first. The trip stays shut until those six have been walked: itinerary, route, preparations, destination, what you would do, then the fact that she could not come. Nothing is scored. No place is named. The hadith of intentions is quoted from al-Bukhari and Muslim.
 
 Sound can be turned off from the corner. The room goes quiet for the letter.
 

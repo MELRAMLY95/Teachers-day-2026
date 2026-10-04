@@ -98,7 +98,7 @@ export function Lab({
       const worldH = cssH * (narrow ? 1.28 : 1.38);
       rt.look.viewW = cssW;
       rt.look.viewH = cssH;
-      const layout = rt.view === "molecule" ? layoutLab(cssW, cssH) : layoutLab(worldW, worldH);
+      const layout = rt.view === "lab" ? layoutLab(worldW, worldH) : layoutLab(cssW, cssH);
       rt.reduced = reducedRef.current;
       const flags = step(rt, layout, dt);
       drawLab(ctx, rt, layout);
@@ -124,7 +124,7 @@ export function Lab({
     const cssW = Math.max(1, rect.width);
     const cssH = Math.max(1, rect.height);
     const rt = runtime();
-    if (rt.view === "molecule") return layoutLab(cssW, cssH);
+    if (rt.view !== "lab") return layoutLab(cssW, cssH);
     const narrow = cssW < 800;
     return layoutLab(cssW * (narrow ? 1.7 : 1.95), cssH * (narrow ? 1.28 : 1.38));
   }
@@ -174,15 +174,35 @@ export function Lab({
     const rt = runtime();
     const action = pointerUp(rt, withLayout(event.currentTarget), p.x, p.y);
     if (action?.type === "ignite") sound.ignite();
+    if (action?.type === "lesson") {
+      const lines = memoryById(teacher, "window")?.lines ?? [];
+      rt.line = { id: "window", index: action.index, text: lines[action.index] ?? "" };
+      sound.page();
+      return;
+    }
+    if (action?.type === "found") {
+      finishMemory(action.id);
+      rt.line = null;
+      return;
+    }
     if (action?.type === "memory") {
       const memory = memoryById(teacher, action.id);
       if (!memory) return;
-      if (action.id === "monitor") {
-        setReading("monitor");
+      if (action.id === "monitor" || action.id === "phone") {
+        setReading(action.id);
+        return;
+      }
+      if (action.id === "window") {
+        rt.lessonLines = memory.lines;
+        rt.lessonAt = 0;
+        rt.view = "lesson";
+        rt.line = { id: "window", index: 0, text: memory.lines[0] ?? "" };
+        sound.page();
         return;
       }
       if (!rt.line || rt.line.id !== action.id) {
         rt.line = { id: action.id, index: 0, text: memory.lines[0] ?? "" };
+        finishMemory(action.id);
         sound.page();
         return;
       }
@@ -245,11 +265,12 @@ export function Lab({
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
-      {reading === "monitor" ? (
+      {reading === "monitor" || reading === "phone" ? (
         <AlwaysOnline
-          punchline={memoryById(teacher, "monitor")?.lines[0] ?? "How are you always online?"}
+          hours={["9:00 PM", "11:30 PM", "1:00 AM", "3:00 AM"]}
+          lines={memoryById(teacher, reading)?.lines ?? []}
           onClose={() => setReading(null)}
-          onDone={() => finishMemory("monitor")}
+          onDone={() => finishMemory(reading)}
         />
       ) : null}
       {finale ? (

@@ -24,7 +24,15 @@ export type LabLayout = {
   drawer: Rect;
   report: Rect;
   monitor: Rect;
+  phone: Rect;
   window: Rect;
+  mug: Rect;
+  papers: Rect;
+  coat: Rect;
+  flower: Rect;
+  folder: Rect;
+  goggles: Rect;
+  apron: Rect;
   board: Rect;
   note: Rect;
   loupe: Rect;
@@ -79,7 +87,9 @@ export type Runtime = {
   pouring: "cuso4" | "naoh" | null;
   pourArmed: boolean;
   found: Set<string>;
-  view: "lab" | "molecule";
+  view: "lab" | "molecule" | "lesson";
+  lessonLines: string[];
+  lessonAt: number;
   time: number;
   maxTemp: number;
   sparks: Spark[];
@@ -109,6 +119,8 @@ export type Action =
   | { type: "memory"; id: string }
   | { type: "door"; line: string }
   | { type: "ignite" }
+  | { type: "lesson"; index: number }
+  | { type: "found"; id: string }
   | null;
 
 export type StepFlags = { announce: string; clink: boolean };
@@ -133,6 +145,8 @@ export function createRuntime(): Runtime {
     pourArmed: true,
     found: new Set(),
     view: "lab",
+    lessonLines: [],
+    lessonAt: 0,
     time: 0,
     maxTemp: 22,
     sparks: [],
@@ -189,7 +203,15 @@ export function layoutLab(w: number, h: number): LabLayout {
       drawer: { x: 70, y: Math.min(h - 50, benchY + 74), w: Math.min(150, w * 0.4), h: 42 },
       report: { x: w - 86, y: benchY + 10, w: 72, h: 88 },
       monitor: { x: w - 92, y: benchY - 78, w: 80, h: 58 },
+      phone: { x: w * 0.62, y: benchY + 8, w: 36, h: 58 },
       window: { x: 8, y: 8, w: 46, h: 64 },
+      mug: { x: w * 0.28, y: benchY - 36, w: 28, h: 32 },
+      papers: { x: w * 0.78, y: benchY - 20, w: 54, h: 36 },
+      coat: { x: 8, y: benchY - 70, w: 36, h: 64 },
+      flower: { x: w * 0.18, y: h * 0.16, w: 36, h: 70 },
+      folder: { x: w * 0.22, y: benchY + 48, w: 48, h: 32 },
+      goggles: { x: w * 0.34, y: benchY + 16, w: 44, h: 22 },
+      apron: { x: w * 0.52, y: h * 0.12, w: 40, h: 56 },
       board: { x: 10, y: 8, w: w - 80, h: boardH },
       note: { x: 18, y: 8 + boardH - 28, w: Math.min(190, w * 0.48), h: 24 },
       loupe: { x: w - 64, y: Math.min(h - 60, benchY + 108), w: 52, h: 52 },
@@ -214,7 +236,15 @@ export function layoutLab(w: number, h: number): LabLayout {
     drawer: { x: w * 0.05, y: benchY + 34, w: 196, h: 52 },
     report: { x: w * 0.86, y: benchY - 128, w: 108, h: 126 },
     monitor: { x: w * 0.8, y: benchY - 168, w: 168, h: 108 },
+    phone: { x: w * 0.74, y: benchY - 40, w: 42, h: 72 },
     window: { x: w * 0.045, y: h * 0.08, w: 118, h: 156 },
+    mug: { x: w * 0.33, y: benchY - 48, w: 36, h: 42 },
+    papers: { x: w * 0.9, y: benchY + 8, w: 92, h: 48 },
+    coat: { x: w * 0.02, y: benchY - 150, w: 52, h: 110 },
+    flower: { x: w * 0.16, y: h * 0.22, w: 48, h: 120 },
+    folder: { x: w * 0.2, y: benchY + 96, w: 78, h: 46 },
+    goggles: { x: w * 0.3, y: benchY + 18, w: 64, h: 28 },
+    apron: { x: w * 0.55, y: h * 0.2, w: 56, h: 90 },
     board: { x: w * 0.24, y: h * 0.045, w: Math.min(500, w * 0.4), h: 176 },
     note: { x: w * 0.255, y: h * 0.045 + 128, w: 240, h: 34 },
     loupe: { x: w * 0.78, y: benchY - 78, w: 70, h: 70 },
@@ -299,7 +329,15 @@ type HitId =
   | "drawer"
   | "report"
   | "monitor"
+  | "phone"
   | "window"
+  | "mug"
+  | "papers"
+  | "coat"
+  | "flower"
+  | "folder"
+  | "goggles"
+  | "apron"
   | "note"
   | "loupe"
   | "door"
@@ -313,9 +351,25 @@ function topHit(rt: Runtime, layout: LabLayout, x: number, y: number): HitId | n
     { id: "door", rect: layout.door },
     { id: "cuso4", rect: rt.cuso4 },
     { id: "naoh", rect: rt.naoh },
+    { id: "phone", rect: layout.phone },
     { id: "monitor", rect: layout.monitor },
+    { id: "goggles", rect: layout.goggles },
+    { id: "mug", rect: layout.mug },
+    { id: "apron", rect: layout.apron },
+    {
+      id: "flower",
+      rect: {
+        ...layout.flower,
+        y: layout.flower.y - rt.found.size * 4,
+        h: layout.flower.h + rt.found.size * 4,
+      },
+    },
+    { id: "coat", rect: layout.coat },
     { id: "window", rect: layout.window },
     { id: "notebook", rect: layout.notebook },
+    { id: "folder", rect: layout.folder },
+    { id: "papers", rect: layout.papers },
+    { id: "report", rect: layout.report },
     { id: "drawer", rect: layout.drawer },
     { id: "note", rect: layout.note },
   ];
@@ -342,6 +396,10 @@ export function cursorFor(rt: Runtime, layout: LabLayout, x: number, y: number) 
 }
 
 export function pointerDown(rt: Runtime, layout: LabLayout, x: number, y: number) {
+  if (rt.view === "lesson") {
+    rt.pointerDown = true;
+    return;
+  }
   if (rt.view === "lab") settle(rt, layout);
   rt.pointerDown = true;
   rt.look.panning = false;
@@ -388,6 +446,17 @@ export function pointerMove(rt: Runtime, layout: LabLayout, x: number, y: number
 }
 
 export function pointerUp(rt: Runtime, layout: LabLayout, x: number, y: number): Action {
+  if (rt.view === "lesson") {
+    rt.pointerDown = false;
+    rt.look.panning = false;
+    const next = rt.lessonAt + 1;
+    if (next >= rt.lessonLines.length) {
+      rt.view = "lab";
+      return { type: "found", id: "window" };
+    }
+    rt.lessonAt = next;
+    return { type: "lesson", index: next };
+  }
   if (rt.view === "lab") settle(rt, layout);
   const panned = stopPan(rt.look, x, y);
   rt.pointerDown = false;
@@ -417,9 +486,35 @@ export function pointerUp(rt: Runtime, layout: LabLayout, x: number, y: number):
   }
   if (id === "window" && rt.found.size < 2) {
     rt.notice = { text: "The window is still dark.", life: 4 };
+    rt.line = { id: "locked", index: 0, text: "The window is still dark." };
     return null;
   }
-  if (id === "notebook" || id === "drawer" || id === "monitor" || id === "window" || id === "note") {
+  if (id === "folder" && rt.found.size < 5) {
+    rt.notice = { text: "That folder stays shut a while longer.", life: 4 };
+    rt.line = { id: "locked", index: 0, text: "That folder stays shut a while longer." };
+    return null;
+  }
+  if (id === "flower" && rt.found.size < 7) {
+    rt.notice = { text: "The plant hasn't opened yet.", life: 4 };
+    rt.line = { id: "locked", index: 0, text: "The plant hasn't opened yet." };
+    return null;
+  }
+  if (
+    id === "notebook" ||
+    id === "drawer" ||
+    id === "monitor" ||
+    id === "phone" ||
+    id === "window" ||
+    id === "note" ||
+    id === "mug" ||
+    id === "papers" ||
+    id === "coat" ||
+    id === "flower" ||
+    id === "folder" ||
+    id === "goggles" ||
+    id === "apron" ||
+    id === "report"
+  ) {
     return { type: "memory", id: id === "note" ? "margin" : id };
   }
   if (id === "door") {
@@ -683,7 +778,7 @@ export function step(rt: Runtime, layout: LabLayout, dt: number): StepFlags {
   }
   rt.doorReady = ready;
 
-  const announce = rt.notice ? rt.notice.text : describeBeaker(rt.beaker, rt.heating);
+  const announce = rt.line?.text || (rt.notice ? rt.notice.text : describeBeaker(rt.beaker, rt.heating));
   return { announce, clink };
 }
 
@@ -1267,12 +1362,73 @@ function liftOf(rt: Runtime, id: string) {
   return Math.sin(rt.time * 4) * 4;
 }
 
+function drawFind(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  label: string,
+  found: boolean,
+  fonts: Fonts,
+  fill: string,
+) {
+  ctx.fillStyle = found ? fill : "rgba(40, 28, 20, 0.55)";
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.strokeStyle = found ? "rgba(255, 220, 170, 0.85)" : "rgba(244, 236, 220, 0.35)";
+  ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.fillStyle = found ? "#241c14" : "rgba(244, 236, 220, 0.75)";
+  ctx.font = `13px ${fonts.hand}`;
+  ctx.textAlign = "center";
+  ctx.fillText(label, rect.x + rect.w / 2, rect.y + rect.h * 0.62);
+}
+
+function drawLesson(ctx: CanvasRenderingContext2D, rt: Runtime) {
+  const w = rt.look.viewW;
+  const h = rt.look.viewH;
+  ctx.fillStyle = "#120e0c";
+  ctx.fillRect(0, 0, w, h);
+  const tiles = [
+    { x: w * 0.08, y: h * 0.12, lit: false },
+    { x: w * 0.38, y: h * 0.12, lit: true },
+    { x: w * 0.68, y: h * 0.12, lit: false },
+  ];
+  for (const tile of tiles) {
+    ctx.fillStyle = tile.lit ? "#3a2414" : "#1c1612";
+    ctx.fillRect(tile.x, tile.y, w * 0.24, h * 0.42);
+    if (tile.lit) {
+      const glow = ctx.createRadialGradient(tile.x + w * 0.12, tile.y + h * 0.16, 8, tile.x + w * 0.12, tile.y + h * 0.16, 70);
+      glow.addColorStop(0, "rgba(255, 196, 120, 0.85)");
+      glow.addColorStop(1, "rgba(255, 196, 120, 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(tile.x + w * 0.12, tile.y + h * 0.16, 70, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f6ecd8";
+      ctx.font = `18px ${rt.fonts.hand}`;
+      ctx.textAlign = "center";
+      ctx.fillText("Miss Irum", tile.x + w * 0.12, tile.y + h * 0.34);
+      ctx.font = `13px ${rt.fonts.mono}`;
+      ctx.fillText("in the lesson", tile.x + w * 0.12, tile.y + h * 0.34 + 22);
+    }
+  }
+  ctx.fillStyle = "#24180f";
+  ctx.fillRect(w * 0.12, h * 0.6, w * 0.76, h * 0.12);
+  ctx.fillStyle = "rgba(244, 236, 220, 0.8)";
+  ctx.font = `16px ${rt.fonts.hand}`;
+  ctx.textAlign = "left";
+  ctx.fillText("An online class. Nobody had asked for it yet.", w * 0.14, h * 0.67);
+  const line = rt.lessonLines[rt.lessonAt] ?? "";
+  if (line) drawSlip(ctx, line, rt.fonts.hand, w, h);
+}
+
 export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabLayout) {
+  if (rt.view === "lesson") {
+    drawLesson(ctx, rt);
+    return;
+  }
   if (rt.view === "molecule") {
     drawMolecules(ctx, rt, layout);
     return;
   }
-  const light = Math.min(1, rt.found.size / 3);
+  const light = Math.min(1, rt.found.size / 10);
   ctx.save();
   ctx.translate(-rt.look.x, -rt.look.y);
   drawRoom(ctx, layout, light);
@@ -1309,6 +1465,20 @@ export function drawLab(ctx: CanvasRenderingContext2D, rt: Runtime, layout: LabL
   drawDrawer(ctx, layout.drawer, rt.found.has("drawer"), rt.fonts);
   ctx.restore();
   drawLoupe(ctx, layout.loupe, rt.fonts);
+  const grown = {
+    ...layout.flower,
+    y: layout.flower.y - rt.found.size * 4,
+    h: layout.flower.h + rt.found.size * 4,
+  };
+  drawFind(ctx, layout.mug, "mug", rt.found.has("mug"), rt.fonts, "#efe6d4");
+  drawFind(ctx, layout.goggles, "joke", rt.found.has("goggles"), rt.fonts, "#d7e2ea");
+  drawFind(ctx, layout.apron, "sweet", rt.found.has("apron"), rt.fonts, "#f0d7b0");
+  drawFind(ctx, layout.papers, "marking", rt.found.has("papers"), rt.fonts, "#f3ead8");
+  drawFind(ctx, layout.report, "report", rt.found.has("report"), rt.fonts, "#efe4cc");
+  drawFind(ctx, layout.coat, "coat", rt.found.has("coat"), rt.fonts, "#e7d3b0");
+  drawFind(ctx, layout.folder, "folder", rt.found.has("folder"), rt.fonts, "#e4c98a");
+  drawFind(ctx, grown, "sun", rt.found.has("flower"), rt.fonts, "#f0c14a");
+  drawFind(ctx, layout.phone, "phone", rt.found.has("phone"), rt.fonts, "#c8e6c4");
   drawBeaker(ctx, layout, rt);
   if (rt.bunsen.lit) drawFlame(ctx, rt.bunsen, rt.time, rt.heating);
   const gear: { item: Gear; draw: () => void }[] = [

@@ -6,13 +6,20 @@ import { useRef, useState, type PointerEvent } from "react";
 import { clampLook, createLook, drawSlip, dragPan, startPan, stopPan, type Look } from "../shared/look";
 import { readFonts, useStage } from "../shared/stage";
 
-type ArchId = "intention" | "patience" | "mercy" | "trip";
-
-const ARCHES: { id: ArchId; at: number }[] = [
-  { id: "intention", at: 0.18 },
-  { id: "patience", at: 0.4 },
-  { id: "mercy", at: 0.62 },
-  { id: "trip", at: 0.86 },
+const STOPS: { id: string; at: number; trip?: boolean }[] = [
+  { id: "hard", at: 0.06 },
+  { id: "fun", at: 0.12 },
+  { id: "know", at: 0.18 },
+  { id: "duties", at: 0.24 },
+  { id: "care", at: 0.3 },
+  { id: "sweet", at: 0.36 },
+  { id: "itinerary", at: 0.48, trip: true },
+  { id: "route", at: 0.54, trip: true },
+  { id: "prep", at: 0.6, trip: true },
+  { id: "destination", at: 0.66, trip: true },
+  { id: "activities", at: 0.72, trip: true },
+  { id: "absent", at: 0.8, trip: true },
+  { id: "meant", at: 0.9, trip: true },
 ];
 
 export function Courtyard({
@@ -37,10 +44,10 @@ export function Courtyard({
   const name = `${teacher.honorific} ${teacher.name}`.trim();
 
   function place(width: number, height: number) {
-    const worldW = width * 2.8;
+    const worldW = width * 4.2;
     return {
       worldW,
-      arches: ARCHES.map((arch) => ({
+      arches: STOPS.map((arch) => ({
         ...arch,
         x: worldW * arch.at,
         y: height * 0.34,
@@ -84,11 +91,12 @@ export function Courtyard({
     ctx.fillRect(0, height * 0.72, room.worldW, height * 0.28);
     const lit = visitedRef.current.length;
     ctx.fillStyle = `rgba(232, 196, 140, ${0.15 + lit * 0.12})`;
-    ctx.fillRect(40, height * 0.78, (room.worldW - 80) * Math.min(1, (lit + 0.15) / 4), 8);
+    ctx.fillRect(40, height * 0.78, (room.worldW - 80) * Math.min(1, (lit + 0.15) / STOPS.length), 8);
 
     for (const arch of room.arches) {
-      const open = arch.id === "trip" ? visitedRef.current.length >= 3 : visitedRef.current.includes(arch.id);
-      const locked = arch.id === "trip" && visitedRef.current.length < 3;
+      const early = STOPS.filter((stop) => !stop.trip).length;
+      const open = arch.trip ? visitedRef.current.length >= early : visitedRef.current.includes(arch.id);
+      const locked = Boolean(arch.trip) && visitedRef.current.length < early;
       ctx.fillStyle = locked ? "rgba(42, 28, 20, 0.35)" : open ? "rgba(232, 196, 140, 0.55)" : "#2a1c14";
       ctx.beginPath();
       ctx.moveTo(arch.x - arch.w / 2, arch.y + arch.h);
@@ -107,7 +115,7 @@ export function Courtyard({
       }
     }
 
-    if (visitedRef.current.length >= 3) {
+    if (visitedRef.current.length >= 6) {
       ctx.fillStyle = "rgba(243, 234, 216, 0.9)";
       ctx.font = `26px ${fonts.display}`;
       ctx.textAlign = "center";
@@ -150,10 +158,11 @@ export function Courtyard({
       (item) => Math.abs(worldX - item.x) < item.w / 2 && point.y > item.y && point.y < item.y + item.h + 20,
     );
     if (!arch) return;
-    if (arch.id === "trip" && visitedRef.current.length < 3) return;
+    const early = STOPS.filter((stop) => !stop.trip).length;
+    if (arch.trip && visitedRef.current.filter((id) => STOPS.some((stop) => stop.id === id && !stop.trip)).length < early) return;
     const memory = teacher.memories.find((item) => item.id === arch.id);
     const lines = memory?.lines ?? [];
-    if (!visitedRef.current.includes(arch.id) && arch.id !== "trip") {
+    if (!arch.trip && !visitedRef.current.includes(arch.id)) {
       visitedRef.current = [...visitedRef.current, arch.id];
     }
     const current = lineRef.current;
@@ -161,7 +170,7 @@ export function Courtyard({
       const text = lines[0] ?? "";
       lineRef.current = { id: arch.id, index: 0, text };
       setSlip(text);
-      if (arch.id === "trip") sound.duck(0.12);
+      if (arch.id === "absent" || arch.id === "meant") sound.duck(0.12);
       sound.page();
       return;
     }
@@ -169,8 +178,8 @@ export function Courtyard({
     if (next >= lines.length) {
       lineRef.current = null;
       setSlip("");
-      if (arch.id === "trip") onEnterMemory();
-      else if (!visitedRef.current.includes(arch.id)) visitedRef.current = [...visitedRef.current, arch.id];
+      if (arch.trip && !visitedRef.current.includes(arch.id)) visitedRef.current = [...visitedRef.current, arch.id];
+      if (arch.id === "meant") onEnterMemory();
       return;
     }
     const text = lines[next] ?? "";
@@ -192,6 +201,9 @@ export function Courtyard({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       />
+      <p className="sr-only" aria-live="polite">
+        {slip}
+      </p>
       <button type="button" className="lab-leave" onClick={onLeave}>
         Leave
       </button>
