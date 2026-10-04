@@ -25,14 +25,11 @@ export function Gate({ onEnter }: { onEnter: (teacher: Teacher) => void }) {
 
   return (
     <main className="gate">
-      <div className="ember" aria-hidden="true" />
       <div className="gate-copy">
-        <p className="eyebrow">Welcome.</p>
-        <h1 className="display">This isn&apos;t a website.</h1>
-        <p className="lede">It&apos;s something your students made for you.</p>
+        <h1>This experience was made for you.</h1>
         <form className="gate-form" onSubmit={onSubmit}>
           <div className="field">
-            <Label htmlFor="teacher-name">Enter your name</Label>
+            <Label htmlFor="teacher-name">Enter your name.</Label>
             <Input
               id="teacher-name"
               name="name"
@@ -48,7 +45,7 @@ export function Gate({ onEnter }: { onEnter: (teacher: Teacher) => void }) {
             />
           </div>
           <div className="field">
-            <Label htmlFor="teacher-password">Enter your password</Label>
+            <Label htmlFor="teacher-password">Enter your password.</Label>
             <Input
               id="teacher-password"
               name="password"
@@ -62,7 +59,7 @@ export function Gate({ onEnter }: { onEnter: (teacher: Teacher) => void }) {
               required
             />
           </div>
-          <Button type="submit">Enter your world →</Button>
+          <Button type="submit">Enter your world</Button>
           {error ? (
             <p className="gate-error" role="alert">
               {error}

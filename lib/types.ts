@@ -18,6 +18,12 @@ export type Message = {
   line: string;
 };
 
+export type Discovery = {
+  id: string;
+  title: string;
+  body: string;
+};
+
 export type Teacher = {
   id: string;
   name: string;
@@ -25,12 +31,8 @@ export type Teacher = {
   password: string;
   subject: Subject;
   messages: Message[];
-};
-
-export type WorldProps = {
-  teacher: Teacher;
-  onMemory: () => void;
-  reducedMotion: boolean;
-  skipIntro: boolean;
-  onIntroSeen: () => void;
+  /** Objects hidden inside that teacher's world. */
+  discoveries?: Discovery[];
+  /** The last page, written for this teacher only. */
+  ending?: string[];
 };

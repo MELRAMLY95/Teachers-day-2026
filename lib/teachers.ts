@@ -1,4 +1,5 @@
 import type { Subject, Teacher } from "@/lib/types";
+import { chemistryDiscoveries, chemistryEnding } from "@/teachers/chemistryTeacher";
 
 /**
  * Replace these sample teachers before you share the site.
@@ -15,6 +16,8 @@ export const teachers: Teacher[] = [
     honorific: "Dr.",
     password: "glassware",
     subject: "chemistry",
+    discoveries: chemistryDiscoveries,
+    ending: chemistryEnding,
     messages: [
       {
         studentId: "amina",

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Outfit, Share_Tech_Mono, Syne } from "next/font/google";
+import { Caveat, Cormorant_Garamond, Outfit, Share_Tech_Mono, Syne } from "next/font/google";
 import "./globals.css";
 import "./experience.css";
 
@@ -26,6 +26,12 @@ const syne = Syne({
   variable: "--font-syne",
 });
 
+const hand = Caveat({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-hand",
+});
+
 export const metadata: Metadata = {
   title: "Welcome",
   description: "Something your students made for you.",
@@ -42,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${display.variable} ${mono.variable} ${syne.variable} dark h-full antialiased`}
+      className={`${outfit.variable} ${display.variable} ${mono.variable} ${syne.variable} ${hand.variable} dark h-full antialiased`}
     >
       <body className="min-h-dvh bg-[#070708] text-[#f4f0e6]">
         {children}

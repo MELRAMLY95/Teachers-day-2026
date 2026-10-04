@@ -1,30 +1,16 @@
 "use client";
 
-import { BiologyWorld } from "@/components/worlds/biology";
 import { ChemistryWorld } from "@/components/worlds/chemistry";
-import { EnglishWorld } from "@/components/worlds/english";
-import { InnerWorld } from "@/components/worlds/inner";
-import { MathematicsWorld } from "@/components/worlds/mathematics";
-import { PhysicsWorld } from "@/components/worlds/physics";
+import { UnopenedWorld } from "@/components/worlds/unopened";
 import { Gate } from "@/components/gate";
-import { MemoryRoom } from "@/components/memory-room";
 import { SoundProvider, useSound } from "@/components/sound";
 import { useReducedMotion } from "@/components/use-reduced-motion";
-import { WorldBar } from "@/components/world-bar";
 import type { Bed } from "@/lib/audio";
 import { clearSession, readSession, writeSession, type SessionPhase } from "@/lib/session";
 import { getTeacher, worldTitles } from "@/lib/teachers";
-import type { Subject, Teacher, WorldProps } from "@/lib/types";
+import type { Teacher } from "@/lib/types";
+import { worldModules } from "@/teachers/registry";
 import { useCallback, useEffect, useState } from "react";
-
-const worlds: Record<Subject, (props: WorldProps) => React.JSX.Element> = {
-  chemistry: ChemistryWorld,
-  physics: PhysicsWorld,
-  mathematics: MathematicsWorld,
-  biology: BiologyWorld,
-  english: EnglishWorld,
-  inner: InnerWorld,
-};
 
 type JourneyState = {
   teacher: Teacher | null;
@@ -66,8 +52,7 @@ function Journey() {
       document.title = "Welcome";
       return;
     }
-    document.title =
-      phase === "memory" ? `Happy Teachers' Day, ${teacher.name}` : worldTitles[teacher.subject];
+    document.title = phase === "memory" ? "The classroom" : worldTitles[teacher.subject];
   }, [phase, teacher]);
 
   function signOut() {
@@ -89,38 +74,29 @@ function Journey() {
     );
   }
 
-  if (phase === "memory") {
+  if (worldModules[teacher.subject].implemented && teacher.subject === "chemistry") {
     return (
-      <>
-        <WorldBar tone="day" onSignOut={signOut} />
-        <MemoryRoom
-          teacher={teacher}
-          onReturn={() => {
-            writeSession({ id: teacher.id, phase: "world", introSeen: true });
-            setJourney({ teacher, phase: "world", introSeen: true });
-          }}
-        />
-      </>
-    );
-  }
-
-  const World = worlds[teacher.subject];
-  return (
-    <>
-      <WorldBar onSignOut={signOut} />
-      <World
+      <ChemistryWorld
         key={teacher.id}
         teacher={teacher}
         reducedMotion={reducedMotion}
         skipIntro={introSeen}
+        inMemory={phase === "memory"}
         onIntroSeen={markIntro}
-        onMemory={() => {
+        onEnterMemory={() => {
           writeSession({ id: teacher.id, phase: "memory", introSeen: true });
           setJourney({ teacher, phase: "memory", introSeen: true });
         }}
+        onReturnToLab={() => {
+          writeSession({ id: teacher.id, phase: "world", introSeen: true });
+          setJourney({ teacher, phase: "world", introSeen: true });
+        }}
+        onLeave={signOut}
       />
-    </>
-  );
+    );
+  }
+
+  return <UnopenedWorld teacher={teacher} onLeave={signOut} />;
 }
 
 export function Experience() {

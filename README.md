@@ -1,6 +1,6 @@
 # The Worlds We Learned In
 
-A Teachers' Day experience made by students. One address. One quiet entrance. Six different worlds, depending on which teacher walks in.
+A Teachers' Day experience made by students. One address. One quiet entrance. The teacher who walks in is the only person the room was built for.
 
 The password is only a surprise, not a lock. The site is a static page, so it can stay public on GitHub Pages without a paid server. Anyone who can open the address can also read the page source. Do not put phone numbers, home addresses, or anything private in the messages.
 
@@ -48,14 +48,16 @@ If the repository is named `your-name.github.io`, the site is served from the do
 
 A custom domain is a yearly purchase. The `github.io` address is the part that stays free.
 
-## What is in each world
+## What is built
 
-- Chemistry: light the burner, pour reagents, build a water molecule, then start the final reaction.
-- Physics: open the observatory roof, read the student stars, and nudge a planet into orbit.
-- Mathematics: solve three puzzles. A wrong answer waits with you.
-- Biology: the world is empty until memories make it grow.
-- English: open the books. The untitled one waits until a few others have been read.
-- The inner world: six quiet doors. Nothing is scored. Sacred material is quoted carefully, not used as a prize.
-- Every world ends in the same classroom.
+Chemistry is the finished world. Sign in as Amira Hassan, password `glassware`.
+
+The laboratory is a working practical, not a row of buttons. Pour copper sulfate, then sodium hydroxide, into the beaker by holding a bottle over its mouth. The pale blue solid is copper hydroxide, and it only darkens to copper oxide if the burner is lit and actually underneath the glass. The lens shows the same mixture as ions, bonds, and the energy of the reaction. Notes are hidden in the lab book, the drawer, the report, and the margin of the board. The classroom door opens after the practical and three of those notes.
+
+The other teachers are in the configuration, under `teachers/`, with their own messages. Their rooms are not open yet. Signing in as one of them will say so, rather than showing a placeholder of cards.
+
+## How to add the next teacher
+
+Each subject lives in `teachers/`. A world is a module registered in `teachers/registry.ts`. Chemistry is the pattern: its discoveries and ending are data, and the laboratory reads that data. Do not reuse the chemistry bench for another subject.
 
 Sign out from the corner when another teacher is ready to enter.

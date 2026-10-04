@@ -118,8 +118,12 @@ body {
 
 .gate h1 {
   margin: 0;
-  font-size: clamp(3rem, 8vw, 5.4rem);
-  line-height: 0.9;
+  font-family: var(--font-syne), sans-serif;
+  font-size: clamp(1.7rem, 4.6vw, 3.1rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  text-transform: uppercase;
 }
 
 .lede {
@@ -1039,7 +1043,345 @@ body {
   .flame,
   .burner-row.lit span,
   .liquid.bubbling::after,
-  .observatory.is-opening .dome::after {
+  .observatory.is-opening .dome::after,
+  .chem-flame,
+  .memory-room,
+  .ink {
+    animation: none;
+  }
+}
+
+.lab-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: #07080c;
+}
+
+.lab-shell.is-covered {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lab-shell canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.lab-leave,
+.text-leave,
+.room-nav button {
+  border: 0;
+  background: none;
+  color: rgba(244, 240, 230, 0.78);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.lab-leave {
+  position: fixed;
+  z-index: 5;
+  right: 0.9rem;
+  bottom: 0.8rem;
+}
+
+.lab-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  background: rgba(5, 6, 8, 0.62);
+}
+
+.lab-paper,
+.final-letter,
+.desk-paper {
+  background: #f3ead8;
+  color: #241c14;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.38);
+}
+
+.lab-paper {
+  width: min(34rem, 100%);
+  padding: 1.5rem 1.4rem 1.2rem;
+  transform: rotate(-0.5deg);
+}
+
+.lab-paper h2,
+.paper-name {
+  font-family: var(--font-hand), cursive;
+  font-weight: 600;
+}
+
+.lab-paper h2 {
+  margin: 0 0 0.4rem;
+  font-size: 2.1rem;
+}
+
+.lab-paper p,
+.paper-line {
+  margin: 0;
+  font-family: var(--font-hand), cursive;
+  font-size: 1.45rem;
+  line-height: 1.35;
+}
+
+.lab-paper button {
+  margin-top: 1.1rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #241c14;
+  background: none;
+  color: inherit;
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.chem-enter,
+.unopened {
+  position: relative;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 2.5rem 1.25rem 4rem;
+  text-align: center;
+  background: #05060a;
+  color: #f4f0e6;
+}
+
+.chem-enter {
+  cursor: pointer;
+}
+
+.chem-flame {
+  width: 2.4rem;
+  height: 5rem;
+  margin-bottom: 1.5rem;
+  background: radial-gradient(ellipse at 50% 80%, #fff4d2, #ff9a3c 42%, transparent 72%);
+  transform: scaleY(0.2);
+  transform-origin: 50% 100%;
+  opacity: 0;
+}
+
+.chem-flame.is-lit {
+  opacity: 1;
+  transform: scaleY(1);
+  animation: flame-sway 0.7s ease-in-out infinite alternate;
+}
+
+.chem-enter-copy p,
+.chem-enter-copy h1 {
+  margin: 0.4rem 0;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.chem-enter-copy .is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.chem-enter-copy p {
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.chem-enter-copy h1 {
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: clamp(2.4rem, 7vw, 4.6rem);
+  font-weight: 500;
+}
+
+.chem-skip {
+  position: absolute;
+  bottom: 1.2rem;
+  margin: 0;
+  color: rgba(244, 240, 230, 0.55);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.unopened h1 {
+  font-size: clamp(2.6rem, 7vw, 5rem);
+}
+
+.unopened p {
+  max-width: 28rem;
+}
+
+.memory-room {
+  position: relative;
+  z-index: 8;
+  min-height: 100dvh;
+  overflow: auto;
+  background:
+    linear-gradient(#241e18 0 34%, #4a3424 34% 42%, #3a2818 42% 100%);
+  animation: room-in 0.7s ease both;
+}
+
+.memory-board {
+  position: absolute;
+  top: 4vh;
+  left: 50%;
+  display: grid;
+  width: min(34rem, 86vw);
+  height: 16vh;
+  min-height: 5.5rem;
+  place-items: center;
+  transform: translateX(-50%);
+  background: #1c3a32;
+  color: rgba(236, 232, 214, 0.9);
+  font-family: var(--font-hand), cursive;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+}
+
+.desk-paper {
+  position: absolute;
+  z-index: 2;
+  width: 11.5rem;
+  min-height: 4.4rem;
+  padding: 0.75rem 0.8rem 0.9rem;
+  border: 0;
+  text-align: left;
+  transform: rotate(var(--rot));
+  cursor: pointer;
+}
+
+.desk-paper.is-open {
+  z-index: 6;
+  width: min(18rem, 72vw);
+}
+
+.paper-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 7rem;
+  margin-bottom: 0.4rem;
+}
+
+.paper-photo img {
+  object-fit: cover;
+}
+
+.paper-name {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.paper-line {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.paper-0 { left: 4%; top: 26%; --rot: -7deg; }
+.paper-1 { left: 18%; top: 32%; --rot: 4deg; }
+.paper-2 { left: 73%; top: 26%; --rot: -3deg; }
+.paper-3 { left: 84%; top: 40%; --rot: 6deg; }
+.paper-4 { left: 5%; top: 46%; --rot: 2deg; }
+.paper-5 { left: 78%; top: 52%; --rot: -5deg; }
+.paper-6 { left: 7%; top: 64%; --rot: -4deg; }
+.paper-7 { left: 72%; top: 68%; --rot: 3deg; }
+.paper-8 { left: 20%; top: 76%; --rot: 5deg; }
+.paper-9 { left: 56%; top: 80%; --rot: -6deg; }
+.paper-10 { left: 36%; top: 28%; --rot: -2deg; }
+.paper-11 { left: 56%; top: 34%; --rot: 4deg; }
+
+.final-letter {
+  position: absolute;
+  z-index: 4;
+  top: 58%;
+  left: 50%;
+  width: min(36rem, 88vw);
+  min-height: 14rem;
+  padding: 1.3rem 1.3rem 1.5rem;
+  border: 0;
+  transform: translateX(-50%);
+  text-align: left;
+  cursor: pointer;
+}
+
+.final-letter .paper-name {
+  margin-bottom: 0.4rem;
+}
+
+.ink {
+  animation: ink-in 0.8s ease both;
+}
+
+.room-nav {
+  position: fixed;
+  z-index: 9;
+  right: 0.9rem;
+  bottom: 0.8rem;
+  display: flex;
+  gap: 1rem;
+}
+
+@keyframes flame-sway {
+  from { transform: scaleY(0.92) scaleX(0.96); }
+  to { transform: scaleY(1.06) scaleX(1.04); }
+}
+
+@keyframes room-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ink-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 800px) {
+  .memory-room {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem 1rem 5.5rem;
+    background: #2a241c;
+  }
+
+  .memory-board,
+  .desk-paper,
+  .final-letter {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: min(100%, 28rem);
+    margin-inline: auto;
+    transform: none;
+  }
+
+  .memory-board {
+    height: auto;
+    min-height: 0;
+    padding: 1.4rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chem-enter-copy p,
+  .chem-enter-copy h1,
+  .chem-flame.is-lit {
+    opacity: 1;
+    transform: none;
+    transition: none;
     animation: none;
   }
 }
