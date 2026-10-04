@@ -60,7 +60,7 @@ Miss Kalsoom, biology. An anatomical heart in a living garden. Click the heart a
 
 Miss Naila, English. A lamp between two windows, shelves, a desk, and words that drift. The sentence on the page changes when you choose plain, finished, or decorated. The notebooks are still the joke. The room is the place that is safe to talk.
 
-Miss Maryam. One arch, a geometric floor, and a manuscript you can turn. The trip is the last memory, and it arrives slowly. The effort of planning it is what the words keep. The hadith of intentions is on the page, from al-Bukhari and Muslim. Nothing is scored. No place is named.
+Miss Maryam. A courtyard at dusk: an arch, lanterns, a tiled floor, and a manuscript you can turn. The trip is the last memory, and it arrives slowly. The effort of planning it is what the words keep. The hadith of intentions is on the page, from al-Bukhari and Muslim. Nothing is scored. No place is named.
 
 Sound can be turned off from the corner. The room goes quiet while a memory is open.
 

@@ -192,6 +192,9 @@ export function englishWords(width: number, height: number) {
 }
 
 export function manuscript(width: number, height: number) {
+  if (width < 760) {
+    return { x: width * 0.5, y: height * 0.42, w: width * 0.42, h: Math.min(height * 0.14, 110) };
+  }
   return { x: width * 0.5, y: height * 0.4, w: Math.min(width, height) * 0.24, h: Math.min(width, height) * 0.2 };
 }
 
