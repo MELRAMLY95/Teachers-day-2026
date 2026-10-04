@@ -420,7 +420,7 @@ export function ImpossibleRoom({
     if (id === "kill") {
       rt.found.add("kill");
       rt.stare = 0;
-      rt.line = { id, index: 0, text: lines[0] ?? "I WILL KILL YOU." };
+      rt.line = { id, index: 0, text: lines[0] ?? "And of course, I could never forget your iconic 'I will kill you.'" };
       sound.page();
       return;
     }
@@ -599,7 +599,7 @@ export function ImpossibleRoom({
             if (seen.length >= HOURS.length) {
               const rt = runtime();
               rt.found.add("online");
-              rt.line = { id: "online", index: 0, text: "How are you online this often?" };
+              rt.line = { id: "online", index: 0, text: "You're somehow always online whenever I text you, and I'm still trying to figure out how." };
               sound.page();
             }
           }}

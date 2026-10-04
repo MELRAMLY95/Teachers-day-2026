@@ -32,7 +32,7 @@ Drag the empty sky. Near notes are the start. Farther notes are the later part.
 | ID | Detail | Interaction | Where | Tone |
 | --- | --- | --- | --- | --- |
 | subject | Physics is not naturally my subject | Click the near star | Close to the star | Honest |
-| try | She makes me want to work hard at it anyway | Drag the gold point. A force changes the path | The orbit | The mechanic |
+| try | You make me want to work hard at it anyway | Drag the gold point. A force changes the path | The orbit | The mechanic |
 | want | Motivated to work hard in physics | Click a star | Nearby sky | Honest |
 | praise | Constantly praises students | Click a star | Nearby sky | Warm |
 | best | Makes us feel like we are the best | Click a star | Nearby sky | Warm |
@@ -40,12 +40,12 @@ Drag the empty sky. Near notes are the start. Farther notes are the later part.
 | joke | Fun to joke with | Click a star | Mid sky | Funny |
 | joke2 | Class is allowed to be funny | Click a star | Mid sky | Funny |
 | hard | One of the hardest-working teachers | Click a star | Farther out | Plain |
-| all | Puts her all into whatever she does | Click a star | Farther out | Plain |
-| see | Appreciated more because of how hard she works | Click a star | Farther out | Personal |
+| all | You put your all into whatever you do | Click a star | Farther out | Plain |
+| see | Appreciated more because of how hard you work | Click a star | Farther out | Personal |
 | worth | Makes the hard work feel worth it | Click a star | Far sky | Personal |
 | capable | Makes me feel capable in physics | Click a star | Far sky | Personal |
 | remember | That is something I will remember | Click a star | Far sky | Quiet |
-| again | Still not a natural love of physics. The try is because of her | Click a star | Far sky | Honest |
+| again | Still not a natural love of physics. The try is because of you | Click a star | Far sky | Honest |
 
 Each found note adds a ring of force around the star. The door wants the gold point moved and six notes.
 
@@ -57,21 +57,21 @@ Drag the floor. The funny ones are in the first part of the room. The future is 
 | --- | --- | --- | --- | --- |
 | sweet | Extremely sweet | Click the card | First stretch | Light |
 | talk | Friendly and fun to talk to | Click the card | First stretch | Light |
-| company | Enjoy spending time with her | Click the card | First stretch | Warm |
+| company | Enjoy spending time with you | Click the card | First stretch | Warm |
 | love | A main reason I love mathematics | Click the card | First stretch | Personal |
 | amazing | One of the most amazing teachers | Click the card | First stretch | Warm |
-| work | She motivates the hard work | Click the card | First stretch | Direct |
+| work | You motivate the hard work | Click the card | First stretch | Direct |
 | kill | "I WILL KILL YOU." | Click "the line". A wrong number in the gap does it too, and the walls shear | First stretch | Funny |
 | stare | The stare. Silence, then "Yep." "That stare." | Click "look". The room goes quiet. No words the first time | Above the line | Funny |
 | online | Almost always online | Change the clock through 09:00, 14:00, 21:00, 23:30, 01:00, 03:00. It stays Online. Then: how are you online this often? | The clock, top left | Funny |
 | bridge | Mathematics, and the working | Drag the two lengths, then the note | The lengths | The work |
 | maths | Mathematics is the first link | Click the card | Second stretch | The chain |
-| sequence / you | Then it is her, not teachers in general | The number puzzle, and the "you" card | Middle of the room | The chain |
-| motive | The working gets done because she motivates it | Click the card | Further along | The chain |
+| sequence / you | Then it is you, not teachers in general | The number puzzle, and the "you" card | Middle of the room | The chain |
+| motive | The working gets done because you motivate it | Click the card | Further along | The chain |
 | turn / ambition | Then the ambition | Quarter-turn the square, and the ambition card | Further on | The chain |
 | future | A future with a shape | Click the card | Near the end | The chain |
-| obgyn | Wants to become an OB/GYN. She is a major reason. Maths, then her, then motivation, then ambition | Click OB/GYN | End of the room | The point |
-| finale | Would never want to be the reason she needs motivation | The letter, after the door | The letter | Direct |
+| obgyn | You're one of the reasons I know I want to become an OB/GYN | Click OB/GYN | End of the room | The point |
+| finale | Would never want to be the reason you need motivation | The letter, after the door | The letter | Direct |
 
 ## Miss Naila Naeem — English — 14 discoveries
 
@@ -82,17 +82,17 @@ Drag the shelves. The notebooks are on the desk at the start. The books are furt
 | nb-math | The mathematics notebook looks good | Open it | Desk, start of the hall | Funny setup |
 | nb-chem | The chemistry notebook looks good | Open it | Desk | Funny setup |
 | nb-bio | The biology notebook looks good | Open it | Desk | Funny setup |
-| nb-eng / jealous | The English notebook is plainer. She gets jealous. Why doesn't it look like that? | Open it after the other three | Desk | Funny |
+| nb-eng / jealous | The English notebook is plainer. You get jealous. Why doesn't it look like that? | Open it after the other three | Desk | Funny |
 | least | English is probably the least favourite subject | Pull the book | The shelves | Honest |
-| good | She helped me see the good in English | Pull the book | The shelves | Warm |
-| enjoy | Started enjoying English because of her | Pull the book | The shelves | Warm |
+| good | You helped me see the good in English | Pull the book | The shelves | Warm |
+| enjoy | Started enjoying English more because of you | Pull the book | The shelves | Warm |
 | closer | Not just a teacher. Much closer than that | Pull the book | The shelves | Personal |
 | anything | Can talk about almost anything | Pull the book | The shelves | Safe |
-| judge | Knows she will not be judged | Inside that book | The shelves | Safe |
-| safe | She is a safe place | Pull the book. The quiet room uses the same idea | The shelves, then the far door | The centre |
-| friend | Enjoy talking to her. It feels like a friend | Pull the book | The shelves | Warm |
-| listen | She listens | Pull the book | The shelves | Quiet |
-| relate | She relates | Inside that book | The shelves | Quiet |
+| judge | You're someone I can talk to about almost anything without feeling judged | Inside that book | The shelves | Safe |
+| safe | You've become a safe place for me | Pull the book. The quiet room uses the same idea | The shelves, then the far door | The centre |
+| friend | Enjoy talking to you. It feels like a friend | Pull the book | The shelves | Warm |
+| listen | You listen | Pull the book | The shelves | Quiet |
+| relate | You relate | Inside that book | The shelves | Quiet |
 | admire | Listening and relating is what is admired most | Pull the book | The shelves | Personal |
 | heard | You made me feel heard | The book, the quiet room, and the letter | Far end, then the letter | The ending |
 
@@ -100,18 +100,18 @@ Drag the shelves. The notebooks are on the desk at the start. The books are furt
 
 A living heart in a dark garden. It starts quiet. Each memory that is read lets more of the ecosystem come alive, and the heart grows warmer. Nothing is solved. Every memory is visible from the start. One click, the words, Close.
 
-There is no face, and there is no hug animation. Grade 6 / 7 darkens the garden, leaves the heart as the light, and draws a warm membrane around it. The lines arrive with a pause. The letter repeats her sentences. The view then pulls back to the living world, her name, and Happy Teachers' Day.
+There is no face, and there is no hug animation. Grade 6 / 7 darkens the garden, leaves the heart as the light, and draws a warm membrane around it. The lines arrive with a pause. The letter says the same sentences to her. The view then pulls back to the living world, her name, and Happy Teachers' Day.
 
 | ID | Detail | Interaction | Where | Tone |
 | --- | --- | --- | --- | --- |
-| words | Hard to describe her. Comfortable around her | Click the organism | Upper left | The uncertainty |
-| smile | Looks to see if she is smiling. Her smile warms the heart | Click it. The garden warms and a flower opens | Upper right | Warm |
-| smart | Incredibly smart, and knows how to teach | Click it. Cells sit behind the sentence | Left | Both, together |
-| kind | Really kind | Click it. The sentence is left alone | Right | Quiet |
-| grade | Grade 6 or 7. An issue with a teacher. She was the class teacher. Crying. She hugged. Remembered like yesterday | Click Grade 6 / 7. The lines arrive on their own | Bottom, in the open | The centre. No hug animation |
-| love | Immense love for Miss Kalsoom | Click it | Lower left | Unsoftened |
-| place | She holds a very big part of the heart | Click it. The view moves closer to the heart | Lower right | The organ |
-| flip | Talking about her makes the heart do a backflip | Click it. The trace jumps, then settles | Above the heart | Human |
+| words | One of my favourite teachers. Hard to describe you. Comfortable around you | Click the organism | Upper left | The uncertainty |
+| smile | Looks to see if you're smiling. Your smile warms my heart | Click it. The garden warms and a flower opens | Upper right | Warm |
+| smart | You're incredibly smart, and you know how to teach | Click it. Cells sit behind the sentence | Left | Both, together |
+| kind | You're also really kind | Click it. The sentence is left alone | Right | Quiet |
+| grade | Grade 6 or 7. An issue with a teacher. You were the class teacher. Crying. You hugged. Remembered like yesterday | Click Grade 6 / 7. The lines arrive on their own | Bottom, in the open | The centre. No hug animation |
+| love | Immense love for you, Miss Kalsoom | Click it | Lower left | Unsoftened |
+| place | You hold a very big part of my heart | Click it. The view moves closer to the heart | Lower right | The organ |
+| flip | Talking about you makes the heart do a backflip | Click it. The trace jumps, then settles | Above the heart | Human |
 | letter | The same sentences, then her name, then Happy Teachers' Day | The letter, after all eight | Above the garden | The ending |
 
 ## Miss Maryam Ghazanfar — Islamiat and psychology — 13 discoveries
@@ -129,7 +129,7 @@ Drag the path. The first six arches are her. The trip is further on, and it stay
 | itinerary | Planned the trip. Wrote the order of the days | Walk the arch. Opens after the six | The journey | The plan |
 | route | Worked out the route | Next arch | The journey | The plan |
 | prep | The preparations. Wanted the students to have the experience | Next arch | The journey | The plan |
-| destination | There is a destination because she planned one | Next arch | The journey | The plan |
+| destination | There is a destination because you planned one | Next arch | The journey | The plan |
 | activities | Thought about what you would actually do there | Next arch | The journey | The plan |
 | absent | Could not come. A huge amount of work. You knew | Next arch. The path goes quiet | The journey | Honest, no guilt |
 | meant | Planned so much. Could not come. The effort still meant a lot | Last arch, then the letter | End of the path | The point |

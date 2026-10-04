@@ -1414,7 +1414,7 @@ function drawLesson(ctx: CanvasRenderingContext2D, rt: Runtime) {
   ctx.fillStyle = "rgba(244, 236, 220, 0.8)";
   ctx.font = `16px ${rt.fonts.hand}`;
   ctx.textAlign = "left";
-  ctx.fillText("An online class. Nobody had asked for it yet.", w * 0.14, h * 0.67);
+  ctx.fillText("You offered this lesson. Nobody had asked yet.", w * 0.14, h * 0.67);
   const line = rt.lessonLines[rt.lessonAt] ?? "";
   if (line) drawSlip(ctx, line, rt.fonts.hand, w, h);
 }

@@ -1,8 +1,8 @@
 import type { DeskNote, Memory } from "../types";
 
 /**
- * Miss Kalsoom's words, kept as she was described.
- * Spacing and a comma are the only edits.
+ * Spoken to Miss Kalsoom, in the student's voice.
+ * The only edits are the turn from "her" to "you".
  */
 
 export type GardenMemory = {
@@ -21,18 +21,18 @@ export const garden: GardenMemory[] = [
     weight: "sentimental",
     slow: false,
     lines: [
-      "I do not think I can describe her in words.",
-      "However, I can start by saying how comfortable I am around her.",
+      "You are genuinely one of my favourite teachers, and I don't think I can properly describe you in words.",
+      "However, I can start by saying how comfortable I am around you.",
     ],
   },
   {
     id: "smile",
-    label: "Her smile",
+    label: "Your smile",
     weight: "sentimental",
     slow: false,
     lines: [
-      "Whenever I do something, I look to see if she is smiling or not.",
-      "Her smile warms my heart.",
+      "Whenever I do something, I look to see if you're smiling or not.",
+      "Your smile genuinely warms my heart.",
     ],
   },
   {
@@ -40,14 +40,14 @@ export const garden: GardenMemory[] = [
     label: "Incredibly smart",
     weight: "ordinary",
     slow: false,
-    lines: ["She is also so incredibly smart and she knows how to teach pretty well."],
+    lines: ["You're also so incredibly smart, and you know how to teach so well."],
   },
   {
     id: "kind",
     label: "Really kind",
     weight: "sentimental",
     slow: false,
-    lines: ["She is also really kind."],
+    lines: ["You're also really kind."],
   },
   {
     id: "grade",
@@ -55,9 +55,9 @@ export const garden: GardenMemory[] = [
     weight: "major",
     slow: true,
     lines: [
-      "I still remember in Grade 6 or Grade 7, I had an issue with a teacher and Miss Kalsoom was my class teacher at the time.",
-      "I was crying a lot, but then she hugged me.",
-      "I still remember that day like yesterday.",
+      "I still remember when I was in Grade 6 or Grade 7 and I had an issue with a teacher. You were my class teacher at the time.",
+      "I was crying a lot, but then you hugged me.",
+      "I still remember that day like it was yesterday.",
     ],
   },
   {
@@ -65,21 +65,21 @@ export const garden: GardenMemory[] = [
     label: "Immense love",
     weight: "major",
     slow: false,
-    lines: ["I have immense love for Miss Kalsoom."],
+    lines: ["I have immense love for you, Miss Kalsoom."],
   },
   {
     id: "place",
     label: "My heart",
     weight: "major",
     slow: false,
-    lines: ["She holds a very big part of my heart."],
+    lines: ["You hold a very big part of my heart."],
   },
   {
     id: "flip",
     label: "A backflip",
     weight: "ordinary",
     slow: false,
-    lines: ["I can't talk about her without feeling my heart doing a backflip."],
+    lines: ["I can't talk about you without feeling my heart doing a backflip."],
   },
 ];
 
@@ -95,18 +95,18 @@ export const kalsoomMemories: Memory[] = garden.map((memory) => ({
 }));
 
 export const kalsoomNotes: DeskNote[] = [
-  { id: "words", label: "In words", line: "I do not think I can describe her in words. I can start by saying how comfortable I am around her." },
-  { id: "smile", label: "Her smile", line: "Whenever I do something, I look to see if she is smiling or not. Her smile warms my heart." },
-  { id: "smart", label: "Incredibly smart", line: "She is also so incredibly smart and she knows how to teach pretty well." },
-  { id: "kind", label: "Really kind", line: "She is also really kind." },
+  { id: "words", label: "In words", line: "You are genuinely one of my favourite teachers, and I don't think I can properly describe you in words. I can start by saying how comfortable I am around you." },
+  { id: "smile", label: "Your smile", line: "Whenever I do something, I look to see if you're smiling or not. Your smile genuinely warms my heart." },
+  { id: "smart", label: "Incredibly smart", line: "You're also so incredibly smart, and you know how to teach so well." },
+  { id: "kind", label: "Really kind", line: "You're also really kind." },
   {
     id: "grade",
     label: "Grade 6 / 7",
-    line: "I still remember in Grade 6 or Grade 7, I had an issue with a teacher and Miss Kalsoom was my class teacher at the time. I was crying a lot, but then she hugged me. I still remember that day like yesterday.",
+    line: "I still remember when I was in Grade 6 or Grade 7 and I had an issue with a teacher. You were my class teacher at the time. I was crying a lot, but then you hugged me. I still remember that day like it was yesterday.",
   },
-  { id: "love", label: "Immense love", line: "I have immense love for Miss Kalsoom." },
-  { id: "place", label: "My heart", line: "She holds a very big part of my heart." },
-  { id: "flip", label: "A backflip", line: "I can't talk about her without feeling my heart doing a backflip." },
+  { id: "love", label: "Immense love", line: "I have immense love for you, Miss Kalsoom." },
+  { id: "place", label: "My heart", line: "You hold a very big part of my heart." },
+  { id: "flip", label: "A backflip", line: "I can't talk about you without feeling my heart doing a backflip." },
 ];
 
 export const kalsoomFinale: string[] = kalsoomLetter;
