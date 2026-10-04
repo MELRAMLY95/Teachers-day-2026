@@ -1,6 +1,11 @@
 "use client";
 
+import { BiologyWorld } from "@/components/worlds/biology";
 import { ChemistryWorld } from "@/components/worlds/chemistry";
+import { EnglishWorld } from "@/components/worlds/english";
+import { InnerWorld } from "@/components/worlds/inner";
+import { MathematicsWorld } from "@/components/worlds/mathematics";
+import { PhysicsWorld } from "@/components/worlds/physics";
 import { UnopenedWorld } from "@/components/worlds/unopened";
 import { Gate } from "@/components/gate";
 import { SoundProvider, useSound } from "@/components/sound";
@@ -74,9 +79,18 @@ function Journey() {
     );
   }
 
-  if (worldModules[teacher.subject].implemented && teacher.subject === "chemistry") {
+  if (worldModules[teacher.subject].implemented) {
+    const worlds = {
+      chemistry: ChemistryWorld,
+      physics: PhysicsWorld,
+      mathematics: MathematicsWorld,
+      biology: BiologyWorld,
+      english: EnglishWorld,
+      inner: InnerWorld,
+    } as const;
+    const World = worlds[teacher.subject];
     return (
-      <ChemistryWorld
+      <World
         key={teacher.id}
         teacher={teacher}
         reducedMotion={reducedMotion}

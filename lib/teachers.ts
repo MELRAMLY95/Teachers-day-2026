@@ -1,5 +1,10 @@
 import type { Subject, Teacher } from "@/lib/types";
+import { biologyEnding } from "@/teachers/biologyTeacher";
 import { chemistryDiscoveries, chemistryEnding } from "@/teachers/chemistryTeacher";
+import { englishEnding } from "@/teachers/englishTeacher";
+import { innerEnding } from "@/teachers/islamiatPsychologyTeacher";
+import { mathematicsEnding } from "@/teachers/mathematicsTeacher";
+import { physicsEnding } from "@/teachers/physicsTeacher";
 
 /**
  * Replace these sample teachers before you share the site.
@@ -75,6 +80,7 @@ export const teachers: Teacher[] = [
     honorific: "Mr.",
     password: "starlight",
     subject: "physics",
+    ending: physicsEnding,
     messages: [
       {
         studentId: "amina",
@@ -132,6 +138,7 @@ export const teachers: Teacher[] = [
     honorific: "Ms.",
     password: "goldenratio",
     subject: "mathematics",
+    ending: mathematicsEnding,
     messages: [
       {
         studentId: "amina",
@@ -189,6 +196,7 @@ export const teachers: Teacher[] = [
     honorific: "Dr.",
     password: "mitosis",
     subject: "biology",
+    ending: biologyEnding,
     messages: [
       {
         studentId: "amina",
@@ -246,6 +254,7 @@ export const teachers: Teacher[] = [
     honorific: "Mr.",
     password: "prologue",
     subject: "english",
+    ending: englishEnding,
     messages: [
       {
         studentId: "amina",
@@ -303,6 +312,7 @@ export const teachers: Teacher[] = [
     honorific: "Mrs.",
     password: "sabr",
     subject: "inner",
+    ending: innerEnding,
     messages: [
       {
         studentId: "amina",

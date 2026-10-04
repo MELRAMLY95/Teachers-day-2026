@@ -50,11 +50,19 @@ A custom domain is a yearly purchase. The `github.io` address is the part that s
 
 ## What is built
 
-Chemistry is the finished world. Sign in as Amira Hassan, password `glassware`.
+Each password opens a different room. The classroom at the end of every room uses that teacher's own notes.
 
-The laboratory is a working practical, not a row of buttons. Pour copper sulfate, then sodium hydroxide, into the beaker by holding a bottle over its mouth. The pale blue solid is copper hydroxide, and it only darkens to copper oxide if the burner is lit and actually underneath the glass. The lens shows the same mixture as ions, bonds, and the energy of the reaction. Notes are hidden in the lab book, the drawer, the report, and the margin of the board. The classroom door opens after the practical and three of those notes.
+Chemistry, Amira Hassan, `glassware`. Pour copper sulfate, then sodium hydroxide, into the beaker by holding a bottle over its mouth. The pale blue solid is copper hydroxide, and it only darkens to copper oxide if the burner is lit and actually underneath the glass. The lens shows the same mixture as ions and bonds. Notes are hidden in the lab book, the drawer, the report, and the margin of the board. The classroom door opens after the practical and three of those notes.
 
-The other teachers are in the configuration, under `teachers/`, with their own messages. Their rooms are not open yet. Signing in as one of them will say so, rather than showing a placeholder of cards.
+Physics, Julian Okonkwo, `starlight`. Drag the planet, the gold speed point, or the star. The orbit follows the mass and the velocity. Student stars join into a constellation once you have moved the sky and found enough of them.
+
+Mathematics, Elena Varga, `goldenratio`. Stretch the two lengths until the longer over the shorter is the golden ratio and the planks cross the gap. Drop the next Fibonacci number into the slot. A wrong number shears the columns. Turn the square through a quarter turn. The door opens when the room agrees.
+
+Biology, Priya Nair, `mitosis`. The field starts with one cell. Click it to divide it. Drag the strands. The glowing points are memories, and the plants grow from what you find.
+
+English, Samuel Adeyemi, `prologue`. Take books down from the shelves. After three of them, the untitled book writes itself and leads into the classroom.
+
+Islamiat and psychology, Fatima Rahman, `sabr`. Three arches: intention, patience, mercy. Nothing is scored. The light changes with what you walk through. The hadith of intentions is quoted from al-Bukhari and Muslim.
 
 ## How to add the next teacher
 

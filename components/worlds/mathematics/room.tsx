@@ -1,0 +1,441 @@
+"use client";
+
+import { bridgeProgress, isQuarterTurn } from "@/lib/rooms/puzzles";
+import type { Teacher } from "@/lib/types";
+import { useCallback, useRef, useState, type PointerEvent } from "react";
+import { readFonts, useStage, type Fonts } from "../shared/stage";
+
+type Stone = { id: string; value: number; x: number; y: number; homeX: number; homeY: number };
+
+type Plate = { id: string; title: string; body: string };
+
+const PLATES: Plate[] = [
+  {
+    id: "bridge",
+    title: "The hinge",
+    body: "The proof looked like a locked door. You handed Leo the hinge, and asked to see the wrong working first.",
+  },
+  {
+    id: "sequence",
+    title: "A coordinate",
+    body: "Mateo missed the next number. You said a wrong turn is a coordinate, not a verdict, and the room waited.",
+  },
+  {
+    id: "turn",
+    title: "The short path",
+    body: "Safa still has your sentence: elegance is an idea that found its shortest path.",
+  },
+];
+
+type Runtime = {
+  lengthA: number;
+  lengthB: number;
+  stones: Stone[];
+  held: "a" | "b" | "stone" | "turn" | null;
+  stoneId: string | null;
+  sequence: boolean;
+  shear: number;
+  angle: number;
+  found: Set<string>;
+  fonts: Fonts;
+  fontsReady: boolean;
+  notice: string;
+  grabX: number;
+  grabY: number;
+};
+
+function createRuntime(): Runtime {
+  const values = [7, 8, 13, 4];
+  return {
+    lengthA: 120,
+    lengthB: 120,
+    stones: values.map((value, index) => ({
+      id: `n${value}-${index}`,
+      value,
+      x: 0,
+      y: 0,
+      homeX: 0,
+      homeY: 0,
+    })),
+    held: null,
+    stoneId: null,
+    sequence: false,
+    shear: 0,
+    angle: 0.35,
+    found: new Set(),
+    fonts: { display: "Georgia", mono: "monospace", hand: "Georgia" },
+    fontsReady: false,
+    notice: "",
+    grabX: 0,
+    grabY: 0,
+  };
+}
+
+function layout(width: number, height: number) {
+  const narrow = width < 800;
+  return {
+    gap: { x: width * 0.08, y: height * 0.62, w: narrow ? width * 0.84 : width * 0.28, h: 18 },
+    originA: { x: width * 0.1, y: height * (narrow ? 0.34 : 0.28) },
+    originB: { x: width * 0.1, y: height * (narrow ? 0.42 : 0.36) },
+    slot: { x: width * (narrow ? 0.28 : 0.42), y: height * 0.58, w: 72, h: 72 },
+    turn: { x: width * (narrow ? 0.62 : 0.72), y: height * 0.34 },
+    door: { x: width * 0.5 - 46, y: height * 0.08, w: 92, h: narrow ? 120 : 180 },
+    plates: [
+      { id: "bridge", x: width * 0.08, y: height * 0.5, w: 120, h: 36 },
+      { id: "sequence", x: width * (narrow ? 0.38 : 0.46), y: height * 0.5, w: 130, h: 36 },
+      { id: "turn", x: width * (narrow ? 0.62 : 0.7), y: height * 0.52, w: 110, h: 36 },
+    ],
+    homes: [
+      { x: width * 0.38, y: height * 0.78 },
+      { x: width * 0.5, y: height * 0.78 },
+      { x: width * 0.62, y: height * 0.78 },
+      { x: width * 0.74, y: height * 0.78 },
+    ],
+  };
+}
+
+export function ImpossibleRoom({
+  covered,
+  onEnterMemory,
+  onLeave,
+}: {
+  teacher: Teacher;
+  covered: boolean;
+  onEnterMemory: () => void;
+  onLeave: () => void;
+}) {
+  const rtRef = useRef<Runtime | null>(null);
+  const [plate, setPlate] = useState<Plate | null>(null);
+  const [announce, setAnnounce] = useState("");
+  const announced = useRef("");
+  const runtime = useCallback(() => {
+    rtRef.current ??= createRuntime();
+    return rtRef.current;
+  }, []);
+
+  const canvasRef = useStage((ctx, width, height) => {
+    const rt = runtime();
+    if (!rt.fontsReady) {
+      rt.fonts = readFonts();
+      rt.fontsReady = true;
+    }
+    const place = layout(width, height);
+    rt.stones.forEach((stone, index) => {
+      const home = place.homes[index];
+      if (!home) return;
+      stone.homeX = home.x;
+      stone.homeY = home.y;
+      if (rt.held === "stone" && rt.stoneId === stone.id) return;
+      if (rt.sequence && stone.value === 8) {
+        stone.x = place.slot.x + place.slot.w / 2;
+        stone.y = place.slot.y + place.slot.h / 2;
+        return;
+      }
+      if (stone.x === 0 && stone.y === 0) {
+        stone.x = home.x;
+        stone.y = home.y;
+      }
+    });
+
+    const progress = bridgeProgress(rt.lengthA, rt.lengthB);
+    const turned = isQuarterTurn(rt.angle);
+    const solved = progress > 0.92 && rt.sequence && turned;
+
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, "#14110e");
+    sky.addColorStop(1, "#2a2218");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = "rgba(214, 186, 130, 0.35)";
+    ctx.lineWidth = 1;
+    const vanishX = width * 0.5;
+    const vanishY = height * 0.2;
+    for (let i = 0; i < 7; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(vanishX, vanishY);
+      ctx.lineTo((i / 6) * width, height);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = "#070605";
+    ctx.beginPath();
+    ctx.moveTo(place.gap.x, place.gap.y + 18);
+    ctx.lineTo(place.gap.x + place.gap.w, place.gap.y + 18);
+    ctx.lineTo(place.gap.x + place.gap.w - 36, place.gap.y + 110);
+    ctx.lineTo(place.gap.x + 36, place.gap.y + 110);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(width * 0.06, height * 0.12);
+    ctx.transform(1, 0, rt.shear * 0.02, 1, 0, 0);
+    ctx.fillStyle = "#2c261f";
+    ctx.fillRect(0, 0, 26, height * 0.78);
+    ctx.fillStyle = "#4a4034";
+    ctx.fillRect(-6, 0, 38, 10);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(width * 0.9, height * 0.12);
+    ctx.transform(1, 0, -rt.shear * 0.02, 1, 0, 0);
+    ctx.fillStyle = "#2c261f";
+    ctx.fillRect(0, 0, 26, height * 0.78);
+    ctx.fillStyle = "#4a4034";
+    ctx.fillRect(-6, 0, 38, 10);
+    ctx.restore();
+
+    const planks = Math.round(progress * 8);
+    for (let i = 0; i < planks; i += 1) {
+      ctx.fillStyle = `rgba(232, 214, 180, ${0.35 + i * 0.06})`;
+      ctx.fillRect(place.gap.x + i * (place.gap.w / 8), place.gap.y, place.gap.w / 8 - 4, 14);
+    }
+    ctx.strokeStyle = "rgba(232, 214, 180, 0.4)";
+    ctx.strokeRect(place.gap.x, place.gap.y, place.gap.w, place.gap.h);
+
+    drawBeam(ctx, place.originA.x, place.originA.y, rt.lengthA, rt.fonts, "a");
+    drawBeam(ctx, place.originB.x, place.originB.y, rt.lengthB, rt.fonts, "b");
+    const ratio = Math.max(rt.lengthA, rt.lengthB) / Math.max(1, Math.min(rt.lengthA, rt.lengthB));
+    ctx.fillStyle = progress > 0.92 ? "#f0d7a4" : "rgba(244, 236, 220, 0.8)";
+    ctx.font = `16px ${rt.fonts.mono}`;
+    ctx.textAlign = "left";
+    ctx.fillText(progress > 0.92 ? `${ratio.toFixed(3)}  φ` : ratio.toFixed(3), place.originA.x, place.originA.y - 18);
+
+    ctx.strokeStyle = rt.sequence ? "rgba(232, 214, 180, 0.9)" : "rgba(232, 214, 180, 0.35)";
+    ctx.strokeRect(place.slot.x, place.slot.y, place.slot.w, place.slot.h);
+    ctx.font = `18px ${rt.fonts.display}`;
+    ctx.fillStyle = "rgba(244,236,220,0.75)";
+    ctx.textAlign = "left";
+    ctx.fillText("1   1   2   3   5", Math.max(12, place.slot.x - 168), place.slot.y - 14);
+    if (!rt.sequence) {
+      ctx.font = `13px ${rt.fonts.hand}`;
+      ctx.textAlign = "center";
+      ctx.fillText("next", place.slot.x + place.slot.w / 2, place.slot.y + place.slot.h / 2 + 4);
+    }
+
+    for (const stone of rt.stones) {
+      ctx.beginPath();
+      ctx.arc(stone.x, stone.y, 26, 0, Math.PI * 2);
+      ctx.fillStyle = stone.value === 8 && rt.sequence ? "#e7d3a4" : "#d9c7a2";
+      ctx.fill();
+      ctx.fillStyle = "#241c14";
+      ctx.font = `20px ${rt.fonts.display}`;
+      ctx.textAlign = "center";
+      ctx.fillText(String(stone.value), stone.x, stone.y + 7);
+    }
+
+    const turn = place.turn;
+    ctx.save();
+    ctx.translate(turn.x, turn.y);
+    ctx.rotate(rt.angle);
+    ctx.strokeStyle = "rgba(244, 236, 220, 0.9)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-42, -42, 84, 84);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(34, 0);
+    ctx.stroke();
+    ctx.fillStyle = "#f3ead8";
+    ctx.beginPath();
+    ctx.arc(34, 0, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(turn.x, turn.y);
+    ctx.rotate(Math.PI / 2);
+    ctx.strokeStyle = "rgba(244, 236, 220, 0.28)";
+    ctx.setLineDash([4, 5]);
+    ctx.strokeRect(-42, -42, 84, 84);
+    ctx.setLineDash([]);
+    ctx.restore();
+    ctx.fillStyle = "rgba(244,236,220,0.7)";
+    ctx.font = `14px ${rt.fonts.hand}`;
+    ctx.textAlign = "center";
+    ctx.fillText("turn it a quarter", turn.x, turn.y + 70);
+
+    ctx.fillStyle = solved ? "rgba(255, 196, 130, 0.55)" : "#1a1612";
+    ctx.fillRect(place.door.x, place.door.y, place.door.w, place.door.h);
+    ctx.strokeStyle = solved ? "#e7c48a" : "#6a5844";
+    ctx.strokeRect(place.door.x, place.door.y, place.door.w, place.door.h);
+    ctx.fillStyle = "rgba(244,236,220,0.85)";
+    ctx.font = `13px ${rt.fonts.mono}`;
+    ctx.textAlign = "center";
+    ctx.fillText(solved ? "open" : "shut", place.door.x + place.door.w / 2, place.door.y + place.door.h - 16);
+
+    for (const item of place.plates) {
+      const open = rt.found.has(item.id) || (item.id === "bridge" && progress > 0.92) || (item.id === "sequence" && rt.sequence) || (item.id === "turn" && turned);
+      ctx.fillStyle = open ? "rgba(243, 234, 216, 0.92)" : "rgba(243, 234, 216, 0.18)";
+      ctx.fillRect(item.x, item.y, item.w, item.h);
+      ctx.fillStyle = open ? "#241c14" : "rgba(244,236,220,0.7)";
+      ctx.font = `14px ${rt.fonts.hand}`;
+      ctx.textAlign = "left";
+      ctx.fillText(open ? "a note" : "—", item.x + 10, item.y + 22);
+    }
+
+    const status = rt.notice || (solved ? "The door is open." : "The room is still waiting on the lengths, the number, and the turn.");
+    if (status !== announced.current) {
+      announced.current = status;
+      setAnnounce(status);
+    }
+  });
+
+  function pointOf(event: PointerEvent<HTMLCanvasElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top, width: rect.width, height: rect.height };
+  }
+
+  function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
+    const rt = runtime();
+    const point = pointOf(event);
+    const place = layout(point.width, point.height);
+    rt.held = null;
+    rt.stoneId = null;
+    const handleA = { x: place.originA.x + rt.lengthA, y: place.originA.y };
+    const handleB = { x: place.originB.x + rt.lengthB, y: place.originB.y };
+    if (Math.hypot(point.x - handleA.x, point.y - handleA.y) < 18) rt.held = "a";
+    else if (Math.hypot(point.x - handleB.x, point.y - handleB.y) < 18) rt.held = "b";
+    else if (Math.hypot(point.x - place.turn.x, point.y - place.turn.y) < 64) rt.held = "turn";
+    else {
+      const stone = [...rt.stones].reverse().find((item) => Math.hypot(point.x - item.x, point.y - item.y) < 28);
+      if (stone && !(rt.sequence && stone.value === 8)) {
+        rt.held = "stone";
+        rt.stoneId = stone.id;
+      }
+    }
+    if (rt.held) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      rt.grabX = point.x;
+      rt.grabY = point.y;
+    }
+  }
+
+  function onPointerMove(event: PointerEvent<HTMLCanvasElement>) {
+    const rt = runtime();
+    if (!rt.held) return;
+    const point = pointOf(event);
+    const place = layout(point.width, point.height);
+    if (rt.held === "a") rt.lengthA = Math.min(280, Math.max(48, point.x - place.originA.x));
+    if (rt.held === "b") rt.lengthB = Math.min(280, Math.max(48, point.x - place.originB.x));
+    if (rt.held === "turn") rt.angle = Math.atan2(point.y - place.turn.y, point.x - place.turn.x);
+    if (rt.held === "stone") {
+      const stone = rt.stones.find((item) => item.id === rt.stoneId);
+      if (stone) {
+        stone.x = point.x;
+        stone.y = point.y;
+      }
+    }
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLCanvasElement>) {
+    const rt = runtime();
+    const point = pointOf(event);
+    const place = layout(point.width, point.height);
+    const held = rt.held;
+    rt.held = null;
+    if (held === "stone") {
+      const stone = rt.stones.find((item) => item.id === rt.stoneId);
+      const slot = place.slot;
+      const inside =
+        stone &&
+        stone.x > slot.x &&
+        stone.x < slot.x + slot.w &&
+        stone.y > slot.y &&
+        stone.y < slot.y + slot.h;
+      if (stone && inside && stone.value === 8) {
+        rt.sequence = true;
+        rt.shear = 0;
+      } else if (stone && inside) {
+        rt.shear = Math.min(18, rt.shear + 6);
+        stone.x = stone.homeX;
+        stone.y = stone.homeY;
+        rt.notice = "The columns shifted. That number is a coordinate, not the next one.";
+        announced.current = "";
+      } else if (stone && !rt.sequence) {
+        stone.x = stone.homeX;
+        stone.y = stone.homeY;
+      }
+    }
+    rt.stoneId = null;
+
+    const progress = bridgeProgress(rt.lengthA, rt.lengthB);
+    const turned = isQuarterTurn(rt.angle);
+    const hitPlate = place.plates.find(
+      (item) => point.x >= item.x && point.x <= item.x + item.w && point.y >= item.y && point.y <= item.y + item.h,
+    );
+    if (hitPlate && !held) {
+      const ready =
+        (hitPlate.id === "bridge" && progress > 0.92) ||
+        (hitPlate.id === "sequence" && rt.sequence) ||
+        (hitPlate.id === "turn" && turned);
+      if (ready) {
+        rt.found.add(hitPlate.id);
+        setPlate(PLATES.find((item) => item.id === hitPlate.id) ?? null);
+      }
+    }
+    const inDoor =
+      point.x >= place.door.x &&
+      point.x <= place.door.x + place.door.w &&
+      point.y >= place.door.y &&
+      point.y <= place.door.y + place.door.h;
+    if (inDoor && !held) {
+      if (progress > 0.92 && rt.sequence && turned) onEnterMemory();
+      else {
+        rt.notice = "The door is part of the room. The lengths, the number, and the turn still have to move it.";
+        announced.current = "";
+      }
+    }
+  }
+
+  return (
+    <div className={`lab-shell${covered ? " is-covered" : ""}`}>
+      <p className="sr-only">
+        Drag the ends of the two lengths until the longer divided by the shorter is the golden ratio.
+        Drag the next number in the sequence into the gap. Drag the square through a quarter turn.
+      </p>
+      <canvas
+        ref={canvasRef}
+        role="application"
+        aria-label="The impossible room"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      />
+      <p className="sr-only" aria-live="polite">
+        {announce}
+      </p>
+      <button type="button" className="lab-leave" onClick={onLeave}>
+        Leave
+      </button>
+      {plate ? (
+        <div className="lab-veil" onClick={() => setPlate(null)}>
+          <article className="lab-paper" onClick={(event) => event.stopPropagation()}>
+            <h2>{plate.title}</h2>
+            <p>{plate.body}</p>
+            <button type="button" onClick={() => setPlate(null)}>
+              Close the note
+            </button>
+          </article>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function drawBeam(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  length: number,
+  fonts: Fonts,
+  label: string,
+) {
+  ctx.fillStyle = "#cbb892";
+  ctx.fillRect(x, y - 5, length, 10);
+  ctx.beginPath();
+  ctx.arc(x + length, y, 9, 0, Math.PI * 2);
+  ctx.fillStyle = "#f3ead8";
+  ctx.fill();
+  ctx.fillStyle = "#241c14";
+  ctx.font = `12px ${fonts.mono}`;
+  ctx.textAlign = "center";
+  ctx.fillText(label, x + length, y + 4);
+}
