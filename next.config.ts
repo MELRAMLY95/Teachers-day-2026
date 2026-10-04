@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: ["127.0.0.1", "*.trycloudflare.com"],
+  allowedDevOrigins: ["127.0.0.1", "*.trycloudflare.com", "*.loca.lt"],
 };
 
 export default nextConfig;
