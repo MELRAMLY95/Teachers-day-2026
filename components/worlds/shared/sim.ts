@@ -183,10 +183,11 @@ export function graphBand(width: number, height: number) {
 }
 
 export function englishWords(width: number, height: number) {
+  const narrow = width < 760;
   return [
-    { x: width * 0.38, y: height * 0.6, label: "plain" },
+    { x: width * (narrow ? 0.26 : 0.38), y: height * 0.6, label: "plain" },
     { x: width * 0.5, y: height * 0.6, label: "finished" },
-    { x: width * 0.62, y: height * 0.6, label: "decorated" },
+    { x: width * (narrow ? 0.74 : 0.62), y: height * 0.6, label: "decorated" },
   ];
 }
 

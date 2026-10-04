@@ -58,7 +58,7 @@ Miss Noshen, mathematics. A cube turns, a spiral draws itself, and a curve follo
 
 Miss Kalsoom, biology. An anatomical heart in a living garden. Click the heart and the trace follows one side, then the other: deoxygenated blood toward the lungs, oxygenated blood out through the aorta. The world grows warmer as the memories are read. Grade 6 / 7 is quiet, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
 
-Miss Naila, English. A lamp, shelves, and words that drift. The sentence on the page changes when you choose plain, finished, or decorated. The notebooks are still the joke. The room is the place that is safe to talk.
+Miss Naila, English. A lamp between two windows, shelves, a desk, and words that drift. The sentence on the page changes when you choose plain, finished, or decorated. The notebooks are still the joke. The room is the place that is safe to talk.
 
 Miss Maryam. One arch, a geometric floor, and a manuscript you can turn. The trip is the last memory, and it arrives slowly. The effort of planning it is what the words keep. The hadith of intentions is on the page, from al-Bukhari and Muslim. Nothing is scored. No place is named.
 
