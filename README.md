@@ -54,7 +54,7 @@ Miss Irum, chemistry. A bench, reagent bottles, and a beaker. Copper sulfate and
 
 Miss Hadia, physics. A pendulum, a star with a real orbit, and a spring. Pull the mass and let go. A heavier mass swings more slowly. The memory still says physics isn't really the subject, and that the praise is why the work happens anyway.
 
-Miss Noshen, mathematics. A cube turns. A curve follows the frequency and amplitude under your hand. "I will kill you." is there as the joke it is. The stare holds the room still, then the words. OB/GYN is the last memory.
+Miss Noshen, mathematics. A cube turns, a spiral draws itself, and a curve follows your hand. A cartoon of her walks the room, blinks, and, on the stare, leans in with a wide fond look. "I will kill you." stays the joke it is. OB/GYN is the last memory.
 
 Miss Kalsoom, biology. An anatomical heart in a living garden. Click the heart and the trace follows one side, then the other: deoxygenated blood toward the lungs, oxygenated blood out through the aorta. The world grows warmer as the memories are read. Grade 6 / 7 is quiet, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
 

@@ -23,6 +23,7 @@ const LAYOUT = [
 
 type Runtime = {
   time: number;
+  live: number;
   opened: Set<string>;
   focus: Focus;
   vista: boolean;
@@ -36,6 +37,7 @@ type Runtime = {
 function createRuntime(): Runtime {
   return {
     time: 0,
+    live: 0,
     opened: new Set(),
     focus: null,
     vista: false,
@@ -90,6 +92,7 @@ export function TributeField({
     const motion = reducedMotion || rt.freeze ? dt * 0.04 : dt;
     stepSim(sim, motion, tone);
     rt.time += motion;
+    rt.live += reducedMotion ? dt * 0.35 : dt;
     const life = memories.length ? rt.opened.size / memories.length : 0;
     const memoryFocus = rt.focus && rt.focus !== "letter" && rt.focus !== "dedication" ? rt.focus : null;
     const focusIndex = memories.findIndex((item) => item.id === memoryFocus);
@@ -113,6 +116,7 @@ export function TributeField({
     ctx.translate(-width / 2 - rt.panX, -height / 2 - rt.panY);
     drawScene(ctx, tone, {
       time: rt.time,
+      live: rt.live,
       life,
       warmth: rt.warmth,
       focus: rt.focus,

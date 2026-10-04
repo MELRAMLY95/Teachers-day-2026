@@ -110,7 +110,7 @@ export function pointerDown(sim: WorldSim, tone: SceneTone, x: number, y: number
       sim.holding = true;
       sim.freq = 1 + ((x - graph.left) / (graph.right - graph.left)) * 4;
       sim.amp = 0.25 + (1 - (y - graph.top) / (graph.bottom - graph.top)) * 0.9;
-      sim.note = `Frequency ${sim.freq.toFixed(1)}. Amplitude ${sim.amp.toFixed(2)}. The curve follows both.`;
+      sim.note = curveNote(sim.freq, sim.amp);
     }
     return;
   }
@@ -146,8 +146,13 @@ export function pointerMove(sim: WorldSim, tone: SceneTone, x: number, y: number
     if (y > graph.top && y < graph.bottom && x > graph.left && x < graph.right) {
       sim.freq = 1 + ((x - graph.left) / (graph.right - graph.left)) * 4;
       sim.amp = 0.25 + (1 - (y - graph.top) / (graph.bottom - graph.top)) * 0.9;
+      sim.note = curveNote(sim.freq, sim.amp);
     }
   }
+}
+
+function curveNote(freq: number, amp: number) {
+  return `The curve stays with you. About ${freq.toFixed(1)} waves across, rising ${amp.toFixed(2)}. It bends, and it still holds.`;
 }
 
 export function pointerUp(sim: WorldSim, tone: SceneTone) {

@@ -80,44 +80,66 @@ const noshen: TributeMemory[] = [
   {
     id: "kill",
     label: "The line",
-    lines: ["And of course, I could never forget your iconic 'I will kill you.'"],
+    lines: [
+      "And of course, I could never forget your iconic 'I will kill you.'",
+      "I hear it and I feel looked after, not told off.",
+    ],
   },
   {
     id: "stare",
     label: "The stare",
-    lines: ["That stare.", "You know EXACTLY the one I'm talking about."],
+    lines: [
+      "That stare.",
+      "You know EXACTLY the one I'm talking about.",
+      "It lands on me, and I am smiling before I even know why.",
+    ],
     freeze: true,
     slow: true,
   },
   {
     id: "online",
     label: "Online",
-    lines: ["You're somehow always online whenever I text you, and I'm still trying to figure out how."],
+    lines: [
+      "You're somehow always online whenever I text you, and I'm still trying to figure out how.",
+      "On the heavy days, that small reply feels like company.",
+    ],
   },
   {
     id: "sweet",
     label: "Sweet",
-    lines: ["You're extremely sweet.", "You're friendly. You're fun to talk to."],
+    lines: [
+      "You're extremely sweet, in the way that stays with me after I leave.",
+      "You're friendly. You're fun to talk to. I keep the warmth of it.",
+    ],
   },
   {
     id: "time",
     label: "Time",
-    lines: ["I enjoy spending time with you.", "Not only when there's a question."],
+    lines: ["I enjoy spending time with you.", "Not only when there's a question. The ordinary minutes matter to me too."],
   },
   {
     id: "maths",
     label: "Maths",
-    lines: ["You're one of the main reasons I love mathematics.", "The subject and you are tied together for me."],
+    lines: [
+      "You're one of the main reasons I love mathematics.",
+      "When I open a problem, you are already in it with me.",
+    ],
   },
   {
     id: "motive",
     label: "Motivation",
-    lines: ["You motivate me to work hard.", "I would never want to be the reason you need motivation."],
+    lines: [
+      "You motivate me to work hard, and I feel how much you mean it.",
+      "I would never want to be the reason you need motivation.",
+    ],
   },
   {
     id: "obgyn",
     label: "OB/GYN",
-    lines: ["You're one of the reasons I know I want to become an OB/GYN."],
+    lines: [
+      "You're one of the reasons I know I want to become an OB/GYN.",
+      "You made that future feel gentle enough to want.",
+    ],
   },
 ];
 
