@@ -152,7 +152,7 @@ export function pointerMove(sim: WorldSim, tone: SceneTone, x: number, y: number
 }
 
 function curveNote(freq: number, amp: number) {
-  return `The curve stays with you. About ${freq.toFixed(1)} waves across, rising ${amp.toFixed(2)}. It bends, and it still holds.`;
+  return `About ${freq.toFixed(1)} waves across, rising ${amp.toFixed(2)}.`;
 }
 
 export function pointerUp(sim: WorldSim, tone: SceneTone) {

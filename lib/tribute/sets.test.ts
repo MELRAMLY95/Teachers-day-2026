@@ -18,14 +18,17 @@ const required: Record<string, string[]> = {
     "Overall, you're such a sweet teacher and you're genuinely so fun to joke with.",
   ],
   noshen: [
-    "You're one of the reasons I know I want to become an OB/GYN.",
-    "You're one of the main reasons I love mathematics.",
-    "I would never want to be the reason you need motivation.",
-    "I will kill you.",
-    "That stare.",
-    "You know EXACTLY the one I'm talking about.",
-    "I'm still trying to figure out how.",
-    "I enjoy spending time with you.",
+    "You are one of the most amazing teachers ever.",
+    "You are the reason I will become an OB/GYN.",
+    "You are also the main reason I love math so much.",
+    "You motivate me to work hard.",
+    "I would never want to motivate you.",
+    "You are very sweet.",
+    "Your stare at students is hilarious.",
+    "You are very friendly and fun to talk to.",
+    "I enjoy spending time with you a lot.",
+    "You're always online whenever I text.",
+    "I'm still trying to figure out how you're online most of the time.",
   ],
   naila: [
     "You get jealous.",
@@ -59,5 +62,5 @@ for (const [id, lines] of Object.entries(required)) {
 }
 
 assert.equal(tributeSets.noshen.find((memory) => memory.id === "stare")?.freeze, true);
-assert.equal(tributeSets.noshen.find((memory) => memory.id === "stare")?.slow, true);
+assert.equal(tributeSets.noshen.find((memory) => memory.id === "stare")?.lines.length, 1);
 assert.equal(tributeSets.maryam.find((memory) => memory.id === "trip")?.slow, true);

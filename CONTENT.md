@@ -34,18 +34,18 @@ An observatory. Orbits and a wave. Physics is named as a subject that is not a n
 
 ## Miss Noshen — mathematics
 
-Geometry in a quiet room. The jokes come first. OB/GYN is last.
+Geometry in a quiet room. The words stay as written, only turned to you.
 
 | ID | Detail | Interaction | Where | Tone |
 | --- | --- | --- | --- | --- |
-| kill | Your iconic "I will kill you." | Click it | Top | Funny |
-| stare | Yep. That stare. | Click it. The room holds still | Upper left | Funny |
-| online | Always online whenever I text. Still trying to figure out how | Click it | Upper right | Funny |
-| sweet | Extremely sweet. Friendly. Fun to talk to | Click it | Left | Light |
-| time | I enjoy spending time with you | Click it | Right | Warm |
-| maths | One of the main reasons I love mathematics | Click it | Lower left | Personal |
-| motive | You motivate me to work hard. I would never want to be the reason you need motivation | Click it | Lower right | Direct |
-| obgyn | You're one of the reasons I know I want to become an OB/GYN | Click it | Bottom | The point |
+| amazing | You are one of the most amazing teachers ever. | Click it | Top | Plain |
+| obgyn | You are the reason I will become an OB/GYN. | Click it | Upper left | Direct |
+| math | You are also the main reason I love math so much. | Click it | Upper right | Plain |
+| motive | You motivate me to work hard. I would never want to motivate you. | Click it | Left | The joke |
+| sweet | You are very sweet. | Click it | Right | Plain |
+| stare | Your stare at students is hilarious. | Click it. The room holds still | Lower left | Funny |
+| talk | You are very friendly and fun to talk to. I enjoy spending time with you a lot. | Click it | Lower right | Plain |
+| online | You're always online whenever I text. I'm still trying to figure out how you're online most of the time. | Click it | Bottom | The joke |
 
 ## Miss Naila Naeem — English
 
