@@ -17,50 +17,37 @@ const irum: TributeMemory[] = [
   {
     id: "jokes",
     label: "Your jokes",
-    lines: [
-      "You make sweet, silly jokes.",
-      "In the middle of something serious.",
-      "I remember the joke longer than the practical.",
-    ],
+    lines: ["You make the sweetest and silliest jokes."],
   },
   {
-    id: "sweet",
-    label: "Sweet",
-    lines: ["You're incredibly sweet.", "I notice it in small things. Not in speeches."],
+    id: "lovely",
+    label: "Lovely",
+    lines: ["You are one of the loveliest, sweetest and most hardworking teachers I have ever had."],
   },
   {
     id: "hour",
     label: "The hour",
-    lines: [
-      "You always reply, no matter the hour.",
-      "9 at night. Half past 11. 1. 3.",
-      "I still don't know how you're online then.",
-    ],
+    lines: ["You always reply no matter the hour."],
   },
   {
     id: "help",
-    label: "Help",
-    lines: ["You're exceptionally helpful.", "I've needed the same thing again.", "You still help."],
-  },
-  {
-    id: "work",
-    label: "The work",
-    lines: ["You're extremely hardworking.", "The work is just there. A lot of it.", "I see that."],
+    label: "Helpful",
+    lines: ["You are so helpful."],
   },
   {
     id: "lessons",
     label: "The lesson",
-    lines: ["You would sometimes offer online lessons without us even asking, just because you wanted to help us."],
+    lines: ["You would offer online lessons without us even asking, just so you could help us."],
   },
   {
     id: "connect",
     label: "With us",
-    lines: ["You connect with us.", "Not only the chemistry.", "On a personal level. I feel that."],
+    lines: ["You connect with students on such a sentimental level."],
   },
   {
     id: "sun",
     label: "The sun",
-    lines: ["You feel like the sun in my life."],
+    lines: ["Overall, you are like the sun in my life."],
   },
 ];
 
@@ -68,42 +55,24 @@ const hadia: TributeMemory[] = [
   {
     id: "joke",
     label: "Joking",
-    lines: ["You're fun to joke with.", "Class doesn't feel heavy the whole time. You let it be funny."],
-  },
-  {
-    id: "sweet",
-    label: "Sweet",
-    lines: ["You're very sweet.", "The praise feels real."],
-  },
-  {
-    id: "all",
-    label: "Your all",
-    lines: ["You put your all into whatever you do."],
-  },
-  {
-    id: "praise",
-    label: "Praise",
-    lines: ["You constantly praise us.", "You somehow make us feel like we're the best."],
+    lines: ["Overall, you're such a sweet teacher and you're genuinely so fun to joke with."],
   },
   {
     id: "hard",
     label: "Hard work",
-    lines: ["You're one of the hardest-working teachers I've met.", "I appreciate you even more because of how hard you work."],
+    lines: ["You are one of the most hardworking teachers I have ever met."],
   },
   {
-    id: "capable",
-    label: "Capable",
-    lines: ["You make me feel capable. In physics. That's the surprising part.", "You make the hard work feel worth it."],
-  },
-  {
-    id: "remember",
-    label: "Remember",
-    lines: ["That's something I will remember."],
+    id: "all",
+    label: "Your all",
+    lines: ["You put your all into whatever you do, and that makes me appreciate you even more."],
   },
   {
     id: "try",
     label: "Physics",
-    lines: ["Physics isn't naturally my subject.", "You make me want to work hard at it anyway."],
+    lines: [
+      "Even though physics isn't really my subject, you make me want to work harder at it because you always praise us and somehow make us feel like we're the best.",
+    ],
   },
 ];
 
@@ -116,8 +85,9 @@ const noshen: TributeMemory[] = [
   {
     id: "stare",
     label: "The stare",
-    lines: ["Yep.", "That stare."],
+    lines: ["That stare.", "You know EXACTLY the one I'm talking about."],
     freeze: true,
+    slow: true,
   },
   {
     id: "online",
@@ -204,52 +174,33 @@ const naila: TributeMemory[] = [
 
 const maryam: TributeMemory[] = [
   {
-    id: "hard",
-    label: "Hard work",
-    lines: ["You're genuinely one of the hardest-working teachers I've ever met."],
+    id: "sweet",
+    label: "Sweet",
+    lines: ["You're also really sweet."],
   },
   {
-    id: "fun",
-    label: "The lesson",
-    lines: ["You make Islamiat lessons fun.", "I look forward to them. That's not automatic."],
+    id: "hard",
+    label: "Hard work",
+    lines: ["You are genuinely one of the most hardworking teachers I've ever met."],
   },
   {
     id: "know",
-    label: "Knowledge",
-    lines: [
-      "You're extremely knowledgeable.",
-      "A hadith in Bukhari and Muslim says actions are only by intentions, and a person gets only what they intended.",
-      "You teach that properly, and the lesson is still enjoyable.",
-    ],
+    label: "The lesson",
+    lines: ["You make Islamiat lessons fun, and you're so knowledgeable."],
   },
   {
     id: "duties",
     label: "Duties",
-    lines: ["You have so many duties.", "So many responsibilities. I can see the load.", "You still take care of our needs."],
-  },
-  {
-    id: "sweet",
-    label: "Sweet",
-    lines: ["You're very sweet.", "On top of the work. Not instead of it."],
-  },
-  {
-    id: "plan",
-    label: "The plan",
-    lines: ["I still remember how much you planned for us to go on that trip.", "You wrote the order of it. The days. The lot."],
-  },
-  {
-    id: "route",
-    label: "The route",
-    lines: ["You worked out the route.", "You thought about what we would actually do there."],
+    lines: ["Even though you have so many duties, you still manage to take care of our needs."],
   },
   {
     id: "trip",
     label: "The trip",
     slow: true,
     lines: [
-      "I still remember how much you planned for us to go on that trip.",
-      "In the end, you couldn't go because you had so much work to deal with.",
-      "You still put so much effort into making the trip happen. That meant a lot.",
+      "One thing I can never forget is how much you planned for us to go on that trip.",
+      "In the end, you couldn't go because you had a ton of work.",
+      "But I still remember how much effort you put into planning it for us.",
     ],
   },
 ];

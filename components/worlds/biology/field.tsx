@@ -8,7 +8,7 @@ import { readFonts, useStage, type Fonts } from "../shared/stage";
 
 type Focus = string | null;
 
-type Drop = { route: "vena" | "aorta" | "pulmonary"; t: number };
+type Drop = { route: "vena" | "aorta" | "pulmonary" | "veins"; t: number };
 
 type Runtime = {
   time: number;
@@ -25,6 +25,7 @@ type Runtime = {
   lastThump: number;
   drops: Drop[];
   dropAt: number;
+  flow: number;
   fonts: Fonts;
   fontsReady: boolean;
 };
@@ -74,6 +75,7 @@ function createRuntime(): Runtime {
     lastThump: 0,
     drops: [],
     dropAt: 0,
+    flow: 2,
     fonts: { display: "Georgia", mono: "monospace", hand: "Georgia" },
     fontsReady: false,
   };
@@ -106,52 +108,38 @@ function along(points: { x: number; y: number }[], t: number) {
   return { x: from.x + (to.x - from.x) * local, y: from.y + (to.y - from.y) * local };
 }
 
-const HEART_TILT = -0.18;
-
-function tiltPoints(points: { x: number; y: number }[], cx: number, cy: number) {
-  const c = Math.cos(HEART_TILT);
-  const s = Math.sin(HEART_TILT);
-  return points.map((point) => ({
-    x: cx + (point.x - cx) * c - (point.y - cy) * s,
-    y: cy + (point.x - cx) * s + (point.y - cy) * c,
-  }));
-}
-
-function vessels(cx: number, cy: number, s: number, tilted = true) {
-  const raw = {
+function vessels(cx: number, cy: number, s: number) {
+  return {
     vena: [
-      { x: cx - s * 0.16, y: cy - s * 0.92 },
-      { x: cx - s * 0.18, y: cy - s * 0.42 },
-      { x: cx - s * 0.06, y: cy + s * 0.02 },
-    ],
-    aorta: [
-      { x: cx + s * 0.06, y: cy + s * 0.04 },
-      { x: cx + s * 0.1, y: cy - s * 0.28 },
-      { x: cx + s * 0.28, y: cy - s * 0.56 },
-      { x: cx + s * 0.5, y: cy - s * 0.62 },
-      { x: cx + s * 0.66, y: cy - s * 0.38 },
+      { x: cx - s * 0.34, y: cy - s * 1.05 },
+      { x: cx - s * 0.32, y: cy - s * 0.62 },
+      { x: cx - s * 0.24, y: cy - s * 0.22 },
     ],
     pulmonary: [
-      { x: cx, y: cy + s * 0.02 },
-      { x: cx - s * 0.06, y: cy - s * 0.22 },
-      { x: cx - s * 0.16, y: cy - s * 0.4 },
+      { x: cx - s * 0.02, y: cy - s * 0.02 },
+      { x: cx - s * 0.04, y: cy - s * 0.28 },
+      { x: cx - s * 0.02, y: cy - s * 0.48 },
+    ],
+    veins: [
+      { x: cx + s * 0.55, y: cy - s * 0.28 },
+      { x: cx + s * 0.28, y: cy - s * 0.18 },
+      { x: cx + s * 0.12, y: cy - s * 0.08 },
+    ],
+    aorta: [
+      { x: cx + s * 0.06, y: cy - s * 0.02 },
+      { x: cx + s * 0.1, y: cy - s * 0.32 },
+      { x: cx - s * 0.02, y: cy - s * 0.62 },
+      { x: cx - s * 0.28, y: cy - s * 0.72 },
+      { x: cx - s * 0.48, y: cy - s * 0.48 },
     ],
     lungLeft: [
-      { x: cx - s * 0.16, y: cy - s * 0.4 },
-      { x: cx - s * 0.34, y: cy - s * 0.56 },
+      { x: cx - s * 0.02, y: cy - s * 0.48 },
+      { x: cx - s * 0.28, y: cy - s * 0.58 },
     ],
     lungRight: [
-      { x: cx - s * 0.16, y: cy - s * 0.4 },
-      { x: cx + s * 0.02, y: cy - s * 0.52 },
+      { x: cx - s * 0.02, y: cy - s * 0.48 },
+      { x: cx + s * 0.22, y: cy - s * 0.56 },
     ],
-  };
-  if (!tilted) return raw;
-  return {
-    vena: tiltPoints(raw.vena, cx, cy),
-    aorta: tiltPoints(raw.aorta, cx, cy),
-    pulmonary: tiltPoints(raw.pulmonary, cx, cy),
-    lungLeft: tiltPoints(raw.lungLeft, cx, cy),
-    lungRight: tiltPoints(raw.lungRight, cx, cy),
   };
 }
 
@@ -168,82 +156,109 @@ function drawTube(
   ctx.lineJoin = "round";
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
-  for (let index = 1; index < points.length; index += 1) ctx.lineTo(points[index].x, points[index].y);
+  if (points.length === 2) ctx.lineTo(points[1].x, points[1].y);
+  else {
+    for (let index = 1; index < points.length - 1; index += 1) {
+      const current = points[index];
+      const next = points[index + 1];
+      if (!current || !next) continue;
+      const midX = (current.x + next.x) / 2;
+      const midY = (current.y + next.y) / 2;
+      ctx.quadraticCurveTo(current.x, current.y, midX, midY);
+    }
+    const last = points[points.length - 1];
+    if (last) ctx.lineTo(last.x, last.y);
+  }
   ctx.strokeStyle = color;
   ctx.lineWidth = width;
   ctx.stroke();
   ctx.strokeStyle = sheen;
-  ctx.lineWidth = Math.max(1.2, width * 0.28);
+  ctx.lineWidth = Math.max(1.1, width * 0.22);
   ctx.stroke();
   ctx.restore();
 }
 
 function heartBody(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number) {
   ctx.beginPath();
-  ctx.moveTo(cx + s * 0.16, cy - s * 0.02);
-  ctx.bezierCurveTo(cx + s * 0.58, cy + s * 0.02, cx + s * 0.22, cy + s * 0.46, cx - s * 0.2, cy + s * 0.62);
-  ctx.bezierCurveTo(cx - s * 0.42, cy + s * 0.7, cx - s * 0.66, cy + s * 0.36, cx - s * 0.7, cy + s * 0.06);
-  ctx.bezierCurveTo(cx - s * 0.72, cy - s * 0.2, cx - s * 0.36, cy - s * 0.22, cx - s * 0.04, cy - s * 0.08);
-  ctx.bezierCurveTo(cx + s * 0.06, cy - s * 0.02, cx + s * 0.1, cy - s * 0.04, cx + s * 0.16, cy - s * 0.02);
+  ctx.moveTo(cx + s * 0.5, cy + s * 0.58);
+  ctx.bezierCurveTo(cx + s * 0.12, cy + s * 0.5, cx - s * 0.28, cy + s * 0.32, cx - s * 0.42, cy + s * 0.02);
+  ctx.bezierCurveTo(cx - s * 0.52, cy - s * 0.16, cx - s * 0.4, cy - s * 0.34, cx - s * 0.18, cy - s * 0.28);
+  ctx.bezierCurveTo(cx - s * 0.02, cy - s * 0.24, cx + s * 0.08, cy - s * 0.26, cx + s * 0.18, cy - s * 0.22);
+  ctx.bezierCurveTo(cx + s * 0.48, cy - s * 0.12, cx + s * 0.62, cy + s * 0.16, cx + s * 0.5, cy + s * 0.58);
   ctx.closePath();
 }
 
 function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, warmth: number, pulse: number) {
-  const muscle = mix("#5a2830", "#7c403c", warmth);
-  const deep = "#241014";
-  const lit = mix("#7a3838", "#c49888", warmth);
-  const pipes = vessels(cx, cy, s, false);
+  const muscle = mix("#6a3034", "#8a4844", warmth * 0.35);
+  const deep = "#2a1418";
+  const lit = mix("#8a504c", "#c4a090", warmth * 0.4);
+  const pipes = vessels(cx, cy, s);
+  const squeeze = pulse * 0.06;
 
   ctx.save();
-  ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(cx - s * 0.08, cy + s * 0.62, s * 0.72, s * 0.1, HEART_TILT * 0.35, 0, Math.PI * 2);
+  ctx.ellipse(cx + s * 0.16, cy + s * 0.64, s * 0.48, s * 0.07, 0.2, 0, Math.PI * 2);
   ctx.fill();
-  ctx.translate(cx, cy);
-  ctx.rotate(HEART_TILT);
-  ctx.translate(-cx, -cy);
 
-  const body = ctx.createRadialGradient(cx - s * 0.08, cy - s * 0.02, s * 0.05, cx + s * 0.05, cy + s * 0.15, s);
+  ctx.translate(cx, cy + s * 0.15);
+  ctx.scale(1 + squeeze * 0.35, 1 - squeeze);
+  ctx.translate(-cx, -(cy + s * 0.15));
+
+  const body = ctx.createRadialGradient(cx - s * 0.05, cy - s * 0.08, s * 0.08, cx + s * 0.05, cy + s * 0.2, s * 1.05);
   body.addColorStop(0, lit);
-  body.addColorStop(0.42, muscle);
+  body.addColorStop(0.45, muscle);
   body.addColorStop(1, deep);
   heartBody(ctx, cx, cy, s);
   ctx.fillStyle = body;
   ctx.fill();
+  heartBody(ctx, cx, cy, s);
+  ctx.strokeStyle = "rgba(90, 40, 42, 0.55)";
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
 
   ctx.save();
   heartBody(ctx, cx, cy, s);
   ctx.clip();
-  ctx.fillStyle = "rgba(58, 36, 40, 0.55)";
+  ctx.fillStyle = "rgba(90, 36, 40, 0.28)";
   ctx.beginPath();
-  ctx.ellipse(cx - s * 0.28, cy + s * 0.12, s * 0.34, s * 0.38, -0.5, 0, Math.PI * 2);
+  ctx.ellipse(cx - s * 0.16, cy + s * 0.08, s * 0.28, s * 0.34, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(120, 48, 52, 0.22)";
+  ctx.beginPath();
+  ctx.ellipse(cx + s * 0.18, cy + s * 0.16, s * 0.24, s * 0.32, 0.35, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
-  drawTube(ctx, pipes.vena, s * 0.1, "#5c463f", "rgba(214, 190, 170, 0.32)");
-  drawTube(ctx, pipes.aorta, s * 0.13, mix("#6a2828", "#a84840", warmth), "rgba(240, 210, 196, 0.42)");
-  drawTube(ctx, pipes.pulmonary, s * 0.09, "#5e403c", "rgba(226, 200, 184, 0.36)");
-  drawTube(ctx, pipes.lungLeft, s * 0.055, "#5a403c", "rgba(220, 196, 180, 0.3)");
-  drawTube(ctx, pipes.lungRight, s * 0.05, "#644440", "rgba(220, 196, 180, 0.3)");
+  drawTube(ctx, pipes.vena, s * 0.07, "#5c403c", "rgba(214, 186, 170, 0.28)");
+  drawTube(ctx, pipes.pulmonary, s * 0.06, "#5a3c3a", "rgba(220, 196, 180, 0.3)");
+  drawTube(ctx, pipes.lungLeft, s * 0.04, "#5a3c3a", "rgba(220, 196, 180, 0.25)");
+  drawTube(ctx, pipes.lungRight, s * 0.04, "#5a3c3a", "rgba(220, 196, 180, 0.25)");
+  drawTube(ctx, pipes.veins, s * 0.045, mix("#7a3030", "#a84840", warmth * 0.3), "rgba(240, 210, 196, 0.28)");
+  drawTube(ctx, pipes.aorta, s * 0.075, mix("#7a3030", "#b05048", warmth * 0.35), "rgba(240, 214, 200, 0.38)");
 
   ctx.save();
   ctx.lineCap = "round";
-  ctx.strokeStyle = `rgba(154, 58, 54, ${0.75 + warmth * 0.2})`;
-  ctx.lineWidth = Math.max(1.4, s * 0.012);
+  ctx.strokeStyle = `rgba(120, 48, 46, ${0.55 + warmth * 0.15})`;
+  ctx.lineWidth = Math.max(1.2, s * 0.012);
   ctx.beginPath();
-  ctx.moveTo(cx - s * 0.02, cy + s * 0.02);
-  ctx.quadraticCurveTo(cx - s * 0.16, cy + s * 0.28, cx - s * 0.28, cy + s * 0.5);
-  ctx.moveTo(cx - s * 0.14, cy + s * 0.22);
-  ctx.quadraticCurveTo(cx + s * 0.02, cy + s * 0.28, cx + s * 0.14, cy + s * 0.24);
+  ctx.moveTo(cx - s * 0.34, cy - s * 0.08);
+  ctx.quadraticCurveTo(cx, cy + s * 0.02, cx + s * 0.36, cy - s * 0.06);
+  ctx.moveTo(cx + s * 0.02, cy - s * 0.02);
+  ctx.quadraticCurveTo(cx + s * 0.16, cy + s * 0.28, cx + s * 0.38, cy + s * 0.58);
   ctx.stroke();
   ctx.restore();
 
-  const sheen = ctx.createRadialGradient(cx - s * 0.12, cy + s * 0.02, 2, cx, cy + s * 0.08, s * 0.48);
-  sheen.addColorStop(0, `rgba(255, 232, 214, ${0.18 + pulse * 0.1})`);
-  sheen.addColorStop(1, "rgba(255, 232, 214, 0)");
-  ctx.fillStyle = sheen;
   ctx.beginPath();
-  ctx.ellipse(cx - s * 0.06, cy + s * 0.08, s * 0.32, s * 0.4, -0.5, 0, Math.PI * 2);
+  ctx.ellipse(cx - s * 0.34, cy - s * 0.18, s * 0.1, s * 0.14, -0.6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(122, 64, 62, 0.55)";
+  ctx.fill();
+
+  const sheen = ctx.createRadialGradient(cx - s * 0.08, cy - s * 0.05, 2, cx, cy + s * 0.1, s * 0.55);
+  sheen.addColorStop(0, `rgba(255, 228, 210, ${0.12 + pulse * 0.08})`);
+  sheen.addColorStop(1, "rgba(255, 228, 210, 0)");
+  ctx.fillStyle = sheen;
+  heartBody(ctx, cx, cy, s);
   ctx.fill();
   ctx.restore();
 }
@@ -689,19 +704,24 @@ export function LivingField({
     ctx.arc(hx, hy, glowReach, 0, Math.PI * 2);
     ctx.fill();
 
-    const heartScale = scale * (1 + pulse * 0.045);
+    const heartScale = scale;
     drawHeart(ctx, hx, hy, heartScale, rt.warmth, pulse);
     const pipes = vessels(hx, hy, heartScale);
+    const showRight = rt.flow !== 1;
+    const showLeft = rt.flow !== 0;
 
     if (rt.time > rt.dropAt) {
       rt.dropAt = rt.time + 0.55;
-      rt.drops.push({ route: "vena", t: 0 }, { route: "aorta", t: 0 }, { route: "pulmonary", t: 0 });
-      rt.drops = rt.drops.filter((drop) => drop.t < 1).slice(-24);
+      if (showRight) rt.drops.push({ route: "vena", t: 0 }, { route: "pulmonary", t: 0 });
+      if (showLeft) rt.drops.push({ route: "veins", t: 0 }, { route: "aorta", t: 0 });
+      rt.drops = rt.drops.filter((drop) => drop.t < 1).slice(-28);
     }
     for (const drop of rt.drops) {
       drop.t += motion > 0 ? 0.008 : 0;
-      const at = along(pipes[drop.route], drop.t);
-      ctx.fillStyle = drop.route === "aorta" ? "rgba(176, 72, 68, 0.9)" : "rgba(120, 86, 74, 0.9)";
+      const path = pipes[drop.route];
+      const at = along(path, drop.t);
+      const oxygenated = drop.route === "aorta" || drop.route === "veins";
+      ctx.fillStyle = oxygenated ? "rgba(176, 64, 58, 0.92)" : "rgba(92, 62, 70, 0.92)";
       ctx.beginPath();
       ctx.arc(at.x, at.y, 2.6, 0, Math.PI * 2);
       ctx.fill();
@@ -800,6 +820,7 @@ export function LivingField({
   const [gradeMark, setGradeMark] = useState(0);
   const [clock, setClock] = useState(0);
   const [size, setSize] = useState({ w: 1280, h: 800 });
+  const [flowNote, setFlowNote] = useState("");
 
   useEffect(() => {
     const rt = runtime();
@@ -828,6 +849,29 @@ export function LivingField({
       sound.duck(1);
     };
   }, [sound]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const notes = [
+      "Deoxygenated blood enters the right side and leaves for the lungs.",
+      "Oxygenated blood returns to the left side and leaves through the aorta.",
+      "The right side sends blood to the lungs. The left side sends it through the body.",
+    ];
+    const onPointer = (event: PointerEvent) => {
+      const rt = rtRef.current;
+      if (!rt || rt.focus) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const near = Math.hypot(x - rect.width * 0.5, y - rect.height * 0.44) < Math.min(rect.width, rect.height) * 0.2;
+      if (!near) return;
+      rt.flow = (rt.flow + 1) % 3;
+      setFlowNote(notes[rt.flow] ?? "");
+    };
+    canvas.addEventListener("pointerdown", onPointer);
+    return () => canvas.removeEventListener("pointerdown", onPointer);
+  }, [canvasRef]);
 
   useEffect(() => {
     if (focus !== "grade") return;
@@ -914,6 +958,7 @@ export function LivingField({
           </p>
         </>
       )}
+      {flowNote && !focus && !vista ? <p className="world-note">{flowNote}</p> : null}
       <div ref={layerRef} className={`garden-layer${focus || vista ? " is-quiet" : ""}`}>
         {garden.map((item) => {
           const at = placeOf(item.id, size.w, size.h);

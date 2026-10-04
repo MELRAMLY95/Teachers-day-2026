@@ -48,19 +48,19 @@ A custom domain is a yearly purchase. The `github.io` address is the part that s
 
 ## What is built
 
-Every room opens the same way. The memories are already in the world. One click reads one. Close, or Escape, returns you. A quiet count shows how many are open. There is no score. When all eight are read, the letter uses those same sentences, the view pulls back, and the world ends with the teacher's name and Happy Teachers' Day.
+Every room opens the same way. The subject is already moving. The memories sit in that world. One click reads one. Close, or Escape, returns you. A quiet count shows how many are open. There is no score. The apparatus in the middle is the subject: it can be used without opening a memory. When the memories are all read, the letter uses those same sentences, the view pulls back, and the world ends with the teacher's name and Happy Teachers' Day.
 
-Miss Irum, chemistry. A dark laboratory and a flask. The room warms as the memories are read. The sun is the last of them. The hour, the jokes, and the lesson nobody asked for are in the open.
+Miss Irum, chemistry. A bench, reagent bottles, and a beaker. Copper sulfate and sodium hydroxide make pale blue copper hydroxide. Heat turns that toward copper oxide. The room warms as the memories are read. The sun is the last of them.
 
-Miss Hadia, physics. A star, orbits, and a wave. Physics is named as a subject that is not a natural favourite, and the want to work at it anyway is the last memory. Praise, effort, and the jokes sit around the star.
+Miss Hadia, physics. A pendulum, a star with a real orbit, and a spring. Pull the mass and let go. A heavier mass swings more slowly. The memory still says physics isn't really the subject, and that the praise is why the work happens anyway.
 
-Miss Noshen, mathematics. Geometry moves in a quiet room. "I will kill you." is there as the joke it is. The stare holds the room still, then the words. OB/GYN is the last memory. The motivation line stays as it was said.
+Miss Noshen, mathematics. A cube turns. A curve follows the frequency and amplitude under your hand. "I will kill you." is there as the joke it is. The stare holds the room still, then the words. OB/GYN is the last memory.
 
-Miss Kalsoom, biology. A living heart beats in a dark garden. Eight memories sit in the open. The world grows warmer as they are read. Grade 6 / 7 is quiet, with the heart as the light, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
+Miss Kalsoom, biology. An anatomical heart in a living garden. Click the heart and the trace follows one side, then the other: deoxygenated blood toward the lungs, oxygenated blood out through the aorta. The world grows warmer as the memories are read. Grade 6 / 7 is quiet, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
 
-Miss Naila, English. A lamp and shelves. The notebooks are a memory: the other subjects look finished, and the English one is plain. The room is the place that is safe to talk.
+Miss Naila, English. A lamp, shelves, and words that drift. The sentence on the page changes when you choose plain, finished, or decorated. The notebooks are still the joke. The room is the place that is safe to talk.
 
-Miss Maryam. One arch and a path. The trip is the last memory, and it arrives slowly. The effort of planning it is what the words keep. The hadith of intentions is quoted from al-Bukhari and Muslim. Nothing is scored. No place is named.
+Miss Maryam. One arch, a geometric floor, and a manuscript you can turn. The trip is the last memory, and it arrives slowly. The effort of planning it is what the words keep. The hadith of intentions is on the page, from al-Bukhari and Muslim. Nothing is scored. No place is named.
 
 Sound can be turned off from the corner. The room goes quiet while a memory is open.
 

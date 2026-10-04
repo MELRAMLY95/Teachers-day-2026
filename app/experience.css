@@ -1983,6 +1983,7 @@ body {
   inset: 0;
   z-index: 3;
   transform-origin: center center;
+  pointer-events: none;
 }
 
 .garden-layer.is-quiet {
@@ -1992,13 +1993,14 @@ body {
 
 .garden-memory {
   position: absolute;
-  width: 7.4rem;
-  height: 7.4rem;
+  width: 4.6rem;
+  height: 4.6rem;
   transform: translate(-50%, -50%);
   border: 0;
   background: transparent;
   color: rgba(244, 236, 220, 0.82);
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .garden-memory span {
@@ -2156,6 +2158,23 @@ body {
 
 .garden-close.is-quiet {
   color: rgba(244, 236, 220, 0.48);
+}
+
+.world-note {
+  position: absolute;
+  z-index: 4;
+  top: 4.4rem;
+  left: 50%;
+  width: min(40rem, calc(100% - 2rem));
+  margin: 0;
+  transform: translateX(-50%);
+  color: rgba(244, 236, 220, 0.84);
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: 0.98rem;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
 }
 
 @keyframes garden-in {

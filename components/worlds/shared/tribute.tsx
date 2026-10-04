@@ -5,6 +5,7 @@ import { letterFor, type TributeMemory } from "@/lib/tribute/sets";
 import type { Teacher } from "@/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { drawScene, type SceneTone } from "./scenes";
+import { createSim, pointerDown, pointerMove, pointerUp, stepSim, type WorldSim } from "./sim";
 import { useStage } from "./stage";
 
 type Focus = string | null;
@@ -46,12 +47,20 @@ function createRuntime(): Runtime {
   };
 }
 
-function placeOf(index: number, width: number, height: number) {
-  const spot = LAYOUT[index] ?? { x: 0.5, y: 0.5 };
+function placeOf(index: number, count: number, width: number, height: number) {
+  const climax = LAYOUT[LAYOUT.length - 1] ?? { x: 0.5, y: 0.88 };
+  const spot = index === count - 1 ? climax : LAYOUT[index] ?? climax;
   const pull = width < 760 ? 0.08 : 0;
   return {
     x: width * (0.5 + (spot.x - 0.5) * (1 - pull)),
     y: height * spot.y,
+  };
+}
+
+function screenToWorld(x: number, y: number, width: number, height: number, zoom: number, panX: number, panY: number) {
+  return {
+    x: (x - width / 2) / zoom + width / 2 + panX,
+    y: (y - height / 2) / zoom + height / 2 + panY,
   };
 }
 
@@ -72,15 +81,19 @@ export function TributeField({
 }) {
   const sound = useSound();
   const rtRef = useRef<Runtime | null>(null);
+  const simRef = useRef<WorldSim | null>(null);
   const layerRef = useRef<HTMLDivElement>(null);
+  const [note, setNote] = useState("");
   const canvasRef = useStage((ctx, width, height, dt) => {
     const rt = (rtRef.current ??= createRuntime());
+    const sim = (simRef.current ??= createSim());
     const motion = reducedMotion || rt.freeze ? dt * 0.04 : dt;
+    stepSim(sim, motion, tone);
     rt.time += motion;
     const life = memories.length ? rt.opened.size / memories.length : 0;
     const memoryFocus = rt.focus && rt.focus !== "letter" && rt.focus !== "dedication" ? rt.focus : null;
     const focusIndex = memories.findIndex((item) => item.id === memoryFocus);
-    const focusSpot = focusIndex >= 0 ? placeOf(focusIndex, width, height) : null;
+    const focusSpot = focusIndex >= 0 ? placeOf(focusIndex, memories.length, width, height) : null;
     const warmFocus = memoryFocus === "sun" || memoryFocus === "praise" || memoryFocus === "safe";
     const warmthTarget = Math.min(1, warmFocus ? 0.95 : 0.08 + life * 0.8);
     rt.warmth += (warmthTarget - rt.warmth) * Math.min(1, dt * 0.7);
@@ -107,9 +120,10 @@ export function TributeField({
       width,
       height,
       spots: memories.map((item, index) => {
-        const at = placeOf(index, width, height);
+        const at = placeOf(index, memories.length, width, height);
         return { id: item.id, x: at.x, y: at.y, open: rt.opened.has(item.id) ? 1 : 0.18 + life * 0.15 };
       }),
+      sim,
     });
     ctx.restore();
   });
@@ -170,6 +184,47 @@ export function TributeField({
   }, [canvasRef]);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const point = (event: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const rt = rtRef.current ?? createRuntime();
+      return screenToWorld(event.clientX - rect.left, event.clientY - rect.top, rect.width, rect.height, rt.zoom, rt.panX, rt.panY);
+    };
+    const down = (event: PointerEvent) => {
+      const rt = rtRef.current;
+      const sim = simRef.current;
+      if (!rt || !sim || rt.focus) return;
+      const at = point(event);
+      pointerDown(sim, tone, at.x, at.y, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+      setNote(sim.note);
+    };
+    const move = (event: PointerEvent) => {
+      const rt = rtRef.current;
+      const sim = simRef.current;
+      if (!rt || !sim || rt.focus || !sim.holding) return;
+      const at = point(event);
+      const rect = canvas.getBoundingClientRect();
+      pointerMove(sim, tone, at.x, at.y, rect.width, rect.height);
+      setNote(sim.note);
+    };
+    const up = () => {
+      const sim = simRef.current;
+      if (!sim) return;
+      pointerUp(sim, tone);
+      setNote(sim.note);
+    };
+    canvas.addEventListener("pointerdown", down);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return () => {
+      canvas.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+  }, [canvasRef, tone]);
+
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setFocus(null);
@@ -226,9 +281,10 @@ export function TributeField({
           </p>
         </>
       )}
+      {note && !focus && !vista ? <p className="world-note">{note}</p> : null}
       <div ref={layerRef} className={`garden-layer${focus || vista ? " is-quiet" : ""}`}>
         {memories.map((item, index) => {
-          const at = placeOf(index, size.w, size.h);
+          const at = placeOf(index, memories.length, size.w, size.h);
           return (
             <button
               key={item.id}
