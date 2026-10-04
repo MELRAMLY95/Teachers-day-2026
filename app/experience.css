@@ -1403,11 +1403,11 @@ body {
 }
 
 .tone-biology {
-  background: #06110c;
+  background: #070c0a;
 }
 
 .tone-biology .chem-flame {
-  background: radial-gradient(ellipse at 50% 80%, #e7ffe8, #3d8f5a 40%, transparent 72%);
+  background: radial-gradient(ellipse at 50% 80%, #f3e6d4, #8a4a48 42%, transparent 72%);
 }
 
 .tone-english {
@@ -1913,4 +1913,238 @@ body {
   font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.garden-shell {
+  background: #070c0a;
+}
+
+.garden-prompt {
+  position: absolute;
+  z-index: 4;
+  top: 1.15rem;
+  left: 50%;
+  margin: 0;
+  transform: translateX(-50%);
+  color: rgba(236, 226, 206, 0.72);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  pointer-events: none;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65);
+}
+
+.garden-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  transform-origin: center center;
+}
+
+.garden-layer.is-quiet {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.garden-memory {
+  position: absolute;
+  width: 7.4rem;
+  height: 7.4rem;
+  transform: translate(-50%, -50%);
+  border: 0;
+  background: transparent;
+  color: rgba(244, 236, 220, 0.82);
+  cursor: pointer;
+}
+
+.garden-memory span {
+  position: absolute;
+  top: calc(100% - 1.15rem);
+  left: 50%;
+  width: 8.2rem;
+  transform: translateX(-50%);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  line-height: 1.35;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
+
+.garden-memory.is-grade {
+  width: 8.6rem;
+  height: 8.6rem;
+}
+
+.garden-memory.is-grade span,
+.garden-memory.is-read span {
+  color: #f6efe2;
+}
+
+.garden-memory:focus-visible {
+  outline: 1px solid rgba(244, 228, 200, 0.7);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+.garden-letter {
+  position: absolute;
+  z-index: 4;
+  top: 2.7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 0;
+  background: none;
+  color: #f4ead8;
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75);
+}
+
+.garden-read {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 14vh 1.4rem 10vh;
+  background: radial-gradient(ellipse at center, rgba(6, 10, 8, 0.18), rgba(6, 10, 8, 0.46));
+}
+
+.garden-read.is-grade {
+  justify-content: flex-end;
+  padding-bottom: 16vh;
+  background: radial-gradient(ellipse at 50% 40%, rgba(18, 10, 8, 0.05), rgba(4, 6, 5, 0.72) 68%);
+}
+
+.garden-read.is-heart {
+  justify-content: flex-end;
+  padding-bottom: 14vh;
+  background: linear-gradient(to top, rgba(10, 7, 6, 0.5), rgba(10, 7, 6, 0.02) 52%);
+}
+
+.garden-read.is-flip {
+  justify-content: flex-start;
+  padding-top: 16vh;
+}
+
+.garden-read.is-letter {
+  background: radial-gradient(ellipse at center, rgba(7, 10, 8, 0.55), rgba(7, 10, 8, 0.72));
+}
+
+.garden-read.is-dedication {
+  justify-content: flex-end;
+  padding-bottom: 11vh;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(6, 8, 7, 0.55), rgba(6, 8, 7, 0) 48%);
+}
+
+.garden-words {
+  width: min(18em, 100%);
+  text-align: center;
+}
+
+.garden-read.is-letter .garden-words {
+  width: min(36rem, 100%);
+  max-height: 64vh;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(244, 228, 200, 0.35) transparent;
+}
+
+.garden-words p {
+  margin: 0 0 1.15rem;
+  color: #f4efe4;
+  font-family: var(--font-display-face), Georgia, serif;
+  font-size: clamp(1.35rem, 2.5vw, 2.15rem);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.42;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.72);
+  animation: garden-in 1.15s ease both;
+}
+
+.garden-read.is-one .garden-words p {
+  font-size: clamp(1.85rem, 4.2vw, 3.05rem);
+  line-height: 1.28;
+}
+
+.garden-read.is-letter .garden-words p {
+  margin-bottom: 0.95rem;
+  font-size: clamp(1.05rem, 1.7vw, 1.32rem);
+  animation: none;
+}
+
+.garden-name {
+  font-size: clamp(1.9rem, 4.4vw, 3.3rem) !important;
+  letter-spacing: -0.03em;
+}
+
+.garden-day {
+  color: #f0d4c8 !important;
+  font-size: clamp(1.15rem, 2.1vw, 1.65rem) !important;
+}
+
+.garden-actions {
+  display: flex;
+  gap: 1.4rem;
+}
+
+.garden-close {
+  border: 0;
+  background: none;
+  color: rgba(244, 236, 220, 0.84);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.garden-close.is-quiet {
+  color: rgba(244, 236, 220, 0.48);
+}
+
+@keyframes garden-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .garden-memory,
+  .garden-memory.is-grade {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .garden-memory span {
+    width: 6.4rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+  }
+
+  .garden-read {
+    padding-inline: 1.1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-words p {
+    animation: none;
+  }
 }

@@ -342,7 +342,7 @@ export const teachers: Teacher[] = [
     passwordHash: "3cb968a982080be1d7a5df98dc49673a8c052d2642ef7730b7753cee5b87c3dd",
     subject: "biology",
     worldTitle: "The living world",
-    roomLabel: "Where it is easy to be.",
+    roomLabel: "The living world",
     discoveriesNeeded: 4,
     memories: kalsoomMemories,
     notes: kalsoomNotes,

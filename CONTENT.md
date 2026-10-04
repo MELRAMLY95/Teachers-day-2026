@@ -98,27 +98,21 @@ Drag the shelves. The notebooks are on the desk at the start. The books are furt
 
 ## Miss Kalsoom Ashraf — biology
 
-The field is a living place, not a lesson with notes attached. It starts quiet. Cells, plants, and light increase as memories are found. Her smile is a warming of the field: a window brightens, flowers open. There is no face, and there is no hug animation.
+A living heart in a dark garden. It starts quiet. Each memory that is read lets more of the ecosystem come alive, and the heart grows warmer. Nothing is solved. Every memory is visible from the start. One click, the words, Close.
 
-Nothing here is scored. The quiet water has no task. The grade 6 / 7 place is darkness, a warm light, and a heartbeat.
+There is no face, and there is no hug animation. Grade 6 / 7 darkens the garden, leaves the heart as the light, and draws a warm membrane around it. The lines arrive with a pause. The letter repeats her sentences. The view then pulls back to the living world, her name, and Happy Teachers' Day.
 
 | ID | Detail | Interaction | Where | Tone |
 | --- | --- | --- | --- | --- |
-| smile | Looks over to see if she is smiling. The smile means a great deal. It warms the heart | Click a cell in the near water. It divides. The window warms. Lines wait between clicks | The near water | Specific |
-| smart | Makes complicated things understandable. Incredibly smart, and knows how to teach | Enter the large cell. Click the nucleus, a mitochondrion, the ribosomes, and the membrane | The cell, after the water | Plain, then personal |
-| teach | Being smart is one thing. Making someone else understand is another. Good at both | Pair the strand. A with T, G with C. Two bonds, then three | The strand | Direct |
-| signal | A neuron: impulse along the axon, then chemicals across the synapse | Click the cell body | Past the strand | Biology only |
-| warm | Her smile makes things feel lighter. It genuinely warms the heart | Enter the heart. Click a chamber or a valve. Blood is blue-grey from the body, red from the lungs | The heart, mid-field | Warm |
-| kind | Incredibly kind, and that is part of why it is comfortable to be around her | Hold a fragile cell still. A shove bruises it. Two careful holds | Past the heart | Quiet |
-| comfort | Never properly said. Incredibly comfortable. Easy to just be | Click the still water. No task. The line stays until the next click | The quiet water | The first long pause |
-| again | Even now, looks to see whether she is smiling. It says more than can be explained | Click the flowers, after the quiet water | The flowers | The smile, returned |
-| class | Not only the biology teacher. The class teacher. There when needed | Click the empty classroom. There is no photograph | The old room | Recognition |
-| grade | Grade 6 / 7. Struggling. An issue with another teacher. Crying a lot. The class teacher. The hug. A longer pause. It was not a small moment. Remembered like yesterday | Step into the dark gap. The label is GRADE 6 / 7. Lines do not rush | After the room | The centre. No animation of a hug |
-| held | The moment stayed. Carried ever since | The same darkness. A membrane of light closes slowly. A second heartbeat | Same darkness | Safety, not a cartoon |
-| love | One of the favourite teachers. Some teachers are remembered for a lesson. Some become part of you | Click the stone after the darkness | Before the far heart | Built, not announced |
-| heart | Immense love. A very big part of the heart. Fragments of what was found drift around the organ | Enter the far heart | The far heart | The climax |
-| backflip | Honestly, talking about her makes the heart do a backflip | After those lines, click the trace. It runs fast, then the line, then the letter | The monitor under the heart | Human, after the climax |
-| finale | Difficult to describe. Hundreds of tiny things. The smile, the kindness, the comfort, the teaching, being there, the hug. Love and gratitude. A very big part of the heart. Happy Teachers' Day | The letter | The letter | The synthesis |
+| words | Hard to describe her. Comfortable around her | Click the organism | Upper left | The uncertainty |
+| smile | Looks to see if she is smiling. Her smile warms the heart | Click it. The garden warms and a flower opens | Upper right | Warm |
+| smart | Incredibly smart, and knows how to teach | Click it. Cells sit behind the sentence | Left | Both, together |
+| kind | Really kind | Click it. The sentence is left alone | Right | Quiet |
+| grade | Grade 6 or 7. An issue with a teacher. She was the class teacher. Crying. She hugged. Remembered like yesterday | Click Grade 6 / 7. The lines arrive on their own | Bottom, in the open | The centre. No hug animation |
+| love | Immense love for Miss Kalsoom | Click it | Lower left | Unsoftened |
+| place | She holds a very big part of the heart | Click it. The view moves closer to the heart | Lower right | The organ |
+| flip | Talking about her makes the heart do a backflip | Click it. The trace jumps, then settles | Above the heart | Human |
+| letter | The same sentences, then her name, then Happy Teachers' Day | The letter, after all eight | Above the garden | The ending |
 
 ## Miss Maryam Ghazanfar — Islamiat and psychology — 13 discoveries
 
