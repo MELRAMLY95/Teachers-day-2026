@@ -22,7 +22,7 @@ const required: Record<string, string[]> = {
     "You are the reason I will become an OB/GYN.",
     "You are also the main reason I love math so much.",
     "You motivate me to work hard.",
-    "I would never want to motivate you.",
+    "I would never want to disappoint you.",
     "You are very sweet.",
     "Your stare at students is hilarious.",
     "You are very friendly and fun to talk to.",
