@@ -1,5 +1,6 @@
 "use client";
 
+import { GateField } from "@/components/gate-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ export function Gate({ onEnter }: { onEnter: (teacher: Teacher) => void }) {
 
   return (
     <main className="gate">
+      <GateField />
       <div className="gate-copy">
         <h1>The worlds you left with us.</h1>
         <p className="lede">This experience was made for you.</p>

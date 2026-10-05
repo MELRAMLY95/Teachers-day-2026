@@ -1,5 +1,6 @@
 export type Bed =
   | "none"
+  | "gate"
   | "chemistry"
   | "physics"
   | "mathematics"
@@ -141,6 +142,12 @@ export class Soundscape {
     this.current = bed;
     if (bed === "none") return;
 
+    if (bed === "gate") {
+      this.noise(0.012, 420);
+      this.tone(82, "sine", 0.02);
+      this.tone(123, "sine", 0.008);
+      return;
+    }
     if (bed === "chemistry") {
       this.noise(0.045, 700);
       this.tone(98, "sine", 0.03);
@@ -174,6 +181,42 @@ export class Soundscape {
     this.tone(261.6, "sine", 0.02);
     this.tone(329.6, "sine", 0.014);
     this.tone(392, "sine", 0.012);
+  }
+
+  /** A short string, for a weight let go. */
+  pluck() {
+    if (!this.enabled || !this.ctx || !this.master) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(196, now);
+    osc.frequency.exponentialRampToValueAtTime(98, now + 0.35);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.06, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.56);
+  }
+
+  /** A softer beat than the grade memory, for a change of flow. */
+  pulse() {
+    if (!this.enabled || !this.ctx || !this.master) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(72, now);
+    osc.frequency.exponentialRampToValueAtTime(48, now + 0.12);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.05, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+    osc.connect(gain);
+    gain.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.18);
   }
 
   /** A quiet heartbeat. Used in the grade 6 / 7 darkness. */

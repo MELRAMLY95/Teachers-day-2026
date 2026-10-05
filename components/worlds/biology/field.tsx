@@ -1077,16 +1077,27 @@ export function LivingField({
       ctx.moveTo(behind.x, behind.y);
       ctx.lineTo(at.x, at.y);
       ctx.stroke();
+      const angle = Math.atan2(at.y - behind.y, at.x - behind.x);
       ctx.save();
       ctx.translate(at.x, at.y);
-      ctx.rotate(drop.t * 6);
-      ctx.fillStyle = oxygenated ? "rgba(186, 52, 46, 0.95)" : "rgba(78, 58, 74, 0.95)";
+      ctx.rotate(angle);
+      const disc = ctx.createRadialGradient(-0.6, -0.4, 0.3, 0, 0, 4.4);
+      if (oxygenated) {
+        disc.addColorStop(0, "rgba(120, 28, 30, 0.95)");
+        disc.addColorStop(0.45, "rgba(186, 48, 42, 0.95)");
+        disc.addColorStop(1, "rgba(92, 18, 22, 0.9)");
+      } else {
+        disc.addColorStop(0, "rgba(48, 32, 40, 0.95)");
+        disc.addColorStop(0.5, "rgba(92, 58, 70, 0.95)");
+        disc.addColorStop(1, "rgba(42, 28, 36, 0.9)");
+      }
+      ctx.fillStyle = disc;
       ctx.beginPath();
-      ctx.ellipse(0, 0, 3.6, 2.1, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 4.4, 2.15, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = oxygenated ? "rgba(90, 22, 24, 0.45)" : "rgba(36, 28, 36, 0.45)";
+      ctx.fillStyle = oxygenated ? "rgba(90, 16, 20, 0.4)" : "rgba(28, 18, 24, 0.45)";
       ctx.beginPath();
-      ctx.ellipse(0, 0, 1.15, 0.65, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 1.35, 0.7, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
@@ -1251,11 +1262,12 @@ export function LivingField({
       const near = Math.hypot(x - rect.width * 0.5, y - rect.height * 0.44) < Math.min(rect.width, rect.height) * 0.2;
       if (!near) return;
       rt.flow = (rt.flow + 1) % 3;
+      sound.pulse();
       setFlowNote(notes[rt.flow] ?? "");
     };
     canvas.addEventListener("pointerdown", onPointer);
     return () => canvas.removeEventListener("pointerdown", onPointer);
-  }, [canvasRef]);
+  }, [canvasRef, sound]);
 
   useEffect(() => {
     if (focus !== "grade") return;

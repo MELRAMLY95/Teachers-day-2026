@@ -460,6 +460,19 @@ function drawWorkingBeaker(
     ctx.fillRect(x - halfTop, surface, halfTop * 2, bottom - surface);
   }
 
+  if (pour > 0.05) {
+    for (let ring = 0; ring < 3; ring += 1) {
+      const wave = ((1 - pour) * 1.4 + ring * 0.28) % 1;
+      ctx.globalAlpha = (1 - wave) * Math.min(1, pour + 0.2);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(x, surface, 4 + wave * halfBot * 0.75, 1.6 + wave * 2.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
   ctx.beginPath();
   ctx.ellipse(x, surface, halfBot * 0.92, 5.5, 0, 0, Math.PI * 2);
   ctx.fillStyle = oxide ? "rgba(40, 32, 30, 0.85)" : gel ? "rgba(186, 220, 230, 0.55)" : copper ? "rgba(70, 140, 190, 0.45)" : "rgba(255, 255, 255, 0.18)";
@@ -1105,6 +1118,17 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const anchor = springAnchor(width, height);
   const top = anchor.y - 36;
   const endY = anchor.y + sim.spring;
+  const standX = anchor.x - 70;
+  ctx.strokeStyle = "rgba(92, 68, 42, 0.95)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(standX, top - 4);
+  ctx.lineTo(standX, height * 0.74);
+  ctx.moveTo(standX - 16, height * 0.74);
+  ctx.lineTo(standX + 16, height * 0.74);
+  ctx.moveTo(standX, top);
+  ctx.lineTo(anchor.x - 16, top);
+  ctx.stroke();
   ctx.fillStyle = "#6a5038";
   roundRect(ctx, anchor.x - 16, top - 8, 32, 8, 2);
   ctx.fill();
@@ -1156,9 +1180,12 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const meter = Math.max(potential, kinetic, 1);
   const barBase = endY + weight * 0.15;
   const barX = anchor.x - 58;
-  ctx.fillStyle = "rgba(244, 220, 170, 0.9)";
+  ctx.fillStyle = "rgba(244, 228, 200, 0.16)";
+  ctx.fillRect(barX, barBase - 42, 5, 42);
+  ctx.fillRect(barX + 9, barBase - 42, 5, 42);
+  ctx.fillStyle = "rgba(244, 220, 170, 0.92)";
   ctx.fillRect(barX, barBase - (potential / meter) * 42, 5, Math.max(1.5, (potential / meter) * 42));
-  ctx.fillStyle = "rgba(150, 186, 230, 0.9)";
+  ctx.fillStyle = "rgba(150, 186, 230, 0.92)";
   ctx.fillRect(barX + 9, barBase - (kinetic / meter) * 42, 5, Math.max(1.5, (kinetic / meter) * 42));
 
   const waveY = height * 0.7;
@@ -1592,9 +1619,22 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     return mid - Math.sin(local * Math.PI * 2 * sim.freq * harmonic + phase) * amp * 36;
   };
   ctx.save();
-  ctx.fillStyle = `rgba(12, 16, 32, ${(0.28 + life * 0.08) * quiet})`;
+  ctx.fillStyle = `rgba(36, 28, 20, ${(0.55 + life * 0.08) * quiet})`;
   roundRect(ctx, band.left - 18, band.top - 16, band.right - band.left + 36, band.bottom - band.top + 32, 12);
   ctx.fill();
+  ctx.save();
+  roundRect(ctx, band.left - 18, band.top - 16, band.right - band.left + 36, band.bottom - band.top + 32, 12);
+  ctx.clip();
+  ctx.strokeStyle = `rgba(232, 210, 170, ${0.08 + life * 0.04})`;
+  ctx.lineWidth = 1;
+  for (let row = 1; row < 5; row += 1) {
+    const y = band.top + ((band.bottom - band.top) * row) / 5;
+    ctx.beginPath();
+    ctx.moveTo(band.left - 8, y);
+    ctx.lineTo(band.right + 8, y);
+    ctx.stroke();
+  }
+  ctx.restore();
   ctx.strokeStyle = `rgba(214, 196, 150, ${0.28 * quiet})`;
   ctx.lineWidth = 1;
   ctx.stroke();
@@ -2777,6 +2817,13 @@ function drawInner(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   }
 
   fountain(ctx, width * (narrow ? 0.2 : 0.18), height * 0.9, motion * (sim.page === 2 ? 1.65 : sim.page === 1 ? 1.15 : 0.85), life);
+  for (const side of [-1, 1]) {
+    const lx = book.x + side * (book.w / 2 + 28);
+    ctx.fillStyle = `rgba(255, 186, 96, ${0.06 + life * 0.06 + warmth * 0.04})`;
+    ctx.beginPath();
+    ctx.ellipse(lx, floorY + 22, 18 + life * 6, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   const stones = sim.page === 2 ? 8 : 3 + Math.round(life * 3);
   const stoneAt = (index: number) => {

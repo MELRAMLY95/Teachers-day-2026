@@ -49,7 +49,7 @@ function Journey() {
   }, []);
 
   useEffect(() => {
-    const bed: Bed = !teacher || phase === "gate" ? "none" : phase === "memory" ? "memory" : teacher.subject;
+    const bed: Bed = !teacher || phase === "gate" ? "gate" : phase === "memory" ? "memory" : teacher.subject;
     void sound.playBed(bed);
     sound.duck(phase === "memory" ? 0.16 : 1);
   }, [phase, sound, teacher]);

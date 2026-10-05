@@ -240,7 +240,16 @@ export function TributeField({
       const sim = simRef.current;
       if (!rt || !sim || rt.focus) return;
       const at = point(event);
+      const before = { heating: sim.heating, pour: sim.pour, page: sim.page, sentence: sim.sentence, note: sim.note };
       pointerDown(sim, tone, at.x, at.y, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+      if (tone === "chemistry" && sim.heating !== before.heating) sound.ignite();
+      else if (tone === "chemistry" && sim.note.startsWith("Rinsed")) sound.page();
+      else if (tone === "chemistry" && sim.pour > 0 && sim.note !== before.note) sound.clink();
+      else if (tone === "physics" && sim.note.startsWith("Mass ")) sound.page();
+      else if (tone === "physics" && sim.note.startsWith("It ")) sound.pluck();
+      else if (tone === "english" && sim.sentence !== before.sentence) sound.page();
+      else if (tone === "inner" && sim.page !== before.page) sound.page();
+      else if (tone === "math" && sim.holding) sound.page();
       noteRef.current = sim.note;
       setNote(sim.note);
     };
@@ -257,7 +266,9 @@ export function TributeField({
     const up = () => {
       const sim = simRef.current;
       if (!sim) return;
+      const released = sim.holding && tone === "physics";
       pointerUp(sim, tone);
+      if (released) sound.pluck();
       noteRef.current = sim.note;
       setNote(sim.note);
     };
@@ -269,7 +280,7 @@ export function TributeField({
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
     };
-  }, [canvasRef, tone]);
+  }, [canvasRef, sound, tone]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
