@@ -280,8 +280,19 @@ function rel(cx: number, cy: number, s: number, pairs: number[]) {
   return points;
 }
 
-function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, warmth: number, pulse: number, time: number) {
+function drawHeart(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  s: number,
+  warmth: number,
+  pulse: number,
+  time: number,
+  flow: number,
+) {
   const pipes = vessels(cx, cy, s);
+  const rightOn = flow !== 1;
+  const leftOn = flow !== 0;
   const squeeze = pulse * 0.055;
   const muscle = mix("#7c1a22", "#9c242c", warmth * 0.4);
   const deep = mix("#2c080c", "#3c1014", warmth * 0.25);
@@ -300,10 +311,13 @@ function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: num
   ctx.scale(1 + squeeze * 0.22, 1 - squeeze);
   ctx.translate(-cx, -(cy + s * 0.16));
 
+  ctx.globalAlpha = leftOn ? 1 : 0.38;
   drawVessel(ctx, pipes.veins, s * 0.05, arterialLit, arterialMid, arterialDark, 0);
   drawVessel(ctx, pipes.aorta, s * 0.13, arterialLit, arterialMid, arterialDark, 8);
   drawVessel(ctx, pipes.branch, s * 0.05, arterialLit, arterialMid, arterialDark, 3);
+  ctx.globalAlpha = rightOn ? 1 : 0.38;
   drawVessel(ctx, pipes.vena, s * 0.074, mix("#a05058", "#c47870", warmth * 0.35), mix("#6a2830", "#8a3840", warmth * 0.3), "#3a1418", 4);
+  ctx.globalAlpha = 1;
 
   const body = ctx.createRadialGradient(cx - s * 0.12, cy - s * 0.16, s * 0.04, cx + s * 0.08, cy + s * 0.16, s * 0.78);
   body.addColorStop(0, lit);
@@ -355,6 +369,29 @@ function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: num
   ctx.moveTo(cx + s * 0.02, cy + s * 0.06);
   ctx.quadraticCurveTo(cx + s * 0.04, cy + s * 0.24, cx + s * 0.12, cy + s * 0.4);
   ctx.stroke();
+
+  ctx.fillStyle = rightOn ? `rgba(96, 42, 58, ${0.18 + pulse * 0.14})` : "rgba(24, 8, 12, 0.08)";
+  ctx.beginPath();
+  ctx.ellipse(cx - s * 0.12, cy + s * 0.16, s * 0.15, s * 0.22, -0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = leftOn ? `rgba(176, 46, 40, ${0.16 + pulse * 0.16})` : "rgba(36, 10, 12, 0.07)";
+  ctx.beginPath();
+  ctx.ellipse(cx + s * 0.16, cy + s * 0.22, s * 0.15, s * 0.24, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  const filling = 1 - Math.min(1, pulse * 1.35);
+  const cusp = (ox: number, oy: number, side: number) => {
+    const lift = s * (0.02 + filling * 0.028);
+    ctx.strokeStyle = "rgba(92, 24, 30, 0.55)";
+    ctx.lineWidth = Math.max(0.8, s * 0.007);
+    ctx.beginPath();
+    ctx.moveTo(ox - side * s * 0.02, oy);
+    ctx.quadraticCurveTo(ox - side * s * 0.012, oy - lift, ox, oy - lift * 1.15);
+    ctx.quadraticCurveTo(ox + side * s * 0.012, oy - lift, ox + side * s * 0.02, oy);
+    ctx.stroke();
+  };
+  if (rightOn) cusp(cx - s * 0.08, cy + s * 0.06, -1);
+  if (leftOn) cusp(cx + s * 0.1, cy + s * 0.1, 1);
 
   ctx.fillStyle = "rgba(226, 198, 146, 0.55)";
   const fat: [number, number, number, number][] = [
@@ -429,9 +466,11 @@ function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: num
   }
   ctx.restore();
 
+  ctx.globalAlpha = rightOn ? 1 : 0.4;
   drawVessel(ctx, pipes.pulmonary, s * 0.088, arterialLit, arterialMid, arterialDark, 4);
   drawVessel(ctx, pipes.lungLeft, s * 0.042, arterialLit, arterialMid, arterialDark, 0);
   drawVessel(ctx, pipes.lungRight, s * 0.042, arterialLit, arterialMid, arterialDark, 0);
+  ctx.globalAlpha = 1;
 
   ctx.restore();
 }
@@ -1015,7 +1054,7 @@ export function LivingField({
 
     const heartScale = scale;
     drawLungs(ctx, hx, hy, heartScale, rt.time, rt.warmth);
-    drawHeart(ctx, hx, hy, heartScale, rt.warmth, pulse, rt.time);
+    drawHeart(ctx, hx, hy, heartScale, rt.warmth, pulse, rt.time, rt.flow);
     const pipes = vessels(hx, hy, heartScale);
     const showRight = rt.flow !== 1;
     const showLeft = rt.flow !== 0;
@@ -1027,10 +1066,17 @@ export function LivingField({
       rt.drops = rt.drops.filter((drop) => drop.t < 1).slice(-28);
     }
     for (const drop of rt.drops) {
-      drop.t += motion > 0 ? 0.008 : 0;
+      drop.t += motion > 0 ? (rt.flow === 2 ? 0.009 : 0.015) : 0;
       const path = pipes[drop.route];
       const at = along(path, drop.t);
+      const behind = along(path, Math.max(0, drop.t - 0.07));
       const oxygenated = drop.route === "aorta" || drop.route === "veins";
+      ctx.strokeStyle = oxygenated ? "rgba(186, 52, 46, 0.45)" : "rgba(78, 58, 74, 0.4)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(behind.x, behind.y);
+      ctx.lineTo(at.x, at.y);
+      ctx.stroke();
       ctx.save();
       ctx.translate(at.x, at.y);
       ctx.rotate(drop.t * 6);

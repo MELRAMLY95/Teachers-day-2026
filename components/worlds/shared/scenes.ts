@@ -4,7 +4,9 @@ import {
   englishWords,
   graphBand,
   manuscript,
+  planetPoint,
   springAnchor,
+  springPeriod,
   type WorldSim,
 } from "./sim";
 
@@ -331,10 +333,11 @@ function drawWorkingBeaker(
   beaker: Beaker,
   time: number,
   heating: boolean,
+  pour: number,
 ) {
   const fill = Math.min(0.84, 0.36 + Math.max(0, beaker.volumeMl - 15) / 68);
   const inner = bottom - top - 18;
-  const surface = bottom - 8 - inner * fill + Math.sin(time * 2.2) * 1.4;
+  const surface = bottom - 8 - inner * fill + Math.sin(time * 2.2) * (1.4 + pour * 2.4);
   const oxide = beaker.cuo > 0.0003 && beaker.cuo >= beaker.cuoh2;
   const gel = beaker.cuoh2 > 0.0002;
   const copper = beaker.cu2 > 0.0002;
@@ -411,6 +414,40 @@ function drawWorkingBeaker(
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(px, py, heating ? 2.2 : 1.4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  const spanX = halfBot * 0.62;
+  const column = Math.max(10, bottom - surface - 14);
+  const ion = (count: number, color: string, radius: number, seed: number, rise: number) => {
+    for (let index = 0; index < count; index += 1) {
+      const sway = Math.sin(time * (heating ? 4.4 : 1.5) + index + seed) * (heating ? 5.5 : 2);
+      const px = x - spanX + hash(index + seed) * spanX * 2 + sway;
+      const travel = (time * rise + hash(index + seed + 5)) % 1;
+      const py = bottom - 10 - travel * column;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(px, py, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+  if (copper) ion(Math.min(16, 5 + Math.round(beaker.cu2 * 2000)), "rgba(64, 148, 220, 0.92)", 2.15, 21, heating ? 0.55 : 0.22);
+  if (hydroxide) ion(Math.min(16, 5 + Math.round(beaker.oh * 1400)), "rgba(244, 250, 252, 0.8)", 1.55, 44, 0.28);
+  if (gel && !oxide) {
+    const flakes = Math.min(18, 5 + Math.round(beaker.cuoh2 * 2400));
+    for (let index = 0; index < flakes; index += 1) {
+      const travel = (time * 0.12 + hash(index + 8)) % 1;
+      const px = x - spanX + hash(index + 15) * spanX * 2;
+      const py = surface + 6 + travel * column;
+      ctx.fillStyle = "rgba(198, 230, 238, 0.82)";
+      ctx.fillRect(px, py, 3.4, 2.1);
+    }
+  }
+  if (heating) {
+    ctx.strokeStyle = "rgba(255, 214, 160, 0.28)";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.ellipse(x + Math.sin(time * 3) * 5, (surface + bottom) / 2, halfBot * 0.36, 9, time * 1.4, 0, Math.PI * 1.65);
     ctx.stroke();
   }
 
@@ -747,7 +784,39 @@ function drawChemistry(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.stroke();
 
   drawBurner(ctx, hits.flame.x, hits.flame.y, time, sim.heating);
-  drawWorkingBeaker(ctx, bx, top, bottom, halfTop, halfBot, sim.beaker, time, sim.heating);
+  drawWorkingBeaker(ctx, bx, top, bottom, halfTop, halfBot, sim.beaker, time, sim.heating, sim.pour);
+  if (sim.pour > 0.04 && sim.pourSide !== 0) {
+    const from = sim.pourSide < 0 ? hits.copper : hits.hydroxide;
+    const mouthX = from.x;
+    const mouthY = from.y - 38;
+    const bendX = (mouthX + bx) / 2;
+    const bendY = Math.min(mouthY, top) - 16;
+    const tipX = bx;
+    const tipY = top + 8;
+    const curve = (t: number) => {
+      const u = 1 - t;
+      return {
+        x: u * u * mouthX + 2 * u * t * bendX + t * t * tipX,
+        y: u * u * mouthY + 2 * u * t * bendY + t * t * tipY,
+      };
+    };
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, sim.pour + 0.15);
+    ctx.strokeStyle = sim.pourSide < 0 ? "rgba(32, 96, 186, 0.9)" : "rgba(236, 244, 246, 0.82)";
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(mouthX, mouthY);
+    ctx.quadraticCurveTo(bendX, bendY, tipX, tipY);
+    ctx.stroke();
+    for (let index = 0; index < 5; index += 1) {
+      const drop = curve((index / 5 + (1 - sim.pour) * 0.8) % 1);
+      ctx.fillStyle = sim.pourSide < 0 ? "rgba(48, 120, 200, 0.95)" : "rgba(244, 250, 252, 0.9)";
+      ctx.beginPath();
+      ctx.arc(drop.x, drop.y, 2.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
   drawReagentBottle(ctx, hits.copper.x, hits.copper.y, "CuSO4", "rgba(28, 86, 168, 0.9)", time);
   drawReagentBottle(ctx, hits.hydroxide.x, hits.hydroxide.y, "NaOH", "rgba(236, 242, 244, 0.55)", time);
   drawWashBottle(ctx, hits.rinse.x, hits.rinse.y, time);
@@ -940,15 +1009,27 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.arc(starX, starY, 8 + life * 2, 0, Math.PI * 2);
   ctx.fill();
 
-  const body = sim.orbit;
-  const visual = 0.62;
+  const placed = planetPoint(sim.orbit, width, height);
+  const visual = placed.visual;
   ctx.strokeStyle = `rgba(214, 206, 186, ${0.28 + life * 0.25})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.ellipse(starX, starY, 118 * visual, 52 * visual, -0.35, 0, Math.PI * 2);
   ctx.stroke();
-  const planetX = starX + body.x * visual;
-  const planetY = starY + body.y * visual * 0.45;
+  if (sim.orbitTrail.length > 1) {
+    ctx.beginPath();
+    sim.orbitTrail.forEach((point, index) => {
+      const px = starX + point.x * visual;
+      const py = starY + point.y * visual * 0.45;
+      if (index === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.strokeStyle = `rgba(186, 214, 255, ${0.35 + life * 0.35})`;
+    ctx.lineWidth = 1.35;
+    ctx.stroke();
+  }
+  const planetX = placed.x;
+  const planetY = placed.y;
   const planetGlow = ctx.createRadialGradient(planetX, planetY, 1, planetX, planetY, 16);
   planetGlow.addColorStop(0, "rgba(186, 214, 255, 0.9)");
   planetGlow.addColorStop(1, "rgba(186, 214, 255, 0)");
@@ -984,7 +1065,7 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const pivotX = width * 0.3;
   const pivotY = height * 0.16;
   const length = Math.min(height * 0.22, 150) + life * 8;
-  const swing = Math.sin(time * 1.35) * 0.62;
+  const swing = Math.sin(time * (2 / springPeriod(sim.mass))) * 0.62;
   const bobX = pivotX + Math.sin(swing) * length;
   const bobY = pivotY + Math.cos(swing) * length;
   ctx.strokeStyle = "rgba(90, 70, 48, 0.85)";
@@ -1069,6 +1150,17 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.fillText("mass", switchX, switchY + 32);
   ctx.textAlign = "left";
 
+  const stiffness = 26;
+  const potential = 0.5 * stiffness * sim.spring * sim.spring;
+  const kinetic = 0.5 * sim.mass * sim.springV * sim.springV;
+  const meter = Math.max(potential, kinetic, 1);
+  const barBase = endY + weight * 0.15;
+  const barX = anchor.x - 58;
+  ctx.fillStyle = "rgba(244, 220, 170, 0.9)";
+  ctx.fillRect(barX, barBase - (potential / meter) * 42, 5, Math.max(1.5, (potential / meter) * 42));
+  ctx.fillStyle = "rgba(150, 186, 230, 0.9)";
+  ctx.fillRect(barX + 9, barBase - (kinetic / meter) * 42, 5, Math.max(1.5, (kinetic / meter) * 42));
+
   const waveY = height * 0.7;
   ctx.beginPath();
   ctx.strokeStyle = `rgba(126, 168, 220, ${0.22 + life * 0.2})`;
@@ -1100,6 +1192,28 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.beginPath();
   ctx.arc(riderX, riderY, 3.2, 0, Math.PI * 2);
   ctx.fill();
+
+  const trace = sim.springTrace;
+  if (trace.length > 2) {
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(255, 214, 150, ${0.8 + life * 0.15})`;
+    ctx.lineWidth = 1.7;
+    let liveX = width * 0.16;
+    let liveY = waveY;
+    trace.forEach((sample, index) => {
+      const x = width * 0.16 + (index / (trace.length - 1)) * width * 0.68;
+      const y = waveY - sample * 0.28;
+      liveX = x;
+      liveY = y;
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = "#fff1d4";
+    ctx.beginPath();
+    ctx.arc(liveX, liveY, 3.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   ctx.restore();
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(220, 206, 170, 0.95)", time);
@@ -1339,7 +1453,8 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   gazeMix += ((frame.freeze ? 1 : 0) - gazeMix) * Math.min(1, step * 2.2);
   const quiet = 1 - gazeMix * 0.35;
   const narrow = width < 760;
-  const phase = time * 0.8;
+  const phase = time * (0.35 + sim.freq * 0.42);
+  const roseSpin = time * (0.06 + sim.freq * 0.045);
 
   const lamp = ctx.createRadialGradient(width * 0.5, height * 0.34, 10, width * 0.5, height * 0.42, Math.max(width, height) * 0.48);
   lamp.addColorStop(0, `rgba(150, 170, 230, ${(0.07 + warmth * 0.08 + life * 0.05) * quiet})`);
@@ -1401,8 +1516,8 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   for (let index = 0; index <= 180; index += 1) {
     const theta = (index / 180) * Math.PI * 2;
     const rose = Math.cos(petals * theta) * radius * 0.72;
-    const px = circleX + Math.cos(theta + time * 0.15) * rose;
-    const py = circleY + Math.sin(theta + time * 0.15) * rose;
+    const px = circleX + Math.cos(theta + roseSpin) * rose;
+    const py = circleY + Math.sin(theta + roseSpin) * rose;
     if (index === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }
@@ -1424,6 +1539,11 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.fillStyle = "#f4e6c8";
   ctx.beginPath();
   ctx.arc(pointX, pointY, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  const roseReach = Math.cos(petals * angle) * radius * 0.72;
+  ctx.fillStyle = "rgba(186, 206, 245, 0.95)";
+  ctx.beginPath();
+  ctx.arc(circleX + Math.cos(angle + roseSpin) * roseReach, circleY + Math.sin(angle + roseSpin) * roseReach, 2.4, 0, Math.PI * 2);
   ctx.fill();
   if (!narrow) {
     const originX = circleX + radius + 28;
@@ -1463,7 +1583,7 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const solidX = width * (narrow ? 0.8 : 0.8);
   const solidY = height * (narrow ? 0.2 : 0.24);
   const solid = Math.min(narrow ? 34 : 52, Math.min(width, height) * 0.055) + life * 6;
-  projectCube(ctx, solidX, solidY, solid, time * 0.85, (0.72 + life * 0.2) * quiet);
+  projectCube(ctx, solidX, solidY, solid, time * (0.4 + sim.freq * 0.22), (0.72 + life * 0.2) * quiet);
 
   const band = graphBand(width, height);
   const mid = (band.top + band.bottom) / 2;
@@ -1506,7 +1626,7 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   let beadX = band.left;
   let beadY = mid;
   let beadGap = 1;
-  const beadAt = (time * 0.12) % 1;
+  const beadAt = ((time * 0.07 * sim.freq) % 1 + 1) % 1;
   for (let x = band.left; x <= band.right; x += 3) {
     const local = (x - band.left) / (band.right - band.left);
     const y = sample(x);
@@ -1542,6 +1662,15 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.beginPath();
   ctx.arc(beadX, beadY, 3.3, 0, Math.PI * 2);
   ctx.fill();
+  const beadLocal = (beadX - band.left) / Math.max(1, band.right - band.left);
+  const slope = (-Math.cos(beadLocal * Math.PI * 2 * sim.freq + phase) * Math.PI * 2 * sim.freq * sim.amp * 36) / Math.max(1, band.right - band.left);
+  const span = 16;
+  ctx.strokeStyle = "rgba(244, 226, 196, 0.8)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(beadX - span, beadY - slope * span);
+  ctx.lineTo(beadX + span, beadY + slope * span);
+  ctx.stroke();
   ctx.restore();
 
   const peek = Math.max(0, Math.sin(live * 0.33) - 0.86) / 0.14;
@@ -1556,7 +1685,7 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     const gazeY = idleY + (height * (narrow ? 0.38 : 0.36) - idleY) * gazeMix;
     const scale = (Math.min(width, height) / 520) * (narrow ? 0.88 : 1) * (1 + gazeMix * 0.06);
     const facing = gazeMix > 0.25 ? 1 : going ? 1 : -1;
-    drawFigure(ctx, gazeX, gazeY, scale, live, attention, facing);
+    drawFigure(ctx, gazeX, gazeY, scale, live * (0.7 + sim.amp * 0.45), attention, facing);
   }
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(186, 206, 255, 0.95)", time);
 }
@@ -1866,6 +1995,35 @@ function openNotebook(
   ctx.restore();
 }
 
+function turningLeaf(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  flip: number,
+  color: string,
+) {
+  if (flip <= 0 || flip >= 1) return;
+  const fold = Math.cos(flip * Math.PI);
+  const reach = w * 0.46 * Math.abs(fold);
+  const side = fold >= 0 ? 1 : -1;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y - h * 0.48);
+  ctx.quadraticCurveTo(x + side * reach * 0.55, y - h * 0.66, x + side * reach, y - h * 0.02);
+  ctx.quadraticCurveTo(x + side * reach * 0.5, y + h * 0.58, x, y + h * 0.48);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(90, 60, 40, 0.3)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = "rgba(255, 248, 236, 0.28)";
+  ctx.fillRect(x + (side > 0 ? reach * 0.2 : -reach * 0.28), y - h * 0.18, Math.max(2, reach * 0.07), h * 0.36);
+  ctx.restore();
+}
+
 const DRIFT = ["listen", "page", "voice", "line", "safe", "word"];
 
 function libraryStill(ctx: CanvasRenderingContext2D, width: number, height: number, time: number, life: number) {
@@ -2148,7 +2306,9 @@ function drawEnglish(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const bookW = Math.min(width * 0.34, 320);
   const bookH = Math.min(height * 0.16, 120);
   openNotebook(ctx, width * 0.5, height * 0.7, bookW, bookH, sim.sentence, time, life);
-  const ink = (time * 0.16) % 1;
+  const papers = ["#f4efe6", "#fffaf2", "#f6e2c4"];
+  turningLeaf(ctx, width * 0.5, height * 0.7, bookW, bookH, sim.flip, papers[sim.flipFrom] ?? "#f4efe6");
+  const ink = sim.flip > 0 && sim.flip < 1 ? sim.flip : (time * 0.16) % 1;
   ctx.save();
   ctx.strokeStyle = "rgba(36, 48, 78, 0.28)";
   ctx.lineWidth = 1.1;
@@ -2588,7 +2748,8 @@ function drawInner(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.strokeStyle = `rgba(214, 242, 234, ${0.28 + life * 0.3})`;
   ctx.lineWidth = 1.2;
   ctx.setLineDash([7, 12]);
-  ctx.lineDashOffset = -((motion * 36) % 40);
+  const channel = sim.page === 2 ? 78 : sim.page === 1 ? 36 : 18;
+  ctx.lineDashOffset = -((motion * channel) % 40);
   ctx.beginPath();
   ctx.moveTo(width * 0.225, height);
   ctx.quadraticCurveTo(width * 0.265, height * 0.84, width * 0.32, floorY + 8);
@@ -2615,20 +2776,46 @@ function drawInner(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     ctx.fill();
   }
 
-  fountain(ctx, width * (narrow ? 0.2 : 0.18), height * 0.9, motion, life);
+  fountain(ctx, width * (narrow ? 0.2 : 0.18), height * 0.9, motion * (sim.page === 2 ? 1.65 : sim.page === 1 ? 1.15 : 0.85), life);
 
   const stones = sim.page === 2 ? 8 : 3 + Math.round(life * 3);
-  for (let index = 0; index < stones; index += 1) {
+  const stoneAt = (index: number) => {
     const t = index / Math.max(1, stones - 1);
-    const sx = width * (0.36 + t * 0.1);
-    const sy = height * (0.95 - t * 0.22);
+    return { x: width * (0.36 + t * 0.1), y: height * (0.95 - t * 0.22), t };
+  };
+  if (sim.page === 2) {
+    ctx.beginPath();
+    for (let index = 0; index < stones; index += 1) {
+      const at = stoneAt(index);
+      if (index === 0) ctx.moveTo(at.x, at.y);
+      else ctx.lineTo(at.x, at.y);
+    }
+    ctx.strokeStyle = `rgba(212, 184, 130, ${0.28 + life * 0.25})`;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 7]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for (let index = 0; index < stones; index += 1) {
+    const at = stoneAt(index);
     ctx.fillStyle = `rgba(232, 214, 186, ${(sim.page === 2 ? 0.55 : 0.28) + life * 0.25})`;
     ctx.beginPath();
-    ctx.ellipse(sx, sy, 11, 4.5, t * 0.4, 0, Math.PI * 2);
+    ctx.ellipse(at.x, at.y, 11, 4.5, at.t * 0.4, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "rgba(255, 236, 210, 0.22)";
     ctx.beginPath();
-    ctx.ellipse(sx - 2, sy - 1, 5, 1.8, 0, 0, Math.PI * 2);
+    ctx.ellipse(at.x - 2, at.y - 1, 5, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (sim.page === 2) {
+    const walk = (motion * 0.14) % 1;
+    const along = walk * (stones - 1);
+    const from = stoneAt(Math.floor(along));
+    const to = stoneAt(Math.min(stones - 1, Math.floor(along) + 1));
+    const local = along - Math.floor(along);
+    ctx.fillStyle = "rgba(255, 236, 210, 0.95)";
+    ctx.beginPath();
+    ctx.arc(from.x + (to.x - from.x) * local, from.y + (to.y - from.y) * local - 7, 3.1, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -2671,7 +2858,11 @@ function drawInner(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.lineWidth = 1;
   ctx.strokeRect(left + 9, top + 9, book.w - 18, book.h - 18);
   if (sim.page === 0 && book.h > 90) {
-    eightStar(ctx, book.x, top + 18, 7, `rgba(168, 112, 48, ${0.5 + Math.sin(motion) * 0.12})`);
+    ctx.save();
+    ctx.translate(book.x, top + 18);
+    ctx.rotate(motion * 0.35);
+    eightStar(ctx, 0, 0, 7, `rgba(168, 112, 48, ${0.5 + Math.sin(motion) * 0.12})`);
+    ctx.restore();
   }
   if (sim.page === 2) {
     ctx.strokeStyle = "rgba(92, 64, 40, 0.35)";
@@ -2707,6 +2898,13 @@ function drawInner(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const lines = pages[sim.page] ?? pages[0];
   lines.forEach((line, index) => ctx.fillText(line, book.x, book.y - 8 + index * 22));
   ctx.textAlign = "left";
+  if (sim.flip > 0 && sim.flip < 1) {
+    const edge = left + 8 + (book.w - 16) * sim.flip;
+    ctx.fillStyle = "rgba(90, 64, 40, 0.2)";
+    ctx.fillRect(edge, top + 6, 4, book.h - 12);
+    ctx.fillStyle = "rgba(255, 244, 220, 0.16)";
+    ctx.fillRect(edge + 4, top + 6, 8, book.h - 12);
+  }
 
   const lanterns = [book.x - book.w / 2 - 28, book.x + book.w / 2 + 28];
   for (let moth = 0; moth < 4; moth += 1) {

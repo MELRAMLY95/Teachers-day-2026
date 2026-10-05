@@ -100,11 +100,22 @@ export function TributeField({
   const simRef = useRef<WorldSim | null>(null);
   const layerRef = useRef<HTMLDivElement>(null);
   const [note, setNote] = useState("");
+  const noteRef = useRef("");
   const canvasRef = useStage((ctx, width, height, dt) => {
     const rt = (rtRef.current ??= createRuntime());
     const sim = (simRef.current ??= createSim());
     const motion = reducedMotion || rt.freeze ? dt * 0.04 : rt.focus ? dt * 0.42 : dt;
     stepSim(sim, motion, tone);
+    if ((tone === "english" || tone === "inner") && sim.flip > 0 && sim.flip < 1) {
+      sim.flip = reducedMotion ? 1 : Math.min(1, sim.flip + Math.min(0.05, dt) * 2.1);
+    }
+    if (tone === "chemistry" && sim.pour > 0) {
+      sim.pour = Math.max(0, sim.pour - Math.min(0.05, dt) * 1.25);
+    }
+    if (sim.note !== noteRef.current) {
+      noteRef.current = sim.note;
+      setNote(sim.note);
+    }
     rt.time += motion;
     rt.live += reducedMotion ? dt * 0.35 : dt;
     const life = memories.length ? rt.opened.size / memories.length : 0;
@@ -230,6 +241,7 @@ export function TributeField({
       if (!rt || !sim || rt.focus) return;
       const at = point(event);
       pointerDown(sim, tone, at.x, at.y, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+      noteRef.current = sim.note;
       setNote(sim.note);
     };
     const move = (event: PointerEvent) => {
@@ -239,12 +251,14 @@ export function TributeField({
       const at = point(event);
       const rect = canvas.getBoundingClientRect();
       pointerMove(sim, tone, at.x, at.y, rect.width, rect.height);
+      noteRef.current = sim.note;
       setNote(sim.note);
     };
     const up = () => {
       const sim = simRef.current;
       if (!sim) return;
       pointerUp(sim, tone);
+      noteRef.current = sim.note;
       setNote(sim.note);
     };
     canvas.addEventListener("pointerdown", down);

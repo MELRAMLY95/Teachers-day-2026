@@ -1,5 +1,5 @@
 import { addReagent, describeBeaker, emptyBeaker, tick, type Beaker } from "@/lib/chemistry/simulation";
-import { circularVelocity, orbitWord, STAR_GM, stepOrbit, type OrbitBody } from "@/lib/physics/orbit";
+import { circularVelocity, orbitWord, specificEnergy, STAR_GM, stepOrbit, type OrbitBody } from "@/lib/physics/orbit";
 import type { SceneTone } from "./scenes";
 
 export type WorldSim = {
@@ -15,6 +15,15 @@ export type WorldSim = {
   page: number;
   orbit: OrbitBody;
   note: string;
+  /** 1 just after a pour, then it fades. */
+  pour: number;
+  /** -1 copper sulfate, 1 hydroxide. */
+  pourSide: -1 | 0 | 1;
+  springTrace: number[];
+  orbitTrail: { x: number; y: number }[];
+  /** 0 settled, then rises through a page turn and rests at 1. */
+  flip: number;
+  flipFrom: number;
 };
 
 const SPRING_K = 26;
@@ -34,6 +43,12 @@ export function createSim(): WorldSim {
     page: 0,
     orbit: { x: radius, y: 0, vx: 0, vy: circularVelocity(STAR_GM, radius) },
     note: "",
+    pour: 0,
+    pourSide: 0,
+    springTrace: [],
+    orbitTrail: [],
+    flip: 0,
+    flipFrom: 0,
   };
 }
 
@@ -46,16 +61,68 @@ export function stepSim(sim: WorldSim, dt: number, tone: SceneTone) {
   if (tone === "chemistry") {
     const next = tick(sim.beaker, sim.heating, safe);
     sim.beaker = next.beaker;
+    if (sim.note.startsWith("The thermometer reads")) sim.note = describeBeaker(sim.beaker, sim.heating);
   }
   if (tone === "physics") {
     sim.orbit = stepOrbit(sim.orbit, STAR_GM, safe * 18);
+    sim.orbitTrail.push({ x: sim.orbit.x, y: sim.orbit.y });
+    if (sim.orbitTrail.length > 72) sim.orbitTrail.shift();
     if (!sim.holding) {
       const accel = (-SPRING_K * sim.spring) / sim.mass;
       sim.springV += accel * safe;
       sim.springV *= Math.exp(-0.35 * safe);
       sim.spring += sim.springV * safe * 46;
     }
+    sim.springTrace.push(sim.spring);
+    if (sim.springTrace.length > 140) sim.springTrace.shift();
+    if (isOrbitNote(sim.note)) sim.note = orbitWord(sim.orbit, STAR_GM);
   }
+}
+
+const ORBIT_NOTES = [
+  "It has fallen into the star.",
+  "It has left the system.",
+  "It is bound to the star.",
+  "It is escaping.",
+];
+
+function isOrbitNote(note: string) {
+  return ORBIT_NOTES.includes(note);
+}
+
+function nudgeOrbit(body: OrbitBody): OrbitBody {
+  const radius = Math.hypot(body.x, body.y);
+  if (radius < 50 || radius > 520) {
+    const next = 118;
+    return { x: next, y: 0, vx: 0, vy: circularVelocity(STAR_GM, next) };
+  }
+  const tx = -body.y / radius;
+  const ty = body.x / radius;
+  const tang = body.vx * tx + body.vy * ty;
+  const sign = tang >= 0 ? 1 : -1;
+  const circular = circularVelocity(STAR_GM, radius);
+  const nextSpeed = specificEnergy(body, STAR_GM) < 0 ? circular * 1.48 : circular * 0.58;
+  return { x: body.x, y: body.y, vx: tx * nextSpeed * sign, vy: ty * nextSpeed * sign };
+}
+
+export function orbitHit(x: number, y: number, width: number, height: number) {
+  const visual = 0.62;
+  const dx = (x - width * 0.7) / (118 * visual + 16);
+  const dy = (y - height * 0.22) / (52 * visual + 14);
+  return dx * dx + dy * dy <= 1;
+}
+
+export function planetPoint(orbit: OrbitBody, width: number, height: number) {
+  const visual = 0.62;
+  const starX = width * 0.7;
+  const starY = height * 0.22;
+  return {
+    x: starX + orbit.x * visual,
+    y: starY + orbit.y * visual * 0.45,
+    starX,
+    starY,
+    visual,
+  };
 }
 
 function inside(x: number, y: number, cx: number, cy: number, rx: number, ry: number) {
@@ -69,11 +136,15 @@ export function pointerDown(sim: WorldSim, tone: SceneTone, x: number, y: number
     const bottles = chemistryHits(width, height);
     if (inside(x, y, bottles.copper.x, bottles.copper.y, 28, 46)) {
       sim.beaker = tick(addReagent(sim.beaker, "cuso4", 12), sim.heating, 0.5).beaker;
+      sim.pour = 1;
+      sim.pourSide = -1;
       sim.note = describeBeaker(sim.beaker, sim.heating);
       return;
     }
     if (inside(x, y, bottles.hydroxide.x, bottles.hydroxide.y, 28, 46)) {
       sim.beaker = tick(addReagent(sim.beaker, "naoh", 12), sim.heating, 0.5).beaker;
+      sim.pour = 1;
+      sim.pourSide = 1;
       sim.note = describeBeaker(sim.beaker, sim.heating);
       return;
     }
@@ -85,6 +156,8 @@ export function pointerDown(sim: WorldSim, tone: SceneTone, x: number, y: number
     if (inside(x, y, bottles.rinse.x, bottles.rinse.y, 24, 24)) {
       sim.beaker = emptyBeaker();
       sim.heating = false;
+      sim.pour = 0;
+      sim.pourSide = 0;
       sim.note = "Rinsed. The beaker is back to a little water.";
     }
     return;
@@ -101,6 +174,12 @@ export function pointerDown(sim: WorldSim, tone: SceneTone, x: number, y: number
       sim.mass = sim.mass > 1.4 ? 1 : 2.4;
       const period = springPeriod(sim.mass);
       sim.note = `Mass ${sim.mass.toFixed(1)}. The period is about ${period.toFixed(2)} s.`;
+      return;
+    }
+    if (orbitHit(x, y, width, height)) {
+      sim.orbit = nudgeOrbit(sim.orbit);
+      sim.orbitTrail = [{ x: sim.orbit.x, y: sim.orbit.y }];
+      sim.note = orbitWord(sim.orbit, STAR_GM);
     }
     return;
   }
@@ -118,6 +197,10 @@ export function pointerDown(sim: WorldSim, tone: SceneTone, x: number, y: number
     const words = englishWords(width, height);
     const index = words.findIndex((word) => inside(x, y, word.x, word.y, 54, 22));
     if (index >= 0) {
+      if (index !== sim.sentence) {
+        sim.flipFrom = sim.sentence;
+        sim.flip = 0.04;
+      }
       sim.sentence = index;
       sim.note = ["You would ask why the English one doesn't look like that.", "That is one of the other notebooks.", "You get jealous about this one."][index] ?? "";
     }
@@ -125,7 +208,9 @@ export function pointerDown(sim: WorldSim, tone: SceneTone, x: number, y: number
   }
   const book = manuscript(width, height);
   if (inside(x, y, book.x, book.y, book.w / 2, book.h / 2)) {
+    sim.flipFrom = sim.page;
     sim.page = (sim.page + 1) % 3;
+    sim.flip = 0.04;
     sim.note = [
       "The pattern is the page. Turn it.",
       "Actions are only by intentions. A person gets only what they intended.",
