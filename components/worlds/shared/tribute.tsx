@@ -31,6 +31,8 @@ type Runtime = {
   zoom: number;
   panX: number;
   panY: number;
+  driftX: number;
+  driftY: number;
   freeze: boolean;
 };
 
@@ -45,6 +47,8 @@ function createRuntime(): Runtime {
     zoom: 1,
     panX: 0,
     panY: 0,
+    driftX: 0,
+    driftY: 0,
     freeze: false,
   };
 }
@@ -59,10 +63,20 @@ function placeOf(index: number, count: number, width: number, height: number) {
   };
 }
 
-function screenToWorld(x: number, y: number, width: number, height: number, zoom: number, panX: number, panY: number) {
+function screenToWorld(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  zoom: number,
+  panX: number,
+  panY: number,
+  driftX: number,
+  driftY: number,
+) {
   return {
-    x: (x - width / 2) / zoom + width / 2 + panX,
-    y: (y - height / 2) / zoom + height / 2 + panY,
+    x: (x - width / 2 - driftX) / zoom + width / 2 + panX,
+    y: (y - height / 2 - driftY) / zoom + height / 2 + panY,
   };
 }
 
@@ -89,7 +103,7 @@ export function TributeField({
   const canvasRef = useStage((ctx, width, height, dt) => {
     const rt = (rtRef.current ??= createRuntime());
     const sim = (simRef.current ??= createSim());
-    const motion = reducedMotion || rt.freeze ? dt * 0.04 : dt;
+    const motion = reducedMotion || rt.freeze ? dt * 0.04 : rt.focus ? dt * 0.42 : dt;
     stepSim(sim, motion, tone);
     rt.time += motion;
     rt.live += reducedMotion ? dt * 0.35 : dt;
@@ -106,14 +120,19 @@ export function TributeField({
     const panTargetY = focusSpot ? (focusSpot.y - height / 2) * 0.14 : 0;
     rt.panX += (panTargetX - rt.panX) * Math.min(1, dt * 1.4);
     rt.panY += (panTargetY - rt.panY) * Math.min(1, dt * 1.4);
+    const idle = focusSpot || rt.focus ? 0 : 1;
+    const driftX = Math.sin(rt.live * 0.16) * 7 * idle;
+    const driftY = Math.cos(rt.live * 0.13) * 4 * idle;
+    rt.driftX = driftX;
+    rt.driftY = driftY;
     if (layerRef.current) {
-      layerRef.current.style.transform = `translate(${-rt.zoom * rt.panX}px, ${-rt.zoom * rt.panY}px) scale(${rt.zoom})`;
+      layerRef.current.style.transform = `translate(${-rt.zoom * rt.panX + driftX}px, ${-rt.zoom * rt.panY + driftY}px) scale(${rt.zoom})`;
     }
 
     ctx.save();
     ctx.translate(width / 2, height / 2);
     ctx.scale(rt.zoom, rt.zoom);
-    ctx.translate(-width / 2 - rt.panX, -height / 2 - rt.panY);
+    ctx.translate(-width / 2 - rt.panX + driftX / rt.zoom, -height / 2 - rt.panY + driftY / rt.zoom);
     drawScene(ctx, tone, {
       time: rt.time,
       live: rt.live,
@@ -193,7 +212,17 @@ export function TributeField({
     const point = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
       const rt = rtRef.current ?? createRuntime();
-      return screenToWorld(event.clientX - rect.left, event.clientY - rect.top, rect.width, rect.height, rt.zoom, rt.panX, rt.panY);
+      return screenToWorld(
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+        rect.width,
+        rect.height,
+        rt.zoom,
+        rt.panX,
+        rt.panY,
+        rt.driftX,
+        rt.driftY,
+      );
     };
     const down = (event: PointerEvent) => {
       const rt = rtRef.current;
@@ -285,7 +314,11 @@ export function TributeField({
           </p>
         </>
       )}
-      {note && !focus && !vista ? <p className="world-note">{note}</p> : null}
+      {note && !focus && !vista ? (
+        <p className="world-note" key={note}>
+          {note}
+        </p>
+      ) : null}
       <div ref={layerRef} className={`garden-layer${focus || vista ? " is-quiet" : ""}`}>
         {memories.map((item, index) => {
           const at = placeOf(index, memories.length, size.w, size.h);

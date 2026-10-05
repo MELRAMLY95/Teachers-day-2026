@@ -20,6 +20,8 @@ type Runtime = {
   zoom: number;
   panX: number;
   panY: number;
+  driftX: number;
+  driftY: number;
   chaosUntil: number;
   beeps: number[];
   lastThump: number;
@@ -70,6 +72,8 @@ function createRuntime(): Runtime {
     zoom: 1,
     panX: 0,
     panY: 0,
+    driftX: 0,
+    driftY: 0,
     chaosUntil: 0,
     beeps: [],
     lastThump: 0,
@@ -265,6 +269,16 @@ function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: num
   ctx.beginPath();
   ctx.ellipse(cx + s * 0.18, cy + s * 0.16, s * 0.24, s * 0.32, 0.35, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = `rgba(74, 28, 32, ${0.28 + pulse * 0.22})`;
+  ctx.lineWidth = Math.max(0.8, s * 0.008);
+  for (let fiber = 0; fiber < 6; fiber += 1) {
+    const y = cy - s * 0.12 + fiber * s * 0.07;
+    const wave = Math.sin(time * 2.1 + fiber) * s * 0.012 * (1 + pulse);
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.26, y);
+    ctx.quadraticCurveTo(cx, y + wave, cx + s * 0.24, y + s * 0.015);
+    ctx.stroke();
+  }
   ctx.restore();
 
   drawTube(ctx, pipes.vena, s * 0.07, mix("#3c3a48", "#5a4a58", warmth * 0.35), "rgba(196, 186, 206, 0.32)");
@@ -728,8 +742,9 @@ export function LivingField({
       rt.fonts = readFonts();
       rt.fontsReady = true;
     }
-    const motion = reducedMotion ? 0 : dt;
-    rt.time += reducedMotion ? dt * 0.15 : dt;
+    const quiet = Boolean(rt.focus);
+    const motion = reducedMotion ? 0 : quiet ? dt * 0.42 : dt;
+    rt.time += reducedMotion ? dt * 0.15 : quiet ? dt * 0.42 : dt;
     rt.reduced = reducedMotion;
     const life = rt.opened.size / garden.length;
     const memoryFocus = rt.focus && rt.focus !== "letter" && rt.focus !== "dedication" ? rt.focus : null;
@@ -747,8 +762,13 @@ export function LivingField({
     const panTargetY = heartFocus ? height * 0.04 : gradeFocus || !focusSpot ? 0 : (focusSpot.y - height / 2) * 0.16;
     rt.panX += (panTargetX - rt.panX) * Math.min(1, dt * 1.4);
     rt.panY += (panTargetY - rt.panY) * Math.min(1, dt * 1.4);
+    const idle = focusSpot || rt.focus ? 0 : 1;
+    const driftX = Math.sin(rt.time * 0.15) * 6 * idle;
+    const driftY = Math.cos(rt.time * 0.12) * 4 * idle;
+    rt.driftX = driftX;
+    rt.driftY = driftY;
     if (layerRef.current) {
-      layerRef.current.style.transform = `translate(${-rt.zoom * rt.panX}px, ${-rt.zoom * rt.panY}px) scale(${rt.zoom})`;
+      layerRef.current.style.transform = `translate(${-rt.zoom * rt.panX + driftX}px, ${-rt.zoom * rt.panY + driftY}px) scale(${rt.zoom})`;
     }
 
     const fast = rt.time < rt.chaosUntil;
@@ -765,7 +785,7 @@ export function LivingField({
     ctx.save();
     ctx.translate(width / 2, height / 2);
     ctx.scale(rt.zoom, rt.zoom);
-    ctx.translate(-width / 2 - rt.panX, -height / 2 - rt.panY);
+    ctx.translate(-width / 2 - rt.panX + driftX / rt.zoom, -height / 2 - rt.panY + driftY / rt.zoom);
 
     const sky = ctx.createLinearGradient(0, 0, 0, height);
     sky.addColorStop(0, mix("#070b09", "#2a1816", rt.warmth * 0.5));
@@ -1034,8 +1054,10 @@ export function LivingField({
       const rt = rtRef.current;
       if (!rt || rt.focus) return;
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const sx = event.clientX - rect.left;
+      const sy = event.clientY - rect.top;
+      const x = (sx - rect.width / 2 - rt.driftX) / rt.zoom + rect.width / 2 + rt.panX;
+      const y = (sy - rect.height / 2 - rt.driftY) / rt.zoom + rect.height / 2 + rt.panY;
       const near = Math.hypot(x - rect.width * 0.5, y - rect.height * 0.44) < Math.min(rect.width, rect.height) * 0.2;
       if (!near) return;
       rt.flow = (rt.flow + 1) % 3;
@@ -1130,7 +1152,11 @@ export function LivingField({
           </p>
         </>
       )}
-      {flowNote && !focus && !vista ? <p className="world-note">{flowNote}</p> : null}
+      {flowNote && !focus && !vista ? (
+        <p className="world-note" key={flowNote}>
+          {flowNote}
+        </p>
+      ) : null}
       <div ref={layerRef} className={`garden-layer${focus || vista ? " is-quiet" : ""}`}>
         {garden.map((item) => {
           const at = placeOf(item.id, size.w, size.h);

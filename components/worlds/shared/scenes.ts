@@ -780,6 +780,30 @@ function drawChemistry(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     ctx.fill();
   }
   ctx.globalAlpha = 1;
+
+  const haze = sim.heating ? 5 : 3;
+  for (let index = 0; index < haze; index += 1) {
+    const phase = (time * 0.18 + index * 0.31) % 1;
+    const rise = benchFar - 18 - phase * (sim.heating ? 90 : 46);
+    const sway = Math.sin(time * 0.9 + index * 1.7) * 16;
+    ctx.globalAlpha = (1 - phase) * (sim.heating ? 0.28 : 0.12);
+    ctx.strokeStyle = "rgba(255, 236, 214, 0.85)";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.ellipse(bx + sway + (index - 1) * 22, rise, 10 + phase * 16, 4 + phase * 6, sway * 0.01, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (tone === "gel" || tone === "oxide") {
+    const react = ctx.createRadialGradient(bx, (top + bottom) / 2, 8, bx, bottom, halfTop * 2.4);
+    react.addColorStop(0, tone === "oxide" ? "rgba(80, 40, 28, 0.16)" : "rgba(170, 214, 226, 0.16)");
+    react.addColorStop(1, "rgba(255, 196, 120, 0)");
+    ctx.globalAlpha = 0.7 + Math.sin(time * 2.2) * 0.2;
+    ctx.fillStyle = react;
+    ctx.beginPath();
+    ctx.ellipse(bx, bottom - 10, halfTop * 1.6, 28, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
   ctx.restore();
 
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(232, 186, 120, 0.95)", time);
@@ -935,6 +959,26 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.fillStyle = "#d5e4ff";
   ctx.beginPath();
   ctx.arc(planetX, planetY, 4.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.save();
+  ctx.translate(planetX, planetY);
+  ctx.rotate(time * 0.7);
+  ctx.strokeStyle = `rgba(186, 214, 255, ${0.28 + life * 0.28})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 15, 4.6, 0.4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+  const ray = (time * 0.12) % 1;
+  ctx.strokeStyle = `rgba(255, 228, 186, ${0.08 + life * 0.1})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(starX, starY);
+  ctx.lineTo(starX - 40 - ray * 90, starY - 18 - Math.sin(time * 0.5) * 16);
+  ctx.stroke();
+  ctx.fillStyle = `rgba(255, 244, 220, ${0.35 + life * 0.3})`;
+  ctx.beginPath();
+  ctx.arc(starX - 40 - ray * 90, starY - 18 - Math.sin(time * 0.5) * 16, 1.6, 0, Math.PI * 2);
   ctx.fill();
 
   const pivotX = width * 0.3;
@@ -1352,6 +1396,27 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   roundRect(ctx, boardX, boardY, boardW, boardH, 18);
   ctx.clip();
   ctx.globalAlpha = quiet;
+  if (width >= 760) {
+    ctx.strokeStyle = `rgba(186, 206, 255, ${(0.1 + life * 0.08) * quiet})`;
+    ctx.lineWidth = 1;
+    const tile = 26;
+    for (let row = 0; row < 2; row += 1) {
+      for (let col = 0; col < 3; col += 1) {
+        const ox = boardX + boardW - 28 - col * tile + (row % 2) * tile * 0.5;
+        const oy = boardY + 20 + row * tile * 0.86;
+        ctx.beginPath();
+        for (let side = 0; side < 6; side += 1) {
+          const angle = (side / 6) * Math.PI * 2 + Math.PI / 6;
+          const px = ox + Math.cos(angle) * 8;
+          const py = oy + Math.sin(angle) * 8;
+          if (side === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  }
   const gap = 42;
   const drift = (time * 10) % gap;
   ctx.strokeStyle = `rgba(170, 196, 255, ${0.06 + life * 0.06})`;
@@ -2072,6 +2137,19 @@ function drawEnglish(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   const bookW = Math.min(width * 0.34, 320);
   const bookH = Math.min(height * 0.16, 120);
   openNotebook(ctx, width * 0.5, height * 0.7, bookW, bookH, sim.sentence, time, life);
+  const ink = (time * 0.16) % 1;
+  ctx.save();
+  ctx.strokeStyle = "rgba(36, 48, 78, 0.28)";
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  ctx.moveTo(width * 0.5 - bookW * 0.34, height * 0.7 - bookH * 0.08);
+  ctx.lineTo(width * 0.5 - bookW * 0.34 + bookW * 0.26 * ink, height * 0.7 - bookH * 0.08);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(28, 40, 68, 0.72)";
+  ctx.beginPath();
+  ctx.arc(width * 0.5 - bookW * 0.34 + bookW * 0.26 * ink, height * 0.7 - bookH * 0.08, 1.7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   for (let index = 0; index < 8 + Math.round(life * 8); index += 1) {
     const fall = (time * (16 + hash(index) * 18) + hash(index + 2) * height) % (height * 0.85);
@@ -2268,6 +2346,28 @@ function drawInner(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
     ctx.arc(hash(index + 2) * width, hash(index + 9) * height * 0.28, hash(index) > 0.8 ? 1.5 : 0.8, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.globalAlpha = 1;
+  ctx.save();
+  for (let index = 0; index < 4; index += 1) {
+    const ax = width * (0.12 + hash(index + 21) * 0.7);
+    const ay = height * (0.04 + hash(index + 33) * 0.16);
+    const bx = width * (0.18 + hash(index + 45) * 0.64);
+    const by = height * (0.05 + hash(index + 57) * 0.14);
+    const pulse = 0.35 + Math.sin(time * 0.55 + index * 1.3) * 0.25;
+    ctx.globalAlpha = pulse * (0.18 + life * 0.22);
+    ctx.strokeStyle = "rgba(214, 196, 168, 0.9)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.quadraticCurveTo((ax + bx) / 2, Math.min(ay, by) - 10, bx, by);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(244, 232, 206, 0.8)";
+    ctx.beginPath();
+    ctx.arc(ax, ay, 1.3, 0, Math.PI * 2);
+    ctx.arc(bx, by, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
   ctx.globalAlpha = 1;
   const moonX = width * 0.8;
   const moonY = height * 0.09;
