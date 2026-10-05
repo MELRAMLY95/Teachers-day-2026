@@ -811,7 +811,7 @@ function drawChemistry(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
 
 function projectCube(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, time: number, alpha: number) {
   ctx.save();
-  const yaw = time * 0.35;
+  const yaw = time * 0.9;
   const pitch = 0.45 + Math.sin(time * 0.22) * 0.08;
   const corners = [-1, 1].flatMap((x) => [-1, 1].flatMap((y) => [-1, 1].map((z) => ({ x, y, z }))));
   const projected = corners.map((corner) => {
@@ -1105,70 +1105,32 @@ function drawPhysics(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(220, 206, 170, 0.95)", time);
 }
 
-function drawBranch(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, level: number, depth: number, time: number) {
-  if (level > depth || radius < 7) return;
-  ctx.strokeStyle = `rgba(228, 206, 160, ${0.2 + level * 0.12})`;
-  ctx.lineWidth = 1.2;
+function fillLimb(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  width: number,
+  color: string,
+) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = (-dy / len) * width * 0.5;
+  const ny = (dx / len) * width * 0.5;
+  ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(x, y, radius * (1 + Math.sin(time * 0.8 + level) * 0.035), time * 0.15, time * 0.15 + Math.PI * 1.65);
-  ctx.stroke();
-  drawBranch(ctx, x - radius * 0.58, y - radius * 0.12, radius * 0.52, level + 1, depth, time);
-  drawBranch(ctx, x + radius * 0.58, y + radius * 0.1, radius * 0.52, level + 1, depth, time);
-}
-
-function drawSpiral(ctx: CanvasRenderingContext2D, x: number, y: number, time: number, life: number) {
-  ctx.beginPath();
-  const turns = 2.4 + life * 1.6;
-  const reach = 48 + life * 28;
-  for (let step = 0; step <= 90; step += 1) {
-    const t = step / 90;
-    const angle = t * turns * Math.PI * 2 + time * 0.22;
-    const radius = t * reach;
-    const px = x + Math.cos(angle) * radius;
-    const py = y + Math.sin(angle) * radius * 0.72;
-    if (step === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
-  ctx.strokeStyle = `rgba(244, 214, 160, ${0.35 + life * 0.4})`;
-  ctx.lineWidth = 1.4;
-  ctx.stroke();
-}
-
-function drawCompass(ctx: CanvasRenderingContext2D, x: number, y: number, time: number, alpha: number) {
-  const open = 0.45 + Math.sin(time * 0.9) * 0.38;
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.strokeStyle = `rgba(216, 170, 96, ${alpha})`;
-  ctx.lineWidth = 1.7;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(Math.sin(-0.35) * 34, Math.cos(-0.35) * 34);
-  ctx.moveTo(0, 0);
-  ctx.lineTo(Math.sin(open) * 34, Math.cos(open) * 34);
-  ctx.stroke();
-  ctx.fillStyle = `rgba(244, 220, 170, ${alpha})`;
-  ctx.beginPath();
-  ctx.arc(0, 0, 3.2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawTwinkle(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number) {
-  ctx.beginPath();
-  ctx.moveTo(x, y - radius);
-  ctx.lineTo(x + radius * 0.28, y - radius * 0.28);
-  ctx.lineTo(x + radius, y);
-  ctx.lineTo(x + radius * 0.28, y + radius * 0.28);
-  ctx.lineTo(x, y + radius);
-  ctx.lineTo(x - radius * 0.28, y + radius * 0.28);
-  ctx.lineTo(x - radius, y);
-  ctx.lineTo(x - radius * 0.28, y - radius * 0.28);
+  ctx.moveTo(x1 + nx, y1 + ny);
+  ctx.lineTo(x2 + nx, y2 + ny);
+  ctx.lineTo(x2 - nx, y2 - ny);
+  ctx.lineTo(x1 - nx, y1 - ny);
   ctx.closePath();
   ctx.fill();
 }
 
-/** A cartoon who walks, blinks, waves, and gives a fond wide-eyed look. */
-function drawChibi(
+/** A person in the room: ordinary proportions, a walk, and a held look. */
+function drawFigure(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -1177,159 +1139,192 @@ function drawChibi(
   attention: number,
   facing: number,
 ) {
-  const blinkWindow = live % 2.6;
-  const blink = blinkWindow > 2.35 ? Math.sin(((blinkWindow - 2.35) / 0.25) * Math.PI) : 0;
-  const open = Math.max(0.1, 1 - blink);
-  const hop = Math.abs(Math.sin(live * (attention > 0.5 ? 8 : 6)));
-  const walk = attention > 0.4 ? 0 : Math.sin(live * 8);
-  const pupilX = (1 - attention) * 2.4 + attention * Math.sin(live * 1.6) * 1.8;
-  const pupilY = Math.sin(live * 0.9) * 0.8;
-  const wave = attention > 0.45 ? Math.sin(live * 8) * 8 : 0;
+  const held = attention > 0.35;
+  const stride = held ? 0 : Math.sin(live * 2.4);
+  const bob = held ? Math.sin(live * 1.4) * 0.6 : Math.abs(stride) * 1.6;
+  const sway = held ? attention * 0.04 : stride * 0.045;
+  const hairLag = held ? 0 : Math.sin(live * 2.4 - 0.45) * 2.2;
+  const blinkWindow = live % (held ? 5.2 : 3.6);
+  const blinkStart = held ? 4.85 : 3.25;
+  const blink = blinkWindow > blinkStart ? Math.sin(((blinkWindow - blinkStart) / 0.28) * Math.PI) : 0;
+  const eyeOpen = Math.max(0.2, (1 - blink) * (1 + attention * 0.45));
+  const look = held ? 0 : stride * 0.45;
+  const shoulder = -102;
+  const hem = -34;
+  const headY = -128;
 
   ctx.save();
-  ctx.translate(x, y + (1 - hop) * 4);
-  ctx.rotate(walk * 0.05 + attention * Math.sin(live * 1.5) * 0.06);
-  ctx.scale(scale * (facing < 0 ? -1 : 1) * (1 + hop * 0.04), scale * (1 - hop * 0.05));
+  ctx.translate(x, y - bob);
+  ctx.rotate(sway);
+  ctx.scale(scale * (facing < 0 ? -1 : 1), scale);
 
-  ctx.fillStyle = "rgba(10, 12, 28, 0.28)";
+  ctx.fillStyle = "rgba(6, 8, 18, 0.38)";
   ctx.beginPath();
-  ctx.ellipse(0, 64 - hop * 3, 26, 6, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 5, 26 - Math.abs(stride) * 4, 5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.strokeStyle = "#2c2444";
-  ctx.lineWidth = 5;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(-8, 36);
-  ctx.lineTo(-8 - walk * 8, 56);
-  ctx.moveTo(8, 36);
-  ctx.lineTo(8 + walk * 8, 56);
-  ctx.stroke();
-  ctx.fillStyle = "#f2c14e";
-  ctx.strokeStyle = "#2c2444";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.ellipse(-8 - walk * 8, 58, 8, 3.6, 0, 0, Math.PI * 2);
-  ctx.ellipse(8 + walk * 8, 58, 8, 3.6, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+  const leg = (side: number) => {
+    const step = stride * side;
+    const kneeX = side * 7 + step * 6;
+    const kneeY = -18 - Math.abs(step) * 4;
+    const footX = side * 8 + step * 18;
+    const footY = -Math.abs(step) * 4;
+    fillLimb(ctx, side * 6, hem + 2, kneeX, kneeY, 8, "#232838");
+    fillLimb(ctx, kneeX, kneeY, footX, footY, 6.5, "#1a1f2e");
+    ctx.fillStyle = "#c6a56e";
+    roundRect(ctx, footX - 5, footY - 2, 12, 5, 2);
+    ctx.fill();
+  };
+  leg(-1);
+  leg(1);
 
-  ctx.strokeStyle = "#ffd0b0";
-  ctx.lineWidth = 5;
-  ctx.lineCap = "round";
+  const cloth = ctx.createLinearGradient(-22, shoulder, 18, hem);
+  cloth.addColorStop(0, "#3c527c");
+  cloth.addColorStop(0.45, "#2a3c64");
+  cloth.addColorStop(1, "#1a2744");
+  ctx.fillStyle = cloth;
   ctx.beginPath();
-  ctx.moveTo(-16, 16);
-  ctx.quadraticCurveTo(-26, 28, -22 - walk * 8, 36);
-  ctx.moveTo(16, 14);
-  ctx.quadraticCurveTo(30, 4 - attention * 18, 26 + wave, -2 - attention * 22);
-  ctx.stroke();
-
-  ctx.fillStyle = "#4457a0";
-  ctx.strokeStyle = "#241c38";
-  ctx.lineWidth = 2.5;
-  roundRect(ctx, -18, 6, 36, 34, 14);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "#f6efe4";
-  ctx.beginPath();
-  ctx.moveTo(-7, 8);
-  ctx.lineTo(0, 20);
-  ctx.lineTo(7, 8);
+  ctx.moveTo(-17, shoulder + 8);
+  ctx.quadraticCurveTo(-20, -78, -16, -58);
+  ctx.quadraticCurveTo(-18, -46, -15, hem);
+  ctx.lineTo(15, hem);
+  ctx.quadraticCurveTo(18, -46, 16, -58);
+  ctx.quadraticCurveTo(20, -78, 17, shoulder + 8);
+  ctx.quadraticCurveTo(0, shoulder - 4, -17, shoulder + 8);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#f2c14e";
+  ctx.fillStyle = "rgba(232, 214, 176, 0.35)";
+  ctx.fillRect(-8, shoulder + 10, 16, 3);
+
+  const swing = held ? 0 : -stride;
+  const drawArm = (side: number, elbowX: number, elbowY: number, handX: number, handY: number) => {
+    ctx.fillStyle = "#2a3c64";
+    ctx.beginPath();
+    ctx.arc(side * 16, shoulder + 10, 6.2, 0, Math.PI * 2);
+    ctx.fill();
+    fillLimb(ctx, side * 15, shoulder + 10, elbowX, elbowY, 6.2, "#e0bea4");
+    fillLimb(ctx, elbowX, elbowY, handX, handY, 5, "#ebcbb2");
+    ctx.fillStyle = "#efd0b8";
+    ctx.beginPath();
+    ctx.ellipse(handX, handY, 3.6, 3.1, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  if (held) {
+    drawArm(-1, -24, -78, -20, hem + 4);
+    drawArm(1, 28, -72, 14, hem + 6);
+  } else {
+    drawArm(-1, -18 - swing * 7, -70, -16 - swing * 14, hem + 2);
+    drawArm(1, 18 + swing * 7, -70, 16 + swing * 14, hem + 2);
+  }
+
+  ctx.fillStyle = "#e7c4aa";
   ctx.beginPath();
-  ctx.arc(0, 24, 1.8, 0, Math.PI * 2);
-  ctx.arc(0, 30, 1.8, 0, Math.PI * 2);
+  ctx.moveTo(-4, shoulder + 6);
+  ctx.quadraticCurveTo(-3, headY + 20, -3.2, headY + 16);
+  ctx.lineTo(3.2, headY + 16);
+  ctx.quadraticCurveTo(3, headY + 20, 4, shoulder + 6);
+  ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#3a2c2a";
+  ctx.save();
+  ctx.translate(hairLag, 0);
+  ctx.fillStyle = "#2a211c";
   ctx.beginPath();
-  ctx.arc(0, -18, 32, 0, Math.PI * 2);
+  ctx.moveTo(-12, headY - 4);
+  ctx.bezierCurveTo(-18, headY + 16, -16, headY + 36, -11, shoulder + 8);
+  ctx.bezierCurveTo(-7, headY + 30, -8, headY + 12, -7, headY);
   ctx.fill();
-  ctx.fillStyle = "#ffd8be";
-  ctx.strokeStyle = "#2a211c";
-  ctx.lineWidth = 2.6;
   ctx.beginPath();
-  ctx.arc(0, -12, 26, 0, Math.PI * 2);
+  ctx.moveTo(12, headY - 4);
+  ctx.bezierCurveTo(17, headY + 14, 15, headY + 32, 10, shoulder + 2);
+  ctx.bezierCurveTo(6, headY + 26, 8, headY + 10, 7, headY);
   ctx.fill();
+  ctx.restore();
+
+  const skin = ctx.createRadialGradient(-4, headY - 6, 4, 0, headY + 2, 18);
+  skin.addColorStop(0, "#f0d0b8");
+  skin.addColorStop(1, "#e0b494");
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  ctx.ellipse(0, headY + 2, 12.2, 14.6, held ? -0.05 : sway * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#e7b89a";
+  ctx.beginPath();
+  ctx.ellipse(-12.4, headY + 3, 2.4, 3.4, 0.2, 0, Math.PI * 2);
+  ctx.ellipse(12.4, headY + 3, 2.4, 3.4, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(hairLag * 0.35, 0);
+  ctx.fillStyle = "#241c18";
+  ctx.beginPath();
+  ctx.ellipse(0, headY - 6, 13, 11, 0, Math.PI, 0);
+  ctx.quadraticCurveTo(8, headY - 2, 4, headY + 1);
+  ctx.quadraticCurveTo(0, headY - 4, -4, headY + 1);
+  ctx.quadraticCurveTo(-8, headY - 2, -13, headY - 6);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(90, 70, 58, 0.45)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(0, headY - 16);
+  ctx.quadraticCurveTo(1.5, headY - 6, 0, headY - 1);
   ctx.stroke();
+  ctx.restore();
 
-  ctx.fillStyle = "#3a2c2a";
-  ctx.beginPath();
-  ctx.ellipse(-22, -8, 6, 14, 0.4, 0, Math.PI * 2);
-  ctx.ellipse(22, -8, 6, 14, -0.4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(0, -20, 24, Math.PI * 1.12, Math.PI * 1.88);
-  ctx.quadraticCurveTo(0, -16, -22, -22);
-  ctx.fill();
-  ctx.fillStyle = "#f2c14e";
-  ctx.beginPath();
-  ctx.arc(16, -30, 3.2, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(255, 122, 138, 0.7)";
-  ctx.beginPath();
-  ctx.ellipse(-13, -6, 5, 2.8, -0.2, 0, Math.PI * 2);
-  ctx.ellipse(13, -6, 5, 2.8, 0.2, 0, Math.PI * 2);
-  ctx.fill();
-
-  const eyeWide = open * (1 + attention * 0.42);
-  const drawEye = (ex: number) => {
+  const eye = (ex: number, brow: number) => {
     ctx.save();
-    ctx.translate(ex, -18);
-    ctx.scale(1, Math.max(0.12, eyeWide));
-    ctx.fillStyle = "#fffdf8";
-    ctx.strokeStyle = "#2a211c";
-    ctx.lineWidth = 2.2;
+    ctx.translate(ex, headY - 1);
     ctx.beginPath();
-    ctx.ellipse(0, 0, 10.5, 12.5, 0, 0, Math.PI * 2);
+    ctx.moveTo(-4.1, 0);
+    ctx.quadraticCurveTo(0, -2.5 * eyeOpen, 4.1, 0);
+    ctx.quadraticCurveTo(0, 1.7 * eyeOpen, -4.1, 0);
+    ctx.closePath();
+    ctx.fillStyle = "#f7f2eb";
     ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = attention > 0.45 ? "#6a4db8" : "#3f6fba";
+    ctx.clip();
+    ctx.fillStyle = "#3d536c";
     ctx.beginPath();
-    ctx.arc(pupilX, pupilY + 1.5, 6.4, 0, Math.PI * 2);
+    ctx.arc(look, 0.3, 1.85, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#24182e";
+    ctx.fillStyle = "#16141c";
     ctx.beginPath();
-    ctx.arc(pupilX, pupilY + 2, 3.2, 0, Math.PI * 2);
+    ctx.arc(look, 0.4, 0.9, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.beginPath();
-    ctx.arc(pupilX - 2.4, pupilY - 1.2, 2.2, 0, Math.PI * 2);
-    ctx.arc(pupilX + 1.8, pupilY + 2.4, 1, 0, Math.PI * 2);
+    ctx.arc(look - 0.55, -0.35, 0.4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    ctx.strokeStyle = "#3a2e28";
+    ctx.lineWidth = 1.2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(ex - 4.2, headY - 6.2 - brow);
+    ctx.quadraticCurveTo(ex, headY - 7.6 - brow, ex + 4.4, headY - 5.8 - brow * 0.2);
+    ctx.stroke();
   };
-  drawEye(-10);
-  drawEye(10);
+  eye(-5, attention * 3.1);
+  eye(5, attention * 0.35);
 
-  ctx.strokeStyle = "#3a2c2a";
-  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = "rgba(176, 120, 100, 0.7)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0.2, headY + 2.4);
+  ctx.quadraticCurveTo(1.1, headY + 5.2, 0.2, headY + 6.1);
+  ctx.stroke();
+
+  ctx.strokeStyle = held ? "#9a5c52" : "#b47868";
+  ctx.lineWidth = 1.25;
   ctx.lineCap = "round";
-  const lift = 2 + attention * 6;
   ctx.beginPath();
-  ctx.moveTo(-18, -32);
-  ctx.quadraticCurveTo(-10, -34 - lift, -4, -31);
-  ctx.moveTo(18, -32);
-  ctx.quadraticCurveTo(10, -35 - lift * 0.55, 4, -30);
-  ctx.stroke();
-
-  ctx.strokeStyle = "#d15b6e";
-  ctx.lineWidth = 2.3;
-  ctx.beginPath();
-  ctx.moveTo(-8, -2);
-  ctx.quadraticCurveTo(0, 3 + attention * 5, 9, -2);
-  ctx.stroke();
-
-  if (attention > 0.35) {
-    ctx.fillStyle = `rgba(255, 228, 150, ${0.45 + attention * 0.45})`;
-    for (let index = 0; index < 4; index += 1) {
-      const angle = live * 2.2 + index * 1.6;
-      drawTwinkle(ctx, Math.cos(angle) * (40 + index * 4), -16 + Math.sin(angle) * 22, 4 + (index % 2));
-    }
+  if (held) {
+    ctx.moveTo(-2.8, headY + 9.2);
+    ctx.quadraticCurveTo(0.2, headY + 8.7, 2.6, headY + 7.6);
+  } else {
+    ctx.moveTo(-2.6, headY + 9);
+    ctx.quadraticCurveTo(0, headY + 10.4, 2.6, headY + 9);
   }
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -1337,165 +1332,184 @@ let gazeMix = 0;
 let gazeSeen = 0;
 
 function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
-  sky(ctx, frame, "#10142c", "#1c1844", "#2a1838", "#f0c56e");
+  sky(ctx, frame, "#10131f", "#16182c", "#12101c", "#e4c48a");
   const { width, height, life, warmth, time, live, sim } = frame;
   const step = Math.min(0.05, Math.max(0, live - gazeSeen));
   gazeSeen = live;
   gazeMix += ((frame.freeze ? 1 : 0) - gazeMix) * Math.min(1, step * 2.2);
-  const quiet = 1 - gazeMix * 0.28;
+  const quiet = 1 - gazeMix * 0.35;
+  const narrow = width < 760;
+  const phase = time * 0.8;
 
-  const lamp = ctx.createRadialGradient(width * 0.5, height * 0.36, 10, width * 0.5, height * 0.4, 320 + life * 50);
-  lamp.addColorStop(0, `rgba(150, 176, 255, ${0.1 + warmth * 0.16 + life * 0.1})`);
-  lamp.addColorStop(0.5, `rgba(242, 193, 78, ${0.05 + life * 0.06})`);
-  lamp.addColorStop(1, "rgba(242, 193, 78, 0)");
+  const lamp = ctx.createRadialGradient(width * 0.5, height * 0.34, 10, width * 0.5, height * 0.42, Math.max(width, height) * 0.48);
+  lamp.addColorStop(0, `rgba(150, 170, 230, ${(0.07 + warmth * 0.08 + life * 0.05) * quiet})`);
+  lamp.addColorStop(1, "rgba(150, 170, 230, 0)");
   ctx.fillStyle = lamp;
   ctx.fillRect(0, 0, width, height);
 
+  const horizon = height * 0.58;
+  const vanishX = width * 0.5;
+  const vanishY = height * 0.46;
   ctx.save();
-  ctx.translate(width * 0.5, height * 0.4);
-  ctx.rotate(time * 0.04);
-  ctx.strokeStyle = `rgba(242, 193, 78, ${0.08 + life * 0.1})`;
-  ctx.lineWidth = 1.2;
-  for (let index = 0; index < 10; index += 1) {
-    ctx.rotate(Math.PI / 5);
+  ctx.beginPath();
+  ctx.rect(0, horizon - 10, width, height - horizon + 20);
+  ctx.clip();
+  ctx.strokeStyle = `rgba(176, 196, 230, ${(0.13 + life * 0.08) * quiet})`;
+  ctx.lineWidth = 1;
+  for (let index = -7; index <= 7; index += 1) {
     ctx.beginPath();
-    ctx.arc(90 + life * 16, 0, 64 + life * 12, 0, Math.PI * 2);
+    ctx.moveTo(vanishX + index * 18, vanishY);
+    ctx.lineTo(vanishX + index * width * 0.16, height + 20);
+    ctx.stroke();
+  }
+  for (let row = 1; row <= 7; row += 1) {
+    const t = row / 7;
+    const y = vanishY + (height - vanishY) * t * t;
+    const half = (y - vanishY) * 1.8;
+    ctx.beginPath();
+    ctx.moveTo(vanishX - half, y);
+    ctx.lineTo(vanishX + half, y);
     ctx.stroke();
   }
   ctx.restore();
 
-  for (let index = 0; index < 10 + Math.round(life * 8); index += 1) {
-    const px = (hash(index + 3) * width + time * (14 + index * 2)) % width;
-    const py = hash(index + 8) * height * 0.78;
-    ctx.save();
-    ctx.translate(px, py);
-    ctx.rotate(time * 0.5 + index);
-    ctx.strokeStyle = index % 2 === 0 ? "rgba(242, 193, 78, 0.55)" : "rgba(156, 190, 255, 0.55)";
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.lineTo(7, 6);
-    ctx.lineTo(-7, 6);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  const boardX = width * 0.14;
-  const boardY = height * 0.16;
-  const boardW = width * 0.72;
-  const boardH = height * 0.6;
-  ctx.fillStyle = "rgba(16, 20, 48, 0.78)";
-  roundRect(ctx, boardX, boardY, boardW, boardH, 18);
-  ctx.fill();
-  ctx.strokeStyle = `rgba(242, 193, 78, ${0.35 + life * 0.4})`;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
+  const circleX = width * (narrow ? 0.22 : 0.18);
+  const circleY = height * (narrow ? 0.2 : 0.22);
+  const radius = Math.min(narrow ? 46 : 78, Math.min(width, height) * (narrow ? 0.075 : 0.09));
+  const angle = phase;
+  const pointX = circleX + Math.cos(angle) * radius;
+  const pointY = circleY - Math.sin(angle) * radius;
   ctx.save();
-  roundRect(ctx, boardX, boardY, boardW, boardH, 18);
-  ctx.clip();
   ctx.globalAlpha = quiet;
-  if (width >= 760) {
-    ctx.strokeStyle = `rgba(186, 206, 255, ${(0.1 + life * 0.08) * quiet})`;
-    ctx.lineWidth = 1;
-    const tile = 26;
-    for (let row = 0; row < 2; row += 1) {
-      for (let col = 0; col < 3; col += 1) {
-        const ox = boardX + boardW - 28 - col * tile + (row % 2) * tile * 0.5;
-        const oy = boardY + 20 + row * tile * 0.86;
-        ctx.beginPath();
-        for (let side = 0; side < 6; side += 1) {
-          const angle = (side / 6) * Math.PI * 2 + Math.PI / 6;
-          const px = ox + Math.cos(angle) * 8;
-          const py = oy + Math.sin(angle) * 8;
-          if (side === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      }
-    }
-  }
-  const gap = 42;
-  const drift = (time * 10) % gap;
-  ctx.strokeStyle = `rgba(170, 196, 255, ${0.06 + life * 0.06})`;
+  ctx.strokeStyle = "rgba(214, 206, 186, 0.35)";
   ctx.lineWidth = 1;
-  for (let x = boardX - gap + drift; x < boardX + boardW; x += gap) {
-    ctx.beginPath();
-    ctx.moveTo(x, boardY);
-    ctx.lineTo(x, boardY + boardH);
-    ctx.stroke();
-  }
-  for (let y = boardY; y < boardY + boardH; y += gap) {
-    ctx.beginPath();
-    ctx.moveTo(boardX, y);
-    ctx.lineTo(boardX + boardW, y);
-    ctx.stroke();
-  }
-
-  drawSpiral(ctx, width * 0.28, height * 0.32, time, life);
-  const depth = 2 + Math.floor((time * 0.15) % 4);
-  drawBranch(ctx, width * 0.34, height * 0.28, 34 + life * 12, 0, depth, time);
-  projectCube(ctx, width * 0.56, height * 0.34, 58 + life * 16, time, (0.7 + life * 0.25) * quiet);
-
-  ctx.save();
-  ctx.translate(width * 0.56, height * 0.34);
-  ctx.rotate(time * 0.2);
-  ctx.strokeStyle = `rgba(244, 220, 180, ${(0.25 + life * 0.3) * quiet})`;
-  ctx.lineWidth = 1.2;
   ctx.beginPath();
-  for (let index = 0; index <= 5; index += 1) {
-    const angle = (index / 5) * Math.PI * 2;
-    const radius = 70 + life * 16 + Math.sin(time * 1.3 + index) * 4;
-    const px = Math.cos(angle) * radius;
-    const py = Math.sin(angle) * radius * 0.62;
+  ctx.moveTo(circleX - radius - 16, circleY);
+  ctx.lineTo(circleX + radius + 18, circleY);
+  ctx.moveTo(circleX, circleY - radius - 14);
+  ctx.lineTo(circleX, circleY + radius + 14);
+  ctx.stroke();
+  ctx.strokeStyle = `rgba(232, 214, 170, ${0.55 + life * 0.25})`;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(circleX, circleY, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  const petals = Math.max(1, Math.round(sim.freq));
+  ctx.strokeStyle = `rgba(150, 176, 230, ${0.28 + life * 0.2})`;
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  for (let index = 0; index <= 180; index += 1) {
+    const theta = (index / 180) * Math.PI * 2;
+    const rose = Math.cos(petals * theta) * radius * 0.72;
+    const px = circleX + Math.cos(theta + time * 0.15) * rose;
+    const py = circleY + Math.sin(theta + time * 0.15) * rose;
     if (index === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }
-  ctx.closePath();
   ctx.stroke();
-  ctx.restore();
-
-  for (let index = 0; index < 3 + Math.round(life * 3); index += 1) {
-    const angle = time * (0.3 + index * 0.05) + index;
-    const radius = 50 + index * 16;
-    ctx.fillStyle = `rgba(244, 214, 160, ${0.35 + life * 0.3})`;
+  ctx.strokeStyle = "rgba(242, 214, 150, 0.9)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(circleX, circleY);
+  ctx.lineTo(pointX, pointY);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(186, 206, 245, 0.55)";
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(pointX, pointY);
+  ctx.lineTo(circleX, pointY);
+  ctx.lineTo(circleX, circleY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#f4e6c8";
+  ctx.beginPath();
+  ctx.arc(pointX, pointY, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  if (!narrow) {
+    const originX = circleX + radius + 28;
+    const waveW = Math.min(120, width * 0.1);
+    const amp = radius * 0.34 * sim.amp;
+    ctx.strokeStyle = "rgba(214, 206, 186, 0.35)";
     ctx.beginPath();
-    ctx.arc(width * 0.56 + Math.cos(angle) * radius, height * 0.34 + Math.sin(angle) * radius * 0.4, 2.2, 0, Math.PI * 2);
+    ctx.moveTo(originX, circleY);
+    ctx.lineTo(originX + waveW, circleY);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 226, 150, 0.85)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let index = 0; index <= 48; index += 1) {
+      const u = index / 48;
+      const px = originX + u * waveW;
+      const py = circleY - Math.sin(u * Math.PI * 2 + angle) * amp;
+      if (index === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    const along = (((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2);
+    ctx.strokeStyle = "rgba(186, 206, 245, 0.4)";
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.moveTo(pointX, pointY);
+    ctx.lineTo(originX + along * waveW, circleY - Math.sin(angle) * amp);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#f4e6c8";
+    ctx.beginPath();
+    ctx.arc(originX + along * waveW, circleY - Math.sin(angle) * amp, 2.6, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+
+  const solidX = width * (narrow ? 0.8 : 0.8);
+  const solidY = height * (narrow ? 0.2 : 0.24);
+  const solid = Math.min(narrow ? 34 : 52, Math.min(width, height) * 0.055) + life * 6;
+  projectCube(ctx, solidX, solidY, solid, time * 0.85, (0.72 + life * 0.2) * quiet);
 
   const band = graphBand(width, height);
   const mid = (band.top + band.bottom) / 2;
-  ctx.strokeStyle = `rgba(244, 228, 200, ${0.22 * quiet})`;
+  const sample = (x: number, harmonic = 1, amp = sim.amp) => {
+    const local = (x - band.left) / (band.right - band.left);
+    return mid - Math.sin(local * Math.PI * 2 * sim.freq * harmonic + phase) * amp * 36;
+  };
+  ctx.save();
+  ctx.fillStyle = `rgba(12, 16, 32, ${(0.28 + life * 0.08) * quiet})`;
+  roundRect(ctx, band.left - 18, band.top - 16, band.right - band.left + 36, band.bottom - band.top + 32, 12);
+  ctx.fill();
+  ctx.strokeStyle = `rgba(214, 196, 150, ${0.28 * quiet})`;
   ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.strokeStyle = `rgba(244, 228, 200, ${0.28 * quiet})`;
   ctx.beginPath();
   ctx.moveTo(band.left, mid);
-  ctx.lineTo(band.right, mid);
+  ctx.lineTo(band.right + 8, mid);
   ctx.moveTo(band.left, band.top);
   ctx.lineTo(band.left, band.bottom);
   ctx.stroke();
   ctx.beginPath();
-  ctx.strokeStyle = `rgba(126, 168, 255, ${0.35 * Math.max(quiet, 0.5)})`;
-  ctx.lineWidth = 6;
+  ctx.moveTo(band.right + 8, mid);
+  ctx.lineTo(band.right + 2, mid - 4);
+  ctx.moveTo(band.right + 8, mid);
+  ctx.lineTo(band.right + 2, mid + 4);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = `rgba(126, 168, 255, ${0.28 * Math.max(quiet, 0.45)})`;
+  ctx.lineWidth = 5;
   for (let x = band.left; x <= band.right; x += 3) {
-    const local = (x - band.left) / (band.right - band.left);
-    const y = mid - Math.sin(local * Math.PI * 2 * sim.freq + time * 0.8) * sim.amp * 36;
+    const y = sample(x);
     if (x === band.left) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
   ctx.beginPath();
   ctx.strokeStyle = `rgba(255, 226, 150, ${0.95 * Math.max(quiet, 0.55)})`;
-  ctx.lineWidth = 2.2;
+  ctx.lineWidth = 1.8;
   let beadX = band.left;
   let beadY = mid;
   let beadGap = 1;
   const beadAt = (time * 0.12) % 1;
   for (let x = band.left; x <= band.right; x += 3) {
     const local = (x - band.left) / (band.right - band.left);
-    const y = mid - Math.sin(local * Math.PI * 2 * sim.freq + time * 0.8) * sim.amp * 36;
+    const y = sample(x);
     if (x === band.left) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
     const gap = Math.abs(local - beadAt);
@@ -1508,44 +1522,41 @@ function drawMath(ctx: CanvasRenderingContext2D, frame: SceneFrame) {
   ctx.stroke();
   if (life > 0.2) {
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(196, 154, 110, ${0.35 * quiet})`;
+    ctx.strokeStyle = `rgba(196, 154, 110, ${0.4 * quiet})`;
     ctx.lineWidth = 1.1;
     for (let x = band.left; x <= band.right; x += 4) {
-      const local = (x - band.left) / (band.right - band.left);
-      const y = mid - Math.sin(local * Math.PI * 2 * sim.freq * 2 + time) * sim.amp * 14;
+      const y = sample(x, 2, sim.amp * 0.38);
       if (x === band.left) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
+  ctx.strokeStyle = "rgba(244, 226, 196, 0.35)";
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath();
+  ctx.moveTo(beadX, beadY);
+  ctx.lineTo(beadX, mid);
+  ctx.stroke();
+  ctx.setLineDash([]);
   ctx.fillStyle = "#f4e2c4";
   ctx.beginPath();
-  ctx.arc(beadX, beadY, 3.4, 0, Math.PI * 2);
+  ctx.arc(beadX, beadY, 3.3, 0, Math.PI * 2);
   ctx.fill();
-
-  drawCompass(ctx, boardX + 34, boardY + boardH - 40, time, 0.7 * quiet);
   ctx.restore();
 
   const peek = Math.max(0, Math.sin(live * 0.33) - 0.86) / 0.14;
   const attention = Math.max(gazeMix, peek * (1 - gazeMix));
   if (!frame.focus || frame.freeze) {
-    const cycle = (live * 0.22) % 2;
+    const cycle = (live * 0.16) % 2;
     const going = cycle < 1;
     const along = going ? cycle : 2 - cycle;
-    const idleX = width * (0.32 + along * 0.28);
-    const idleY = height * 0.38;
+    const idleX = width * (narrow ? 0.46 + along * 0.08 : 0.48 + along * 0.08);
+    const idleY = height * (narrow ? 0.48 : 0.53);
     const gazeX = idleX + (width * 0.5 - idleX) * gazeMix;
-    const gazeY = idleY + (height * 0.24 - idleY) * gazeMix;
-    const scale = (Math.min(width, height) / 460) * (0.9 + gazeMix * 0.42);
+    const gazeY = idleY + (height * (narrow ? 0.38 : 0.36) - idleY) * gazeMix;
+    const scale = (Math.min(width, height) / 520) * (narrow ? 0.88 : 1) * (1 + gazeMix * 0.06);
     const facing = gazeMix > 0.25 ? 1 : going ? 1 : -1;
-    const glow = ctx.createRadialGradient(gazeX, gazeY - 20, 8, gazeX, gazeY, 90 * scale);
-    glow.addColorStop(0, `rgba(255, 214, 160, ${0.12 + attention * 0.2})`);
-    glow.addColorStop(1, "rgba(255, 214, 160, 0)");
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(gazeX, gazeY, 100 * scale, 0, Math.PI * 2);
-    ctx.fill();
-    drawChibi(ctx, gazeX, gazeY, scale, live, attention, facing);
+    drawFigure(ctx, gazeX, gazeY, scale, live, attention, facing);
   }
   for (const spot of frame.spots) marker(ctx, spot.x, spot.y, spot.open, "rgba(186, 206, 255, 0.95)", time);
 }
