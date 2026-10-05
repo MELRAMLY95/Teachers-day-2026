@@ -188,7 +188,44 @@ function heartBody(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: num
   ctx.closePath();
 }
 
-function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, warmth: number, pulse: number) {
+function drawLungs(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  s: number,
+  time: number,
+  warmth: number,
+) {
+  const breath = 1 + Math.sin(time * 0.85) * 0.035;
+  ctx.save();
+  for (const side of [-1, 1]) {
+    const lx = cx + side * s * 0.58;
+    const ly = cy - s * 0.02;
+    const lung = ctx.createRadialGradient(lx - side * s * 0.08, ly - s * 0.16, 6, lx, ly, s * 0.5);
+    lung.addColorStop(0, `rgba(214, 176, 168, ${0.48 + warmth * 0.3})`);
+    lung.addColorStop(1, "rgba(70, 36, 40, 0.05)");
+    ctx.beginPath();
+    ctx.ellipse(lx, ly, s * 0.34 * breath, s * 0.5 * breath, side * 0.18, 0, Math.PI * 2);
+    ctx.fillStyle = lung;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(232, 210, 198, ${0.18 + warmth * 0.2})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(168, 120, 112, ${0.28 + warmth * 0.2})`;
+    ctx.lineWidth = 1.15;
+    ctx.beginPath();
+    ctx.moveTo(cx + side * s * 0.06, cy - s * 0.32);
+    ctx.quadraticCurveTo(cx + side * s * 0.28, cy - s * 0.16, lx, ly + s * 0.02);
+    ctx.moveTo(cx + side * s * 0.24, cy - s * 0.1);
+    ctx.lineTo(cx + side * s * 0.4, cy - s * 0.24);
+    ctx.moveTo(cx + side * s * 0.3, cy + s * 0.02);
+    ctx.lineTo(cx + side * s * 0.46, cy + s * 0.12);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, warmth: number, pulse: number, time: number) {
   const muscle = mix("#6a3034", "#8a4844", warmth * 0.35);
   const deep = "#2a1418";
   const lit = mix("#8a504c", "#c4a090", warmth * 0.4);
@@ -230,12 +267,32 @@ function drawHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: num
   ctx.fill();
   ctx.restore();
 
-  drawTube(ctx, pipes.vena, s * 0.07, "#5c403c", "rgba(214, 186, 170, 0.28)");
-  drawTube(ctx, pipes.pulmonary, s * 0.06, "#5a3c3a", "rgba(220, 196, 180, 0.3)");
-  drawTube(ctx, pipes.lungLeft, s * 0.04, "#5a3c3a", "rgba(220, 196, 180, 0.25)");
-  drawTube(ctx, pipes.lungRight, s * 0.04, "#5a3c3a", "rgba(220, 196, 180, 0.25)");
-  drawTube(ctx, pipes.veins, s * 0.045, mix("#7a3030", "#a84840", warmth * 0.3), "rgba(240, 210, 196, 0.28)");
-  drawTube(ctx, pipes.aorta, s * 0.075, mix("#7a3030", "#b05048", warmth * 0.35), "rgba(240, 214, 200, 0.38)");
+  drawTube(ctx, pipes.vena, s * 0.07, mix("#3c3a48", "#5a4a58", warmth * 0.35), "rgba(196, 186, 206, 0.32)");
+  drawTube(ctx, pipes.pulmonary, s * 0.06, mix("#4a3a44", "#6a4450", warmth * 0.3), "rgba(220, 196, 200, 0.28)");
+  drawTube(ctx, pipes.lungLeft, s * 0.04, "#5a4048", "rgba(220, 196, 190, 0.25)");
+  drawTube(ctx, pipes.lungRight, s * 0.04, "#5a4048", "rgba(220, 196, 190, 0.25)");
+  drawTube(ctx, pipes.veins, s * 0.045, mix("#7a3030", "#c45448", warmth * 0.45), "rgba(255, 214, 200, 0.35)");
+  drawTube(ctx, pipes.aorta, s * 0.075, mix("#8a3030", "#d05848", warmth * 0.5), "rgba(255, 220, 206, 0.42)");
+
+  const cusp = Math.sin(time * (pulse > 0.4 ? 8 : 5.4));
+  ctx.save();
+  ctx.strokeStyle = `rgba(255, 226, 210, ${0.35 + warmth * 0.25})`;
+  ctx.lineWidth = 1.35;
+  ctx.beginPath();
+  ctx.moveTo(cx - s * 0.04, cy - s * 0.04);
+  ctx.quadraticCurveTo(cx - s * 0.12, cy + s * 0.08 + cusp * s * 0.02, cx - s * 0.02, cy + s * 0.16);
+  ctx.moveTo(cx + s * 0.08, cy - s * 0.02);
+  ctx.quadraticCurveTo(cx + s * 0.16, cy + s * 0.1 - cusp * s * 0.02, cx + s * 0.06, cy + s * 0.18);
+  ctx.stroke();
+  ctx.strokeStyle = `rgba(160, 48, 46, ${0.4 + pulse * 0.35})`;
+  ctx.lineWidth = 1.2 + pulse * 1.1;
+  ctx.beginPath();
+  ctx.moveTo(cx - s * 0.02, cy - s * 0.18);
+  ctx.bezierCurveTo(cx + s * 0.08, cy + s * 0.02, cx - s * 0.08, cy + s * 0.22, cx + s * 0.22, cy + s * 0.46);
+  ctx.moveTo(cx + s * 0.04, cy + s * 0.08);
+  ctx.quadraticCurveTo(cx + s * 0.2, cy + s * 0.2, cx + s * 0.34, cy + s * 0.36);
+  ctx.stroke();
+  ctx.restore();
 
   ctx.save();
   ctx.lineCap = "round";
@@ -455,7 +512,7 @@ function drawMemory(
         : id === "smile"
           ? `rgba(224, 196, 140, ${0.45 + open * 0.5})`
           : `rgba(214, 196, 168, ${0.4 + open * 0.45})`;
-  drawBloom(ctx, x, y, open, hue, time, id === "grade" ? 8 : id === "smile" ? 7 : 6);
+  drawBloom(ctx, x, id === "grade" ? y - 18 : y, open, hue, time, id === "grade" ? 8 : id === "smile" ? 7 : 6);
 }
 
 function drawNeuron(
@@ -502,26 +559,68 @@ function drawPlant(
   sway: number,
 ) {
   ctx.save();
-  ctx.strokeStyle = mix("#1a3328", "#3d6a48", open);
+  ctx.strokeStyle = mix("#1a3328", "#3d6a48", Math.max(open, 0.35));
   ctx.lineWidth = 1.7;
   ctx.beginPath();
   ctx.moveTo(x, base);
   ctx.quadraticCurveTo(x + 8, base - height * 0.45, x + sway, base - height);
   ctx.stroke();
-  for (const t of [0.38, 0.62, 0.82]) {
+  for (const t of [0.28, 0.48, 0.68, 0.84]) {
     const ly = base - height * t;
     const lx = x + sway * t;
-    ctx.fillStyle = `rgba(70, 110, 82, ${0.28 + open * 0.45})`;
+    const side = t > 0.5 ? 1 : -1;
+    ctx.fillStyle = `rgba(64, 112, 78, ${0.35 + open * 0.5})`;
     ctx.beginPath();
-    ctx.ellipse(lx + 14, ly, 11 + open * 14, 3.4 + open * 2.4, 0.55, 0, Math.PI * 2);
+    ctx.ellipse(lx + side * (12 + open * 8), ly, 10 + open * 12, 3.2 + open * 2, side * 0.7, 0, Math.PI * 2);
     ctx.fill();
-  }
-  if (open > 0.2) {
-    ctx.fillStyle = `rgba(224, 196, 156, ${0.25 + open * 0.65})`;
+    ctx.strokeStyle = "rgba(214, 206, 170, 0.2)";
     ctx.beginPath();
-    ctx.ellipse(x + sway, base - height - 2, 3 + open * 6, 2.4 + open * 3.5, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(lx, ly);
+    ctx.lineTo(lx + side * (16 + open * 10), ly);
+    ctx.stroke();
   }
+  ctx.fillStyle = `rgba(232, 206, 160, ${0.35 + open * 0.6})`;
+  ctx.beginPath();
+  ctx.ellipse(x + sway, base - height - 3, 2.2 + open * 5, 3 + open * 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (open > 0.35) {
+    ctx.globalAlpha = open;
+    for (let petal = 0; petal < 5; petal += 1) {
+      const angle = (petal / 5) * Math.PI * 2 + sway * 0.02;
+      ctx.fillStyle = "rgba(196, 92, 96, 0.75)";
+      ctx.beginPath();
+      ctx.ellipse(
+        x + sway + Math.cos(angle) * (5 + open * 4),
+        base - height - 3 + Math.sin(angle) * (4 + open * 3),
+        2.4 + open * 2,
+        1.5,
+        angle,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawButterfly(ctx: CanvasRenderingContext2D, x: number, y: number, time: number, life: number) {
+  const wing = 0.35 + Math.abs(Math.sin(time * 9)) * 0.65;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = 0.4 + life * 0.55;
+  ctx.fillStyle = "rgba(232, 196, 140, 0.9)";
+  ctx.beginPath();
+  ctx.ellipse(-12 * wing, -2, 14 * wing, 8, -0.5, 0, Math.PI * 2);
+  ctx.ellipse(12 * wing, -2, 14 * wing, 8, 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(176, 96, 88, 0.8)";
+  ctx.beginPath();
+  ctx.ellipse(-9 * wing, 5, 9 * wing, 5, -0.3, 0, Math.PI * 2);
+  ctx.ellipse(9 * wing, 5, 9 * wing, 5, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#2c1c18";
+  ctx.fillRect(-0.7, -7, 1.4, 14);
   ctx.restore();
 }
 
@@ -530,6 +629,20 @@ function drawEcg(ctx: CanvasRenderingContext2D, width: number, height: number, t
   const left = width * 0.18;
   const right = width * 0.82;
   ctx.save();
+  ctx.strokeStyle = "rgba(196, 148, 132, 0.14)";
+  ctx.lineWidth = 1;
+  for (let gx = left; gx <= right; gx += 18) {
+    ctx.beginPath();
+    ctx.moveTo(gx, y - 28);
+    ctx.lineTo(gx, y + 22);
+    ctx.stroke();
+  }
+  for (let gy = -24; gy <= 18; gy += 14) {
+    ctx.beginPath();
+    ctx.moveTo(left, y + gy);
+    ctx.lineTo(right, y + gy);
+    ctx.stroke();
+  }
   ctx.beginPath();
   ctx.strokeStyle = chaos > 0.15 ? "#e0a090" : "rgba(196, 148, 132, 0.85)";
   ctx.lineWidth = 1.6;
@@ -542,11 +655,26 @@ function drawEcg(ctx: CanvasRenderingContext2D, width: number, height: number, t
     if (local > 0.37 && local < 0.41) spike = -16;
     if (local > 0.41 && local < 0.45) spike = 7;
     if (local > 0.58 && local < 0.7) spike = -5;
-    if (chaos > 0) spike = Math.sin(u * 64 + time * 26) * (6 + chaos * 20);
+    if (chaos > 0) spike += Math.sin(u * 48 + time * 22) * chaos * 14;
     if (x === left) ctx.moveTo(x, y + spike);
     else ctx.lineTo(x, y + spike);
   }
   ctx.stroke();
+  const speed = chaos > 0 ? 1.6 : 0.22;
+  const head = (time * speed) % 1;
+  const headX = left + head * (right - left);
+  const localHead = (head * 2.6 + time * speed) % 1;
+  let spike = 0;
+  if (localHead > 0.12 && localHead < 0.18) spike = -4;
+  if (localHead > 0.34 && localHead < 0.37) spike = 6;
+  if (localHead > 0.37 && localHead < 0.41) spike = -16;
+  if (localHead > 0.41 && localHead < 0.45) spike = 7;
+  if (localHead > 0.58 && localHead < 0.7) spike = -5;
+  if (chaos > 0) spike += Math.sin(head * 48 + time * 22) * chaos * 14;
+  ctx.fillStyle = "#f4d2c4";
+  ctx.beginPath();
+  ctx.arc(headX, y + spike, 2.6, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -569,6 +697,14 @@ function drawMembrane(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx:
   ctx.strokeStyle = "rgba(255, 236, 214, 0.45)";
   ctx.lineWidth = 1.6;
   ctx.stroke();
+  ctx.fillStyle = "rgba(255, 228, 200, 0.55)";
+  for (let index = 0; index <= steps; index += 4) {
+    const angle = (index / steps) * Math.PI * 2;
+    const wobble = 1 + Math.sin(angle * 3 + time * 0.35) * 0.03;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(angle) * rx * wobble, cy + Math.sin(angle) * ry * wobble, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -705,7 +841,17 @@ export function LivingField({
     ctx.fill();
 
     const heartScale = scale;
-    drawHeart(ctx, hx, hy, heartScale, rt.warmth, pulse);
+    drawLungs(ctx, hx, hy, heartScale, rt.time, rt.warmth);
+    drawHeart(ctx, hx, hy, heartScale, rt.warmth, pulse, rt.time);
+    const beatPeriod = fast ? 0.32 : 1.16;
+    const ring = (rt.time % beatPeriod) / beatPeriod;
+    ctx.save();
+    ctx.strokeStyle = `rgba(214, 150, 128, ${(1 - ring) * (0.18 + rt.warmth * 0.28)})`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(hx, hy, heartScale * (0.85 + ring * 1.15), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
     const pipes = vessels(hx, hy, heartScale);
     const showRight = rt.flow !== 1;
     const showLeft = rt.flow !== 0;
@@ -721,10 +867,18 @@ export function LivingField({
       const path = pipes[drop.route];
       const at = along(path, drop.t);
       const oxygenated = drop.route === "aorta" || drop.route === "veins";
-      ctx.fillStyle = oxygenated ? "rgba(176, 64, 58, 0.92)" : "rgba(92, 62, 70, 0.92)";
+      ctx.save();
+      ctx.translate(at.x, at.y);
+      ctx.rotate(drop.t * 6);
+      ctx.fillStyle = oxygenated ? "rgba(186, 52, 46, 0.95)" : "rgba(78, 58, 74, 0.95)";
       ctx.beginPath();
-      ctx.arc(at.x, at.y, 2.6, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 3.6, 2.1, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = oxygenated ? "rgba(90, 22, 24, 0.45)" : "rgba(36, 28, 36, 0.45)";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 1.15, 0.65, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     const cells = 7 + Math.round(life * 12);
@@ -733,16 +887,34 @@ export function LivingField({
       const x = width * (0.08 + hash(index) * 0.84) + drift;
       const y = height * (0.18 + hash(index + 3) * 0.55) + Math.cos(rt.time * 0.18 + index) * (rt.reduced ? 0 : 8);
       if (Math.hypot(x - hx, y - hy) < heartScale * 1.05) continue;
+      const crowded = garden.some((memory) => {
+        const at = placeOf(memory.id, width, height);
+        return Math.hypot(x - at.x, y - at.y) < 54;
+      });
+      if (crowded) continue;
       drawCell(ctx, x, y, 16 + hash(index + 5) * 20, life > 0.45 && hash(index + 8) > 0.72);
     }
 
     const plants = 9 + Math.round(life * 8);
     for (let index = 0; index < plants; index += 1) {
       const x = (index + 0.5) * (width / plants);
-      const stem = 48 + life * 90 * (0.5 + hash(index) * 0.55);
-      const sway = rt.reduced ? 0 : Math.sin(rt.time * 0.55 + index) * 5;
-      const open = Math.max(life * 0.85, rt.opened.has("smile") ? 0.72 : 0, rt.warmth * 0.65);
-      drawPlant(ctx, x, height * 0.94, stem, open, sway);
+      if (Math.abs(x - width * 0.5) < 78) continue;
+      const stem = 78 + life * 120 * (0.45 + hash(index) * 0.55);
+      const sway = rt.reduced ? 0 : Math.sin(rt.time * 0.55 + index) * 6;
+      const open = Math.max(0.22, life * 0.9, rt.opened.has("smile") ? 0.85 : 0, rt.warmth * 0.7);
+      drawPlant(ctx, x, height * 0.96, stem, open, sway);
+    }
+    const wingX = width * (0.5 + Math.sin(rt.time * 0.33) * 0.1);
+    const wingY = height * (0.71 + Math.cos(rt.time * 0.47) * 0.035);
+    drawButterfly(ctx, wingX, wingY, rt.time, life);
+    for (let index = 0; index < 7; index += 1) {
+      const blink = (Math.sin(rt.time * 2.2 + index * 1.7) + 1) / 2;
+      const fx = width * (0.12 + hash(index + 30) * 0.76);
+      const fy = height * (0.68 + Math.sin(rt.time * 0.7 + index) * 0.04);
+      ctx.fillStyle = `rgba(214, 230, 150, ${(0.12 + blink * 0.55) * (0.45 + life)})`;
+      ctx.beginPath();
+      ctx.arc(fx, fy, 1.5 + blink, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     for (const memory of garden) {

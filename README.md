@@ -56,7 +56,7 @@ Miss Hadia, physics. A pendulum, a star with a real orbit, and a spring. Pull th
 
 Miss Noshen, mathematics. A cube turns, a spiral draws itself, and a curve follows your hand. A cartoon of her walks the room. The stare quiets the shapes, then the line about that look. The messages stay in her own words.
 
-Miss Kalsoom, biology. An anatomical heart in a living garden. Click the heart and the trace follows one side, then the other: deoxygenated blood toward the lungs, oxygenated blood out through the aorta. The world grows warmer as the memories are read. Grade 6 / 7 is quiet, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
+Miss Kalsoom, biology. An anatomical heart between breathing lungs, in a living garden. Click the heart and the trace follows one side, then the other: deoxygenated blood toward the lungs, oxygenated blood out through the aorta. The world grows warmer as the memories are read. Grade 6 / 7 is quiet, and the lines arrive with a pause. After all eight, the letter uses those same sentences, the view pulls back, and the world ends with Miss Kalsoom Ashraf and Happy Teachers' Day.
 
 Miss Naila, English. A lamp between two windows, shelves, a desk, and words that drift. The sentence on the page changes when you choose plain, finished, or decorated. The notebooks are still the joke. The room is the place that is safe to talk.
 
